@@ -67,7 +67,7 @@
           <div class="page-head" style="margin:0 0 12px">
             <div class="page-title" style="gap:2px">
               <small>教师课表</small>
-              <h1 style="font-size:24px">默认沿用</h1>
+              <h1 style="font-size:24px">按年级沿用</h1>
             </div>
             <div class="head-actions">
               <a class="btn" href="profile.html">去教学档案调整</a>
@@ -75,7 +75,7 @@
           </div>
           <div class="muted tiny" style="margin-bottom:10px">当前来源：<span id="scheduleSourceText"></span></div>
           <table class="table">
-            <thead><tr><th>班级</th><th>周几</th><th>第几节</th><th>备注</th></tr></thead>
+            <thead><tr><th>年级</th><th>班级数</th><th>每周课时</th><th>上课日</th><th>备注</th></tr></thead>
             <tbody id="scheduleRows"></tbody>
           </table>
         </article>
@@ -86,13 +86,13 @@
           <div class="page-head" style="margin:0 0 12px">
             <div class="page-title" style="gap:2px">
               <small>教材目录 / 课题清单</small>
-              <h1 style="font-size:24px">导入与整理</h1>
+              <h1 style="font-size:24px">课题卡片</h1>
             </div>
             <div class="head-actions">
               <input id="topicFileInput" type="file" accept=".txt,.md,.csv" hidden>
               <button class="btn" type="button" id="uploadTopicBtn">上传教材目录</button>
               <button class="btn" type="button" id="parseTopicBtn">从文本整理</button>
-              <button class="btn" type="button" id="addTopicBtn">新增一行</button>
+              <button class="btn" type="button" id="addTopicBtn">新增课题卡</button>
             </div>
           </div>
           <div class="field" style="margin-bottom:12px">
@@ -100,10 +100,7 @@
             <textarea id="topicSeedText" placeholder="可以直接粘贴教材目录、课题清单，或先上传 txt / md / csv。"></textarea>
           </div>
           <div class="muted tiny" id="topicImportState" style="margin-bottom:12px">这里是明确导入入口，不需要只喂给助手。</div>
-          <table class="table">
-            <thead><tr><th>单元 / 课题</th><th>课时</th><th>类型</th><th>必上</th><th></th></tr></thead>
-            <tbody id="topicRows"></tbody>
-          </table>
+          <div class="list" id="topicCards"></div>
         </article>
 
         <article class="card">
@@ -137,12 +134,15 @@
     </main>
   </div>
 
+  <script src="prep_truth_source_v1.js"></script>
   <script src="clean-shell.js"></script>
   <script>
     CLEAN_PROTO.mount({ page:'planner', title:'AI 学期排课向导', assistant:'planner' });
     const DRAFT_KEY = 'xiaobei_semester_plan_draft_v1';
     const CURRENT_KEY = 'xiaobei_semester_plan_current_v1';
     const profile = CLEAN_PROTO.ensureProfile();
+    const prepSource = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const knownTopicNames = new Set((prepSource ? prepSource.listLessonTasks() : []).map(item => item.topic_name));
     const IMPACT_OPTIONS = ['减容量', '插入活动课', '占课顺延', '考试周', '其他'];
     let holidayList = [
       {label:'清明', selected:true},
@@ -205,7 +205,10 @@
       if (!start || !end || start > end) return [];
       const rows = [];
       const topicUnits = buildTopicUnits();
-      const baseCapacity = (profile.scheduleRows || []).length || 0;
+      const gradeRows = profile.gradeScheduleRows || [];
+      const selectedGrade = document.getElementById('grade').value;
+      const matchedRow = gradeRows.find(item => item.grade === selectedGrade) || gradeRows[0] || { weeklyLessons: 2 };
+      const baseCapacity = Math.max(1, Number(matchedRow.weeklyLessons) || 2);
       let cursor = new Date(start);
       let weekIndex = 1;
       while (cursor <= end) {
@@ -237,27 +240,48 @@
 
     function renderSchedule(){
       document.getElementById('scheduleSourceText').textContent = profile.scheduleSource || '教学档案维护';
-      document.getElementById('scheduleRows').innerHTML = (profile.scheduleRows || []).map(row => `<tr><td>${row.className}</td><td>${row.weekday}</td><td>${row.period}</td><td>${row.note || ''}</td></tr>`).join('');
+      document.getElementById('scheduleRows').innerHTML = (profile.gradeScheduleRows || []).map(row => `<tr><td>${row.grade}</td><td>${row.classCount}</td><td>${row.weeklyLessons}</td><td>${row.weekdays}</td><td>${row.note || ''}</td></tr>`).join('');
       document.getElementById('grade').value = profile.preferredGrade || '三年级';
       document.getElementById('subject').value = profile.subject || '美术';
     }
 
     function renderTopics(){
-      document.getElementById('topicRows').innerHTML = topics.map((row,index)=>`
-        <tr>
-          <td><input data-topic="${index}" data-key="name" value="${row.name}"></td>
-          <td><input data-topic="${index}" data-key="hours" value="${row.hours}"></td>
-          <td><input data-topic="${index}" data-key="type" value="${row.type}"></td>
-          <td><input data-topic="${index}" data-key="required" value="${row.required}"></td>
-          <td><button class="btn" type="button" data-topic-remove="${index}">删</button></td>
-        </tr>
+      document.getElementById('topicCards').innerHTML = topics.map((row,index)=>`
+        <div class="list-item">
+          <div class="list-item-head">
+            <div>
+              <strong>${row.name || '未命名课题'}</strong>
+              <div class="muted tiny">${row.type} · ${row.hours} 课时 · ${row.required === '是' ? '必上' : '可机动'}</div>
+            </div>
+            <span class="status ${knownTopicNames.has(row.name) ? 'green' : 'slate'}">${knownTopicNames.has(row.name) ? '已有备课链' : '待接备课链'}</span>
+          </div>
+          <div class="inline-actions" style="margin-top:10px">
+            <button class="btn" type="button" data-topic-edit="${index}">编辑</button>
+            <button class="btn" type="button" data-topic-remove="${index}">删除</button>
+          </div>
+        </div>
       `).join('');
-      document.querySelectorAll('[data-topic]').forEach(input => {
-        input.oninput = () => { topics[Number(input.dataset.topic)][input.dataset.key] = input.value; };
+      document.querySelectorAll('[data-topic-edit]').forEach(btn => {
+        btn.onclick = () => editTopic(Number(btn.dataset.topicEdit));
       });
       document.querySelectorAll('[data-topic-remove]').forEach(btn => {
         btn.onclick = () => { topics.splice(Number(btn.dataset.topicRemove),1); renderTopics(); };
       });
+    }
+
+    function editTopic(index){
+      const row = topics[index];
+      if (!row) return;
+      const nextName = prompt('课题名', row.name || '');
+      if (nextName === null) return;
+      const nextHours = prompt('课时数', row.hours || '2');
+      if (nextHours === null) return;
+      const nextType = prompt('类型（教材 / 活动 / 项目 / 复习）', row.type || '教材');
+      if (nextType === null) return;
+      const nextRequired = prompt('是否必上（是 / 否）', row.required || '是');
+      if (nextRequired === null) return;
+      topics[index] = { name: nextName, hours: nextHours, type: nextType, required: nextRequired };
+      renderTopics();
     }
 
     function renderHolidayTags(){
@@ -458,8 +482,9 @@
       document.getElementById('topicImportState').textContent = count ? `已整理 ${count} 条课题。` : '没有可整理的课题，请先粘贴或上传目录。';
     };
     document.getElementById('addTopicBtn').onclick = () => {
-      topics.push({name:'',hours:'2',type:'教材',required:'是'});
+      topics.push({name:'新课题',hours:'2',type:'教材',required:'是'});
       renderTopics();
+      editTopic(topics.length - 1);
     };
     document.getElementById('addActivityBtn').onclick = () => {
       activities.push({start:'',end:'',name:'',impact:'减容量',impactCustom:'',note:''});

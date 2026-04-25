@@ -44,7 +44,7 @@
         <div class="page-head" style="margin:0 0 12px">
           <div class="page-title" style="gap:2px">
             <small>教师课表</small>
-            <h1 style="font-size:24px">我的课表</h1>
+            <h1 style="font-size:24px">按年级维护</h1>
           </div>
           <div class="head-actions">
             <button class="btn" type="button" id="importFeishuBtn">导入飞书现有课</button>
@@ -53,7 +53,7 @@
         </div>
         <div class="muted tiny" style="margin-bottom:10px">当前来源：<span id="scheduleSourceText"></span></div>
         <table class="table">
-          <thead><tr><th>班级</th><th>周几</th><th>第几节</th><th>备注</th><th></th></tr></thead>
+          <thead><tr><th>年级</th><th>班级数</th><th>每周节数</th><th>上课日</th><th>备注</th><th></th></tr></thead>
           <tbody id="scheduleBody"></tbody>
         </table>
       </section>
@@ -66,18 +66,10 @@
     const KEY = 'xiaobei_teacher_profile_v1';
     const profile = Object.assign(CLEAN_PROTO.ensureProfile(), CLEAN_PROTO.readJson(KEY));
     const FEISHU_ROWS = [
-      {className:'三（1）班',weekday:'周一',period:'第1节',note:'飞书同步 · 美术教室1'},
-      {className:'三（2）班',weekday:'周一',period:'第3节',note:'飞书同步 · 美术教室1'},
-      {className:'三（3）班',weekday:'周二',period:'第1节',note:'飞书同步 · 美术教室1'},
-      {className:'三（4）班',weekday:'周二',period:'第3节',note:'飞书同步 · 美术教室1'},
-      {className:'三（5）班',weekday:'周三',period:'第2节',note:'飞书同步 · 美术教室1'},
-      {className:'四（1）班',weekday:'周三',period:'第4节',note:'飞书同步 · 美术教室2'},
-      {className:'四（2）班',weekday:'周四',period:'第1节',note:'飞书同步 · 美术教室2'},
-      {className:'四（3）班',weekday:'周四',period:'第3节',note:'飞书同步 · 美术教室2'},
-      {className:'四（4）班',weekday:'周五',period:'第1节',note:'飞书同步 · 美术教室2'},
-      {className:'四（5）班',weekday:'周五',period:'第3节',note:'飞书同步 · 美术教室2'}
+      {grade:'三年级',classCount:'5',weeklyLessons:'2',weekdays:'周四、周五',note:'飞书同步 · 年级课表'},
+      {grade:'四年级',classCount:'5',weeklyLessons:'2',weekdays:'周二、周三',note:'飞书同步 · 年级课表'}
     ];
-    let rows = Array.isArray(profile.scheduleRows) ? profile.scheduleRows.slice() : [];
+    let rows = Array.isArray(profile.gradeScheduleRows) ? profile.gradeScheduleRows.slice() : [];
     let scheduleSource = profile.scheduleSource || '教学档案维护';
     let feishuImported = !!profile.feishuImported;
     if (!rows.length) rows = FEISHU_ROWS.slice();
@@ -85,9 +77,10 @@
     function rowHtml(row,index){
       return `
         <tr>
-          <td><input data-index="${index}" data-key="className" value="${row.className || ''}"></td>
-          <td><input data-index="${index}" data-key="weekday" value="${row.weekday || ''}"></td>
-          <td><input data-index="${index}" data-key="period" value="${row.period || ''}"></td>
+          <td><input data-index="${index}" data-key="grade" value="${row.grade || ''}"></td>
+          <td><input data-index="${index}" data-key="classCount" value="${row.classCount || ''}"></td>
+          <td><input data-index="${index}" data-key="weeklyLessons" value="${row.weeklyLessons || ''}"></td>
+          <td><input data-index="${index}" data-key="weekdays" value="${row.weekdays || ''}"></td>
           <td><input data-index="${index}" data-key="note" value="${row.note || ''}"></td>
           <td><button class="btn" type="button" data-remove="${index}">删除</button></td>
         </tr>
@@ -117,7 +110,7 @@
     }
 
     document.getElementById('addScheduleBtn').onclick = () => {
-      rows.push({className:'',weekday:'周四',period:'第1节',note:''});
+      rows.push({grade:'',classCount:'',weeklyLessons:'2',weekdays:'周四、周五',note:''});
       scheduleSource = feishuImported ? '飞书现有课（已导入，可继续编辑）' : '教学档案维护';
       feishuImported = false;
       renderRows();
@@ -139,6 +132,7 @@
         outputStyle: document.getElementById('outputStyle').value,
         scheduleSource,
         feishuImported,
+        gradeScheduleRows: rows,
         scheduleRows: rows
       }));
       location.reload();

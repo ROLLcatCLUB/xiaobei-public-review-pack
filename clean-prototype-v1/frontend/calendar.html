@@ -59,12 +59,14 @@
     function defaultWeeks(){
       return [...new Map(tasks.map(item => [item.week_no, null])).keys()].map(week => {
       const rows = tasks.filter(item => item.week_no === week);
+      const uniqueTopics = [...new Set(rows.map(item => item.topic_name))];
       return {
         week_no: week,
         week_label: rows[0].week_label,
         date_range: rows[0].date_range,
-        lesson_count: rows.length,
-        planned_summary: rows.map(item => item.topic_name).join('、'),
+        grade_scope: rows[0].grade_scope,
+        lesson_count: uniqueTopics.length,
+        planned_summary: uniqueTopics.join('、'),
         actual_summary: week === 9 ? '足球奖杯设计顺延到第10周前半' : '按原计划执行',
         holiday_summary: week === 9 ? '五一前后' : '—',
         note: week === 9 ? '活动周压缩了可用容量。' : '当前无额外变动。',
@@ -172,12 +174,16 @@
       document.getElementById('weekDetail').innerHTML = `
         <div class="identity-strip">
           <div class="identity-item"><small>日期</small><strong>${week.date_range}</strong></div>
+          <div class="identity-item"><small>年级</small><strong>${week.grade_scope || '三年级'}</strong></div>
           <div class="identity-item"><small>本周课时</small><strong>${week.lesson_count || 0} 节</strong></div>
           <div class="identity-item"><small>原计划</small><strong>${week.planned_summary}</strong></div>
           <div class="identity-item"><small>实际执行</small><strong>${week.actual_summary}</strong></div>
         </div>
         <div class="list">
-          ${(week.rows || []).map(item => `<div class="list-item"><strong>${item.class_name} · ${item.topic_name}</strong><div class="muted tiny">${item.day_label}${item.period} · ${item.lesson_type}</div></div>`).join('') || `<div class="list-item"><strong>${week.planned_summary}</strong><div class="muted tiny">${week.note || '本周内容已从 AI 草案写入，可继续人工调整。'}</div></div>`}
+          ${(() => {
+            const cards = [...new Map((week.rows || []).map(item => [item.topic_name, item])).values()];
+            return cards.map(item => `<div class="list-item"><strong>${week.grade_scope || item.grade_scope} · ${item.topic_name}</strong><div class="muted tiny">${item.lesson_type} · ${item.unit_name}</div></div>`).join('');
+          })() || `<div class="list-item"><strong>${week.planned_summary}</strong><div class="muted tiny">${week.note || '本周内容已从 AI 草案写入，可继续人工调整。'}</div></div>`}
         </div>
       `;
       document.getElementById('adjustPanel').innerHTML = `

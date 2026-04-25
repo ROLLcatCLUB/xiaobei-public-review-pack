@@ -19,6 +19,10 @@
       commonClasses:'三年级1-5班 · 四年级1-5班',
       scheduleSource:'教学档案维护',
       feishuImported:false,
+      gradeScheduleRows:[
+        {grade:'三年级', classCount:'5', weeklyLessons:'2', weekdays:'周四、周五', note:'先按年级维护教学框架'},
+        {grade:'四年级', classCount:'5', weeklyLessons:'2', weekdays:'周二、周三', note:'班级差异放到后续备课里调整'}
+      ],
       scheduleRows:[
         {className:'三（1）班', weekday:'周一', period:'第1节', note:'美术教室1'},
         {className:'三（2）班', weekday:'周一', period:'第3节', note:'美术教室1'},
@@ -47,10 +51,15 @@
         commonClasses: defaults.commonClasses,
         scheduleSource: existing && existing.scheduleSource ? existing.scheduleSource : defaults.scheduleSource,
         feishuImported: existing && typeof existing.feishuImported === 'boolean' ? existing.feishuImported : defaults.feishuImported,
+        gradeScheduleRows: existing && Array.isArray(existing.gradeScheduleRows) && existing.gradeScheduleRows.length ? existing.gradeScheduleRows : defaults.gradeScheduleRows,
         scheduleRows: existing && Array.isArray(existing.scheduleRows) && existing.scheduleRows.length ? existing.scheduleRows : defaults.scheduleRows
       });
       localStorage.setItem(PROFILE_KEY, JSON.stringify(seeded));
       return seeded;
+    }
+    if (!Array.isArray(merged.gradeScheduleRows) || !merged.gradeScheduleRows.length) {
+      merged.gradeScheduleRows = defaults.gradeScheduleRows;
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));
     }
     if (!existing || !existing.teacherName) {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));
