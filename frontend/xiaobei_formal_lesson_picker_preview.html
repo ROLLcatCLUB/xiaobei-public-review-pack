@@ -145,10 +145,10 @@ a,button,select{font:inherit}a{text-decoration:none;color:inherit}
     <div class="hero-content">
       <span class="eyebrow" id="heroEyebrow">备课主线 · 第一步</span>
       <h1 id="heroTitle">先确认：我现在要处理的是哪一节课</h1>
-      <p id="heroSummary">这里不是学期总纲页，也不是备课页。它只负责从真实课时项里选中一节课，写出干净的 `selected_lesson_context_v1.1`，然后固定送老师进入课前简报页。</p>
+      <p id="heroSummary">这里不是学期总纲页，也不是备课页。它只负责从真实课时项里选中一节课，锁定当前课时身份，然后固定送老师进入课前简报页。</p>
       <div class="meta-row">
         <span class="meta-pill" id="metaPill1">只做筛课，不做生成</span>
-        <span class="meta-pill" id="metaPill2">只写 lesson context，不写草稿</span>
+        <span class="meta-pill" id="metaPill2">只锁定课时，不写草稿</span>
         <span class="meta-pill" id="metaPill3">主按钮固定进入 brief</span>
       </div>
       <div class="mode-switch" id="modeSwitch"></div>
@@ -182,7 +182,7 @@ a,button,select{font:inherit}a{text-decoration:none;color:inherit}
       <div class="slot-quick-card" id="profileSlotCard"></div>
       <div class="helper" id="filterHelper">
         <b>这页只做 4 件事</b>
-        能筛课、能选中真实课时项、能写入最小 lesson context、主按钮固定进入课前简报。
+        能筛课、能选中真实课时项、能锁定最小课时身份、主按钮固定进入课前简报。
       </div>
     </aside>
 
@@ -353,7 +353,7 @@ function detailHtml(task) {
       <div class="detail-note">${task.note}</div>
     </div>
     <div class="detail-card">
-      <h3>即将写入的 lesson context</h3>
+      <h3>即将锁定的当前课时</h3>
       <div class="detail-grid">
         <div class="detail-item"><small>course_plan_item_id</small><strong>${lessonContext.course_plan_item_id}</strong></div>
         <div class="detail-item"><small>lesson_key</small><strong>${lessonContext.lesson_key}</strong></div>
@@ -463,7 +463,7 @@ function renderProfileSlotCard(tasks) {
   card.style.display = 'block';
   card.innerHTML = `
     <b>按我的教师课表快速锁定班级</b>
-    先从老师档案里的课表班级里点一个，再从右侧确认这节课。系统只帮你缩小范围，不会跳过 lesson context。
+    先从老师档案里的课表班级里点一个，再从右侧确认这节课。系统只帮你缩小范围，不会跳过当前课时确认。
     <div class="slot-buttons">${slotButtons}</div>
   `;
 

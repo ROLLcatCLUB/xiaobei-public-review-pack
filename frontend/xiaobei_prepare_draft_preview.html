@@ -362,7 +362,7 @@ function renderGuard() {
   document.getElementById('heroTag').textContent = '上下文缺失';
   document.getElementById('heroTitle').textContent = '请先从正式选课进入课前简报，再开始备课';
   document.getElementById('heroVersion').textContent = '当前不能空上下文进入极简 / 快速版';
-  document.getElementById('heroSummary').textContent = '当前没有检测到 selected_lesson_context_v1.1。这里不会假装帮你起草一节没有真实身份的课。';
+  document.getElementById('heroSummary').textContent = '当前还没有锁定本节课。这里不会假装帮你起草一节没有真实身份的课。';
   document.getElementById('saveNote').style.display = 'none';
   renderIdentityStrip(null);
   document.getElementById('heroMeta').innerHTML = `
@@ -375,7 +375,7 @@ function renderGuard() {
   guard.style.display = 'block';
   guard.innerHTML = `
     <h2>当前不能直接进入备课页</h2>
-    <p>请先从正式选课进入课前简报，再开始备课。极简版和快速版都只承接已经明确 lesson context 的课时项。</p>
+    <p>请先从正式选课进入课前简报，再开始备课。极简版和快速版都只承接已经明确课时上下文的课。</p>
     <div class="actions">
       <a class="btn" href="xiaobei_formal_lesson_picker_preview.html">返回正式选课</a>
       <a class="btn green" href="xiaobei_preclass_brief_preview.html">返回课前简报</a>
@@ -437,7 +437,7 @@ function renderSaveNote(draft, modeLabel, restored) {
   note.style.display = 'block';
   note.innerHTML = `
     <strong>${restored ? '已恢复上次草稿' : '草稿已保存'}</strong>
-    <span>${modeLabel}：${draft.topic_name} · ${draft.class_name || '当前班级'} · 保存时间 ${formatSavedAt(draft.saved_at)}。当前继续编辑状态已绑定同一份课时上下文。</span>
+    <span>${modeLabel}：${draft.topic_name} · ${draft.class_name || '当前班级'} · 保存时间 ${formatSavedAt(draft.saved_at)}。当前可以继续回到同一节课、同一条草稿链。</span>
   `;
 }
 
@@ -570,7 +570,7 @@ function renderModePage(task, lesson, slot) {
   bindSave(task, mode);
   const statusCard = document.getElementById('statusCard');
   statusCard.innerHTML += `
-    <div id="draftRestoreStatus" class="status-item"><b>草稿状态</b><span>正在检查是否已有已保存草稿…当前模式与“继续编辑”状态都会绑定同一份 lesson context。</span></div>
+    <div id="draftRestoreStatus" class="status-item"><b>草稿状态</b><span>正在检查是否已有已保存草稿…如果已经保存过，这里会直接回到同一节课的继续编辑状态。</span></div>
   `;
   if (refineDraft) {
     statusCard.innerHTML += `

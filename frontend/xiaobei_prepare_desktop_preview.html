@@ -235,7 +235,7 @@ a,button{font:inherit}a{text-decoration:none;color:inherit}
       <div class="list">
         <div class="list-item"><b>首页职责</b> 只做意图分流，不直接问“你选哪一课”。</div>
         <div class="list-item"><b>学期教学安排页职责</b> 看总纲、周历、原计划 / 实际执行，并承接顺延与调整。</div>
-        <div class="list-item"><b>正式选课页职责</b> 只从真实课时项里选中一节课，写入 lesson context，再送去 brief / 快速版。</div>
+        <div class="list-item"><b>正式选课页职责</b> 只从真实课时项里选中一节课，锁定当前课时，再送去 brief / 快速版。</div>
       </div>
     </aside>
   </div>
@@ -299,7 +299,7 @@ function renderResumeEntry() {
     summary.textContent = '当前还没有已保存的备课草稿。第一步更适合走“今天快速备一节”，先从真实课时项里选一节课，把一版快速稿立起来。';
     lesson.textContent = '还没有上次课';
     mode.textContent = '先从快速版开始';
-    note.textContent = '继续上次备课入口当前为空，所以主按钮已经自动切换到“今天快速备一节”。';
+    note.textContent = '当前还没有可继续的草稿，所以主按钮已经自动切换到“今天快速备一节”。';
     primaryBtn.textContent = '先去今天快速备一节';
     primaryBtn.setAttribute('href', 'xiaobei_formal_lesson_picker_preview.html?flow=fast');
     return;
@@ -317,7 +317,7 @@ function renderResumeEntry() {
   lesson.textContent = task ? `${task.class_name} · ${task.topic_name}` : latestDraft.lesson_key;
   mode.textContent = latestDraftDesc?.summary || `${source.getSavedDraftLabel(latestDraft.draft_mode)} · ${new Date(latestDraft.saved_at).toLocaleString('zh-CN', { hour12: false })}`;
   note.textContent = task
-    ? `这条继续入口仍然依赖同一份 lesson context。不会绕过课时身份，也不会重新走一套独立上下文。`
+    ? `这条继续入口仍然依赖同一节课的身份。不会绕过课时确认，也不会重新走一套独立上下文。`
     : '如果课时信息缺失，后续页面会继续要求先确认上下文。';
   primaryBtn.textContent = latestDraftDesc?.continueLabel || source.getContinueActionLabel(latestDraft.draft_mode);
   primaryBtn.setAttribute('href', buildDraftHref(latestDraft));
