@@ -52,6 +52,10 @@ a,button,textarea{font:inherit;text-decoration:none;color:inherit}
 .guard .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .save-note{display:none;margin:-4px 0 16px;padding:14px 16px;border-radius:16px;background:#eef8f2;border:1px solid #cfe5d8;color:#355c4c}
 .save-note strong{display:block;margin-bottom:4px}
+.identity-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 16px}
+.identity-item{padding:12px 14px;border-radius:16px;background:#fff;border:1px solid #e8ddd0;box-shadow:var(--shadow-sm)}
+.identity-item small{display:block;color:#6d7b72;font-size:12px;font-weight:900;margin-bottom:6px}
+.identity-item strong{display:block;font-size:14px;line-height:1.55}
 .workspace{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
 .stack{display:grid;gap:18px}
 .panel{background:#fff;border:1px solid #eee5dc;border-radius:20px;box-shadow:var(--shadow-sm);padding:18px}
@@ -125,6 +129,12 @@ a,button,textarea{font:inherit;text-decoration:none;color:inherit}
 
     <section id="contextGuard" class="guard"></section>
     <section id="saveNote" class="save-note"></section>
+    <section id="lessonIdentityStrip" class="identity-strip">
+      <div class="identity-item"><small>当前课时</small><strong>我的班级球衣</strong></div>
+      <div class="identity-item"><small>周次 / 日期</small><strong>第8周 · 4/21-4/25</strong></div>
+      <div class="identity-item"><small>班级 / 节次</small><strong>三（2）班 · 周四第3节</strong></div>
+      <div class="identity-item"><small>当前阶段</small><strong>已有快速稿 · 已保存快速稿</strong></div>
+    </section>
 
     <div id="workspace" class="workspace">
       <section class="stack">
@@ -326,6 +336,23 @@ function buildRefineHref(task) {
   return `xiaobei_prepare_refine_preview.html?${query.toString()}`;
 }
 
+function renderIdentityStrip(task) {
+  const strip = document.getElementById('lessonIdentityStrip');
+  const identity = source?.buildLessonIdentitySummary ? source.buildLessonIdentitySummary(task) : null;
+  if (!identity) {
+    strip.style.display = 'none';
+    strip.innerHTML = '';
+    return;
+  }
+  strip.style.display = 'grid';
+  strip.innerHTML = `
+    <div class="identity-item"><small>当前课时</small><strong>${identity.topic_name}</strong></div>
+    <div class="identity-item"><small>周次 / 日期</small><strong>${identity.week_date}</strong></div>
+    <div class="identity-item"><small>班级 / 节次</small><strong>${identity.slot}</strong></div>
+    <div class="identity-item"><small>当前阶段</small><strong>${identity.status} · ${identity.draft_summary}</strong></div>
+  `;
+}
+
 function renderGuard() {
   document.title = '极简版 / 快速版备课页 - 请先选课';
   document.getElementById('navModePill').textContent = '需回主线';
@@ -337,6 +364,7 @@ function renderGuard() {
   document.getElementById('heroVersion').textContent = '当前不能空上下文进入极简 / 快速版';
   document.getElementById('heroSummary').textContent = '当前没有检测到 selected_lesson_context_v1.1。这里不会假装帮你起草一节没有真实身份的课。';
   document.getElementById('saveNote').style.display = 'none';
+  renderIdentityStrip(null);
   document.getElementById('heroMeta').innerHTML = `
     <span class="chip">当前状态：未选课</span>
     <span class="chip">建议入口：正式选课</span>
@@ -478,6 +506,7 @@ function renderModePage(task, lesson, slot) {
   const assignmentSummary = slot?.submission_summary || task.assignment_summary;
   const riskTag = slot?.risk_tag || task.risk_tag;
   currentResolvedTask = task;
+  renderIdentityStrip(task);
 
   document.title = `${modeConfig.version} - ${task.topic_name}`;
   document.getElementById('navModePill').textContent = modeConfig.navPill;

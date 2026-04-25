@@ -673,6 +673,22 @@
     };
   }
 
+  function buildLessonIdentitySummary(taskOrQuery){
+    const runtimeTask = buildRuntimeLessonTask(taskOrQuery);
+    if (!runtimeTask) return null;
+    const latestDraftDesc = describeLatestDraft(runtimeTask);
+    return {
+      topic_name: runtimeTask.topic_name,
+      week_date: `${runtimeTask.week_label} · ${runtimeTask.date_range}`,
+      slot: `${runtimeTask.class_name} · ${runtimeTask.day_label}${runtimeTask.period}`,
+      unit_type: `${runtimeTask.unit_name} · ${runtimeTask.lesson_type}`,
+      status: runtimeTask.status,
+      draft_summary: latestDraftDesc?.summary || '当前还没有已保存草稿',
+      risk_tag: runtimeTask.risk_tag,
+      assignment_summary: runtimeTask.assignment_summary
+    };
+  }
+
   window.XIAOBEI_PREP_TRUTH_SOURCE_V1 = {
     version: 'v1',
     storage_keys: {
@@ -696,6 +712,7 @@
     listPrepDrafts,
     listRecentPrepLessons,
     describeLatestDraft,
+    buildLessonIdentitySummary,
     getPrepDraftState,
     buildRuntimeLessonTask
   };

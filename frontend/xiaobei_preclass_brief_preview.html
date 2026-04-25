@@ -47,6 +47,13 @@ h1{margin:14px 0 8px;font-size:34px}
 }
 .quick-strip h3{margin:0 0 10px;font-size:18px}
 .quick-strip ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.75}
+.identity-strip{
+  margin-top:18px;padding:16px 18px;border-radius:18px;background:#fff;border:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px
+}
+.identity-item{padding:10px 12px;border:1px solid #ece4d3;border-radius:14px;background:#fffcf6}
+.identity-item small{display:block;color:#768176;font-size:12px;font-weight:900;margin-bottom:6px}
+.identity-item strong{display:block;font-size:14px;line-height:1.55}
 .next-panel{margin-top:22px;padding:20px;border-radius:20px;background:rgba(255,253,248,.92);border:1px solid var(--line)}
 .next-panel h3{margin:0 0 10px;font-size:18px}
 .route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
@@ -96,7 +103,7 @@ ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.7}
       <a id="backIconBtn" class="back" href="xiaobei_formal_lesson_picker_preview.html">←</a>
       <div>
         <div>正式选课 / 课前简报</div>
-        <strong style="display:block;font-size:26px;margin-top:4px">课前简报页 v1</strong>
+        <strong style="display:block;font-size:26px;margin-top:4px">课前简报</strong>
       </div>
     </div>
     <div class="actions">
@@ -107,15 +114,28 @@ ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.7}
   </header>
 
   <section class="hero">
-    <span class="eyebrow">PRECLASS BRIEF V1</span>
-    <h1 id="title"></h1>
-    <p id="summary" class="summary"></p>
-    <div class="meta" id="meta"></div>
-    <div class="entry-note" id="entryNote"></div>
+    <span class="eyebrow">课前定向</span>
+    <h1 id="title">我的班级球衣 · 课前简报</h1>
+    <p id="summary" class="summary">先看懂这节课的方向、风险和抓手，再决定进入极简版、快速版还是精修。当前这页只做定向，不做生成。</p>
+    <div class="meta" id="meta">
+      <span class="chip">第8周 · 4/21-4/25</span>
+      <span class="chip">三（2）班 · 周四第3节</span>
+      <span class="chip">创艺节·足球梦</span>
+      <span class="chip">活动设计课</span>
+      <span class="chip">当前状态：已有快速稿</span>
+    </div>
+    <div class="entry-note" id="entryNote">你是从正式选课页进入的。当前已写入 selected_lesson_context_v1.1。推荐默认下一步先进入快速版，极简版和精修页保留为次级入口。</div>
     <div class="quick-strip" id="quickStrip">
       <h3>今天快速备一节 · 简短定向</h3>
       <ul id="quickBullets"></ul>
     </div>
+  </section>
+
+  <section class="identity-strip" id="lessonIdentityStrip">
+    <div class="identity-item"><small>当前课时</small><strong>我的班级球衣</strong></div>
+    <div class="identity-item"><small>周次 / 日期</small><strong>第8周 · 4/21-4/25</strong></div>
+    <div class="identity-item"><small>班级 / 节次</small><strong>三（2）班 · 周四第3节</strong></div>
+    <div class="identity-item"><small>当前阶段</small><strong>已有快速稿 · 已保存快速稿</strong></div>
   </section>
 
   <section class="next-panel">
@@ -126,7 +146,7 @@ ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.7}
   <section class="grid" id="cards"></section>
 
   <section class="panel">
-    <h3>当前 Source Gap</h3>
+    <h3>当前资料缺口</h3>
     <ul id="gaps"></ul>
   </section>
 
@@ -191,6 +211,42 @@ function resolveLatestDraft(task, mode) {
     lesson_key: task.lesson_key,
     draft_mode: mode
   }) : null;
+}
+
+function renderIdentityStrip(task) {
+  const strip = document.getElementById('lessonIdentityStrip');
+  const identity = source?.buildLessonIdentitySummary ? source.buildLessonIdentitySummary(task) : null;
+  if (!identity) {
+    strip.style.display = 'none';
+    strip.innerHTML = '';
+    return;
+  }
+  strip.style.display = 'grid';
+  strip.innerHTML = `
+    <div class="identity-item"><small>当前课时</small><strong>${identity.topic_name}</strong></div>
+    <div class="identity-item"><small>周次 / 日期</small><strong>${identity.week_date}</strong></div>
+    <div class="identity-item"><small>班级 / 节次</small><strong>${identity.slot}</strong></div>
+    <div class="identity-item"><small>当前阶段</small><strong>${identity.status} · ${identity.draft_summary}</strong></div>
+  `;
+}
+
+function sourceStatusLabel(value) {
+  const labels = {
+    resolved: '资料已就绪',
+    partial: '资料部分就绪',
+    sample_only: '样板提示',
+    missing: '资料缺失'
+  };
+  return labels[value] || value;
+}
+
+function confidenceLabel(value) {
+  const labels = {
+    high: '高',
+    medium: '中',
+    low: '低'
+  };
+  return labels[value] || value;
 }
 
 function renderRouteGrid(task) {
@@ -277,6 +333,7 @@ function render() {
     document.getElementById('summary').textContent = '请先回到正式选课页，从真实课时项里选中一节课，再进入课前简报。';
     document.getElementById('meta').innerHTML = '';
     document.getElementById('entryNote').textContent = '当前未检测到 selected_lesson_context_v1.1。';
+    renderIdentityStrip(null);
     document.getElementById('cards').innerHTML = '';
     document.getElementById('gaps').innerHTML = '<li>当前没有课时上下文，brief 还不能成立。</li>';
     renderRouteGrid(null);
@@ -323,14 +380,15 @@ function render() {
       : '<li>先确认本节课的方向，再进入快速版。</li>';
     quickStrip.style.display = 'block';
   }
+  renderIdentityStrip(task);
   renderRouteGrid(task);
   document.getElementById('cards').innerHTML = brief.cards.map(card => `
     <article class="card ${card.card_type === 'task_recommendation' ? 'full' : ''}">
       <div class="card-top">
         <h2>${card.title}</h2>
         <div class="status">
-          <span class="badge ${card.source_status}">${card.source_status}</span>
-          <span class="badge ${card.confidence}">${card.confidence}</span>
+          <span class="badge ${card.source_status}">${sourceStatusLabel(card.source_status)}</span>
+          <span class="badge ${card.confidence}">${confidenceLabel(card.confidence)}</span>
         </div>
       </div>
       <p class="card-summary">${card.summary}</p>

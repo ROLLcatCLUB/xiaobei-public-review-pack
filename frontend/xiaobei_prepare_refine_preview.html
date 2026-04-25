@@ -43,6 +43,10 @@ button,textarea{font:inherit}a{text-decoration:none;color:inherit}
 .notice{background:#fff8ec;border:1px solid #f0d5af;color:#6f5129;border-radius:14px;padding:12px;line-height:1.65;font-size:13px;margin-top:12px}.summary-list li{font-size:13px}.disabled-note{color:#8b7560}
 .save-note{display:none;margin-top:12px;padding:12px 14px;border-radius:14px;background:#eef8f2;border:1px solid #cae6d4;color:#2d6f52;font-size:13px;line-height:1.65}
 .save-note.show{display:block}
+.identity-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 16px}
+.identity-item{padding:12px 14px;border-radius:16px;background:#fff;border:1px solid #e8ddd0;box-shadow:var(--shadow-sm)}
+.identity-item small{display:block;color:#6d7b72;font-size:12px;font-weight:900;margin-bottom:6px}
+.identity-item strong{display:block;font-size:14px;line-height:1.55}
 @media(max-width:1260px){.app{grid-template-columns:88px 1fr}.brand-title,.pill,.nav span,.aside-card{display:none}.sidebar{padding:18px 12px}.workspace{grid-template-columns:260px 1fr}.right-col{grid-column:1/-1}.flow{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:880px){.app{display:block;padding:14px}.sidebar{display:none}.workspace{grid-template-columns:1fr}.hero h1{font-size:30px}.flow{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}}
 </style>
@@ -63,7 +67,7 @@ button,textarea{font:inherit}a{text-decoration:none;color:inherit}
 
   <main class="main" aria-label="教学设计精修页电脑端预览">
     <div class="topbar">
-      <div id="crumbText" class="crumb">课前简报 / 多彩的校园 / 教学设计精修</div>
+      <div id="crumbText" class="crumb">课前简报 / 我的班级球衣 / 教学设计精修</div>
       <div class="top-actions">
         <a id="backToBriefBtn" class="top-btn" href="xiaobei_preclass_brief_preview.html">返回课前简报</a>
         <button id="saveRefineTopBtn" class="top-btn">保存精修稿</button>
@@ -73,27 +77,34 @@ button,textarea{font:inherit}a{text-decoration:none;color:inherit}
 
     <section class="hero">
       <div class="hero-content">
-        <span id="heroTag" class="tag">教学设计精修页</span><h1 id="heroTitle">多彩的校园</h1><span id="heroVersion" class="version">公共主稿 + 班级差异</span>
-        <p id="heroSummary">先维护一份所有班共用的教学主稿，再针对 8 个班做轻量差异调整。这里不把每个班拆成一整份独立教案，也不让 AI 自动替老师重写整课。</p>
+        <span id="heroTag" class="tag">教学设计精修页</span><h1 id="heroTitle">我的班级球衣</h1><span id="heroVersion" class="version">公共主稿 + 班级差异</span>
+        <p id="heroSummary">先维护一份所有班共用的教学主稿，再针对 8 个班做轻量差异调整。这里继续承接同一节课的快速稿，不把每个班拆成一整份独立教案，也不让 AI 自动替老师重写整课。</p>
         <div id="heroMeta" class="meta">
           <span class="chip">年级：三年级</span>
-          <span class="chip">课型：新授课</span>
-          <span class="chip">课时：第 1 课时</span>
-          <span class="chip">当前进度：精修完善</span>
+          <span class="chip">班级：三（2）班</span>
+          <span class="chip">课型：活动设计课</span>
+          <span class="chip">课时：第3节</span>
+          <span class="chip">当前进度：继续精修</span>
         </div>
       </div>
     </section>
 
     <section id="contextGuard" class="panel" style="display:none"></section>
+    <section id="lessonIdentityStrip" class="identity-strip">
+      <div class="identity-item"><small>当前课时</small><strong>我的班级球衣</strong></div>
+      <div class="identity-item"><small>周次 / 日期</small><strong>第8周 · 4/21-4/25</strong></div>
+      <div class="identity-item"><small>班级 / 节次</small><strong>三（2）班 · 周四第3节</strong></div>
+      <div class="identity-item"><small>当前阶段</small><strong>已有精修稿 · 已保存精修稿</strong></div>
+    </section>
 
     <div id="workspace" class="workspace">
       <aside class="stack">
         <section class="panel">
           <h2>这节课是谁</h2>
           <div class="summary">
-            <div class="summary-row"><b>一句话目标</b><span id="summaryGoal">让学生观察校园环境中的色彩与形，能用画面表达自己熟悉的校园角落。</span></div>
-            <div class="summary-row"><b>本课重点</b><span id="summaryFocus">先抓观察和取景，再进入色彩表现，不要一开始就只追求装饰效果。</span></div>
-            <div class="summary-row"><b>本课作业</b><span id="summaryAssignment">完成一张“我眼中的校园角落”创作草图或完整作品。</span></div>
+            <div class="summary-row"><b>一句话目标</b><span id="summaryGoal">让学生围绕班级球衣主题完成一版既有整体感、又能体现班级表达的设计主稿。</span></div>
+            <div class="summary-row"><b>本课重点</b><span id="summaryFocus">先抓整体版式和主视觉，再进入图案与装饰细节，不要一开始就抠细节。</span></div>
+            <div class="summary-row"><b>本课作业</b><span id="summaryAssignment">完成一张班级球衣设计草稿或完善版，并按要求进入作业链。</span></div>
           </div>
         </section>
 
@@ -295,6 +306,23 @@ function buildDraftHref(task){
   return `xiaobei_prepare_draft_preview.html?${query.toString()}`;
 }
 
+function renderIdentityStrip(task){
+  const strip = document.getElementById('lessonIdentityStrip');
+  const identity = source?.buildLessonIdentitySummary ? source.buildLessonIdentitySummary(task) : null;
+  if (!identity) {
+    strip.style.display = 'none';
+    strip.innerHTML = '';
+    return;
+  }
+  strip.style.display = 'grid';
+  strip.innerHTML = `
+    <div class="identity-item"><small>当前课时</small><strong>${identity.topic_name}</strong></div>
+    <div class="identity-item"><small>周次 / 日期</small><strong>${identity.week_date}</strong></div>
+    <div class="identity-item"><small>班级 / 节次</small><strong>${identity.slot}</strong></div>
+    <div class="identity-item"><small>当前阶段</small><strong>${identity.status} · ${identity.draft_summary}</strong></div>
+  `;
+}
+
 function currentSharedFields(){
   return {
     core_focus: document.getElementById('refineCore').value,
@@ -402,6 +430,7 @@ function renderContextGuard(){
   document.getElementById('heroTitle').textContent = '请先从正式选课进入课前简报，再开始备课';
   document.getElementById('heroVersion').textContent = '当前不能空上下文进入精修';
   document.getElementById('heroSummary').textContent = '精修页不会假装接收一节没有身份的课。请先回到正式选课选中真实课时项，再通过课前简报进入。';
+  renderIdentityStrip(null);
   document.getElementById('heroMeta').innerHTML = `
     <span class="chip">当前状态：未选课</span>
     <span class="chip">建议入口：正式选课</span>
@@ -421,6 +450,7 @@ function renderContextGuard(){
 
 function applyContextToPage(task){
   currentResolvedTask = task;
+  renderIdentityStrip(task);
   const brief = source?.buildBrief ? source.buildBrief(task) : null;
   const draftState = source?.getPrepDraftState ? source.getPrepDraftState(task) : null;
   const refineDraft = draftState?.refineDraft || null;
