@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>助手设置</title>
+  <link rel="stylesheet" href="clean.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>supporting page</small>
+          <h1>助手设置</h1>
+        </div>
+        <div class="head-actions">
+          <button class="btn primary" type="button" id="saveAssistantBtn">保存偏好</button>
+        </div>
+      </div>
+
+      <section class="grid-2">
+        <article class="card">
+          <h2>对话偏好</h2>
+          <div class="grid-2">
+            <div class="field"><label>说话风格</label><select id="assistantTone"><option>简洁</option><option>详细</option></select></div>
+            <div class="field"><label>提醒方式</label><select id="reminderStyle"><option>少打扰</option><option>主动提醒</option></select></div>
+            <div class="field"><label>默认建议</label><select id="defaultAction"><option>先建议</option><option>先填稿</option></select></div>
+            <div class="field"><label>输出偏好</label><select id="outputStyle"><option>简洁</option><option>详细</option></select></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>当前预览</h2>
+          <div class="list" id="assistantPreview"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'assistant', title:'助手设置', assistant:'assistant' });
+    const KEY = 'xiaobei_assistant_profile_v1';
+    const saved = Object.assign({
+      assistantTone:'简洁',
+      reminderStyle:'少打扰',
+      defaultAction:'先建议',
+      outputStyle:'简洁'
+    }, CLEAN_PROTO.readJson(KEY));
+    function fill(){
+      document.getElementById('assistantTone').value = saved.assistantTone;
+      document.getElementById('reminderStyle').value = saved.reminderStyle;
+      document.getElementById('defaultAction').value = saved.defaultAction;
+      document.getElementById('outputStyle').value = saved.outputStyle;
+      renderPreview();
+    }
+    function renderPreview(){
+      document.getElementById('assistantPreview').innerHTML = `
+        <div class="list-item"><strong>说话风格</strong><div class="muted tiny">${document.getElementById('assistantTone').value}</div></div>
+        <div class="list-item"><strong>提醒方式</strong><div class="muted tiny">${document.getElementById('reminderStyle').value}</div></div>
+        <div class="list-item"><strong>默认动作</strong><div class="muted tiny">${document.getElementById('defaultAction').value}</div></div>
+      `;
+    }
+    ['assistantTone','reminderStyle','defaultAction','outputStyle'].forEach(id => {
+      document.getElementById(id).onchange = renderPreview;
+    });
+    document.getElementById('saveAssistantBtn').onclick = () => {
+      localStorage.setItem(KEY, JSON.stringify({
+        assistantTone: document.getElementById('assistantTone').value,
+        reminderStyle: document.getElementById('reminderStyle').value,
+        defaultAction: document.getElementById('defaultAction').value,
+        outputStyle: document.getElementById('outputStyle').value
+      }));
+      location.reload();
+    };
+    fill();
+  </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>正式选课</title>
+  <link rel="stylesheet" href="clean.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page">
+      <div class="page-head">
+        <div class="page-title">
+          <small id="modeTag">标准路径</small>
+          <h1>正式选课</h1>
+        </div>
+        <div class="head-actions">
+          <a class="btn" id="backCalendarBtn" href="calendar.html">返回学期安排</a>
+        </div>
+      </div>
+
+      <section class="card hero">
+        <div class="hero-meta" id="heroMeta"></div>
+      </section>
+
+      <section class="split" style="margin-top:16px">
+        <article class="card">
+          <div class="grid-2">
+            <div class="field"><label>周次</label><select id="weekFilter"></select></div>
+            <div class="field"><label>单元</label><select id="unitFilter"></select></div>
+            <div class="field"><label>班级</label><select id="classFilter"></select></div>
+            <div class="field"><label>课型</label><select id="typeFilter"></select></div>
+          </div>
+          <div class="list" id="taskList" style="margin-top:14px"></div>
+        </article>
+
+        <aside class="card">
+          <h2>当前选中</h2>
+          <div id="selectedPane" class="empty">先选一节课</div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'picker', title:'正式选课', assistant:'picker' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const PROFILE_KEY = 'xiaobei_teacher_profile_v1';
+    const params = new URLSearchParams(window.location.search);
+    const flow = params.get('flow') === 'fast' ? 'fast' : 'standard';
+    const profile = CLEAN_PROTO.readJson(PROFILE_KEY);
+    const defaultClass = Array.isArray(profile.scheduleRows) && profile.scheduleRows.length ? profile.scheduleRows[0].className : 'all';
+    const state = {
+      week: params.get('week') || (flow === 'fast' ? '8' : 'all'),
+      unit: params.get('unit') || 'all',
+      className: params.get('className') || (flow === 'fast' ? defaultClass || 'all' : 'all'),
+      lessonType: params.get('lessonType') || 'all',
+      selectedId: params.get('course_plan_item_id') || ''
+    };
+
+    function options(key){
+      return [...new Set(source.listLessonTasks().map(item => item[key]))];
+    }
+
+    function fillSelect(id, values, selected){
+      const labels = {weekFilter:'全部周次',unitFilter:'全部单元',classFilter:'全部班级',typeFilter:'全部课型'};
+      const el = document.getElementById(id);
+      el.innerHTML = `<option value="all">${labels[id]}</option>` + values.map(v => `<option value="${v}">${v}</option>`).join('');
+      el.value = values.includes(selected) || selected === 'all' ? selected : 'all';
+    }
+
+    function filtered(){
+      return source.listLessonTasks().map(item => source.buildRuntimeLessonTask(item)).filter(item => {
+        if (state.week !== 'all' && String(item.week_no) !== String(state.week)) return false;
+        if (state.unit !== 'all' && item.unit_name !== state.unit) return false;
+        if (state.className !== 'all' && item.class_name !== state.className) return false;
+        if (state.lessonType !== 'all' && item.lesson_type !== state.lessonType) return false;
+        return true;
+      });
+    }
+
+    function selected(tasks){
+      return tasks.find(item => item.course_plan_item_id === state.selectedId) || tasks[0] || null;
+    }
+
+    function statusClass(task){
+      if (task.refineDraft) return 'green';
+      if (task.rapidDraft) return 'blue';
+      if (task.minimalDraft) return 'amber';
+      return 'rose';
+    }
+
+    function briefHref(task){
+      const query = new URLSearchParams({
+        week: state.week,
+        unit: state.unit,
+        className: state.className,
+        lessonType: state.lessonType,
+        course_plan_item_id: task.course_plan_item_id,
+        lesson_key: task.lesson_key
+      });
+      if (flow === 'fast') query.set('flow','fast');
+      return `brief.html?${query.toString()}`;
+    }
+
+    function renderHero(){
+      document.getElementById('modeTag').textContent = flow === 'fast' ? '快速路径' : '标准路径';
+      document.getElementById('heroMeta').innerHTML = flow === 'fast'
+        ? `<span class="badge amber">今天快速备一节</span><span class="pill">先锁班级、课题、课时</span><span class="pill">默认带出常教班级</span>`
+        : `<span class="badge green">正式选课</span><span class="pill">只锁定当前课时</span><span class="pill">主按钮固定进入课前简报</span>`;
+    }
+
+    function renderFilters(){
+      fillSelect('weekFilter', options('week_no'), state.week);
+      fillSelect('unitFilter', options('unit_name'), state.unit);
+      fillSelect('classFilter', options('class_name'), state.className);
+      fillSelect('typeFilter', options('lesson_type'), state.lessonType);
+      document.getElementById('weekFilter').onchange = e => { state.week = e.target.value; render(); };
+      document.getElementById('unitFilter').onchange = e => { state.unit = e.target.value; render(); };
+      document.getElementById('classFilter').onchange = e => { state.className = e.target.value; render(); };
+      document.getElementById('typeFilter').onchange = e => { state.lessonType = e.target.value; render(); };
+    }
+
+    function renderList(tasks){
+      const list = document.getElementById('taskList');
+      if (!tasks.length) {
+        list.innerHTML = '<div class="empty">当前没有可选课时项</div>';
+        document.getElementById('selectedPane').innerHTML = '<div class="empty">先调整筛选</div>';
+        return;
+      }
+      const active = selected(tasks);
+      state.selectedId = active.course_plan_item_id;
+      list.innerHTML = tasks.map(task => `
+        <div class="list-item ${task.course_plan_item_id === state.selectedId ? 'active' : ''}" data-id="${task.course_plan_item_id}">
+          <div class="list-item-head">
+            <div>
+              <strong>${task.topic_name}</strong>
+              <div class="muted tiny">${task.week_label} · ${task.class_name} · ${task.day_label}${task.period}</div>
+            </div>
+            <span class="status ${statusClass(task)}">${task.status}</span>
+          </div>
+          <div class="inline-actions" style="margin-top:10px">
+            <span class="pill">${task.unit_name}</span>
+            <span class="pill">${task.lesson_type}</span>
+            <span class="pill">${task.assignment_required ? '有作业链' : '无作业链'}</span>
+          </div>
+        </div>
+      `).join('');
+      list.querySelectorAll('[data-id]').forEach(node => node.onclick = () => {
+        state.selectedId = node.dataset.id;
+        render();
+      });
+      renderSelected(active);
+    }
+
+    function renderSelected(task){
+      const desc = source.describeLatestDraft(task);
+      document.getElementById('selectedPane').innerHTML = `
+        <div class="identity-strip">
+          <div class="identity-item"><small>当前课时</small><strong>${task.topic_name}</strong></div>
+          <div class="identity-item"><small>班级 / 节次</small><strong>${task.class_name} · ${task.day_label}${task.period}</strong></div>
+          <div class="identity-item"><small>作业链</small><strong>${task.assignment_required ? '是' : '否'}</strong></div>
+          <div class="identity-item"><small>草稿状态</small><strong>${desc.savedDraftLabel || '未开始'}</strong></div>
+        </div>
+        <div class="list" style="margin-top:14px">
+          <div class="list-item"><strong>当前状态</strong><div class="muted tiny">${task.status}</div></div>
+          <div class="list-item"><strong>上次完成情况</strong><div class="muted tiny">${task.completion_summary} · ${task.assignment_summary}</div></div>
+          <div class="list-item"><strong>当前风险</strong><div class="muted tiny">${task.risk_tag} · ${task.note}</div></div>
+        </div>
+        <div class="inline-actions" style="margin-top:14px">
+          <button class="btn primary" type="button" id="goBriefBtn">${desc.draft ? '继续进入课前简报' : (flow === 'fast' ? '进入简短定向' : '进入课前简报')}</button>
+        </div>
+      `;
+      document.getElementById('goBriefBtn').onclick = () => {
+        source.writeLessonSelection(task);
+        window.location.href = briefHref(task);
+      };
+    }
+
+    function render(){
+      renderHero();
+      renderFilters();
+      renderList(filtered());
+    }
+    render();
+  </script>
+</body>
+</html>

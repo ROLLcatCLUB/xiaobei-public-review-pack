@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学期教学安排</title>
+  <link rel="stylesheet" href="clean.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>统筹</small>
+          <h1>学期教学安排</h1>
+        </div>
+        <div class="head-actions">
+          <a class="btn" href="planner.html">AI 快速生成学期表</a>
+          <a class="btn primary" id="goPickerBtn" href="picker.html">进入正式选课</a>
+        </div>
+      </div>
+
+      <section class="card hero">
+        <div class="hero-meta">
+          <span class="badge green">原计划</span>
+          <span class="badge blue">实际执行</span>
+          <span class="badge amber">只改未来</span>
+        </div>
+      </section>
+
+      <section class="grid-2" style="margin-top:16px">
+        <article class="card">
+          <div class="page-head" style="margin:0 0 12px">
+            <div class="page-title" style="gap:2px">
+              <small>周历</small>
+              <h1 style="font-size:24px">本学期安排</h1>
+            </div>
+          </div>
+          <div class="list" id="weekList"></div>
+        </article>
+
+        <article class="card">
+          <div class="page-head" style="margin:0 0 12px">
+            <div class="page-title" style="gap:2px">
+              <small id="sideTag">本周</small>
+              <h1 style="font-size:24px" id="sideTitle">第8周</h1>
+            </div>
+          </div>
+          <div id="weekDetail" class="section"></div>
+          <div id="adjustPanel" class="section" style="margin-top:16px"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'calendar', title:'学期教学安排', assistant:'calendar' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const params = new URLSearchParams(window.location.search);
+    const adjustMode = params.get('mode') === 'adjust';
+    const tasks = source.listLessonTasks();
+    const grouped = [...new Map(tasks.map(item => [item.week_no, null])).keys()].map(week => {
+      const rows = tasks.filter(item => item.week_no === week);
+      return {
+        week_no: week,
+        week_label: rows[0].week_label,
+        date_range: rows[0].date_range,
+        lesson_count: rows.length,
+        rows,
+        actual_note: week === 9 ? '足球奖杯设计顺延到第10周前半' : week === 8 ? '按原计划执行' : '按原计划执行'
+      };
+    });
+    let activeWeek = Number(params.get('week')) || grouped[0].week_no;
+
+    function renderWeeks(){
+      document.getElementById('weekList').innerHTML = grouped.map(week => `
+        <div class="list-item ${week.week_no === activeWeek ? 'active' : ''}" data-week="${week.week_no}">
+          <div class="list-item-head">
+            <div>
+              <strong>${week.week_label}</strong>
+              <div class="muted tiny">${week.date_range}</div>
+            </div>
+            <span class="status ${week.week_no === 9 ? 'amber' : 'green'}">${week.lesson_count} 节</span>
+          </div>
+          <div class="inline-actions" style="margin-top:10px">
+            <span class="pill">原计划：${week.rows.map(item => item.topic_name).slice(0,2).join(' / ')}</span>
+            <span class="pill">实际执行：${week.actual_note}</span>
+          </div>
+        </div>
+      `).join('');
+      document.querySelectorAll('[data-week]').forEach(node => {
+        node.onclick = () => {
+          activeWeek = Number(node.dataset.week);
+          renderAll();
+        };
+      });
+    }
+
+    function renderDetail(){
+      const week = grouped.find(item => item.week_no === activeWeek);
+      if (!week) return;
+      document.getElementById('sideTitle').textContent = `${week.week_label}`;
+      document.getElementById('goPickerBtn').href = `picker.html?week=${week.week_no}`;
+      document.getElementById('weekDetail').innerHTML = `
+        <div class="identity-strip">
+          <div class="identity-item"><small>日期</small><strong>${week.date_range}</strong></div>
+          <div class="identity-item"><small>计划课时</small><strong>${week.lesson_count} 节</strong></div>
+          <div class="identity-item"><small>原计划</small><strong>${week.rows.map(item => item.topic_name).join('、')}</strong></div>
+          <div class="identity-item"><small>实际执行</small><strong>${week.actual_note}</strong></div>
+        </div>
+        <div class="list">
+          ${week.rows.map(item => `<div class="list-item"><strong>${item.class_name} · ${item.topic_name}</strong><div class="muted tiny">${item.day_label}${item.period} · ${item.lesson_type}</div></div>`).join('')}
+        </div>
+      `;
+      document.getElementById('adjustPanel').innerHTML = adjustMode ? `
+        <div class="card">
+          <h3>调整教学安排</h3>
+          <div class="grid-2">
+            <div class="field"><label>调整范围</label><select><option>本周</option><option>本单元</option><option>后半学期</option></select></div>
+            <div class="field"><label>调整动作</label><select><option>顺延一节</option><option>替换内容</option><option>插入活动课</option><option>压缩本周课时</option></select></div>
+          </div>
+          <div class="field" style="margin-top:12px"><label>原因</label><input value="活动占课 / 节奏调整"></div>
+          <div class="list" style="margin-top:12px">
+            <div class="list-item"><strong>影响项</strong><div class="muted tiny">${week.actual_note}</div></div>
+          </div>
+          <div class="inline-actions" style="margin-top:12px">
+            <button class="btn primary" type="button">保存调整</button>
+            <a class="btn" href="calendar.html">退出调整</a>
+          </div>
+        </div>
+      ` : `
+        <div class="inline-actions">
+          <a class="btn primary" href="picker.html?week=${week.week_no}">进入正式选课</a>
+          <a class="btn" href="calendar.html?mode=adjust&week=${week.week_no}">调整本周安排</a>
+        </div>
+      `;
+    }
+
+    function renderAll(){
+      renderWeeks();
+      renderDetail();
+    }
+    renderAll();
+  </script>
+</body>
+</html>

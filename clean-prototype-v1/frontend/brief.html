@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课前简报</title>
+  <link rel="stylesheet" href="clean.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page">
+      <div class="page-head">
+        <div class="page-title">
+          <small id="briefTag">课前定向</small>
+          <h1>课前简报</h1>
+        </div>
+        <div class="head-actions">
+          <a class="btn" id="backPickerBtn" href="picker.html">返回选课</a>
+        </div>
+      </div>
+
+      <section id="briefGuard" class="empty hide">请先选课</section>
+
+      <div id="briefContent" class="section">
+        <section class="card hero">
+          <div class="hero-meta" id="briefHeroMeta"></div>
+        </section>
+
+        <section class="identity-strip" id="briefIdentity"></section>
+
+        <section class="grid-3">
+          <article class="card" id="cardFocus"></article>
+          <article class="card" id="cardRisk"></article>
+          <article class="card" id="cardSupport"></article>
+        </section>
+
+        <section class="grid-2">
+          <article class="card" id="cardLesson"></article>
+          <article class="card" id="cardClass"></article>
+        </section>
+
+        <section class="card">
+          <h2>下一步</h2>
+          <div class="inline-actions" id="nextActions"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'brief', title:'课前简报', assistant:'brief' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const params = new URLSearchParams(window.location.search);
+
+    function readJson(key){
+      try{
+        return JSON.parse(sessionStorage.getItem(key) || 'null');
+      }catch(error){
+        return null;
+      }
+    }
+
+    function taskFromContext(){
+      const task = source.resolveLessonContextFromQuery();
+      if (task) {
+        source.writeLessonSelection(task);
+        return task;
+      }
+      const lesson = readJson(source.storage_keys.selected_context) || readJson(source.storage_keys.selected_context_legacy);
+      if (!lesson) return null;
+      return source.findLessonTask({
+        course_plan_item_id: lesson.course_plan_item_id,
+        lesson_key: lesson.lesson_key
+      });
+    }
+
+    function pickerHref(task){
+      const query = new URLSearchParams();
+      ['week','unit','className','lessonType','course_plan_item_id','lesson_key','flow'].forEach(key => {
+        const value = params.get(key);
+        if (value) query.set(key,value);
+      });
+      if (!query.get('course_plan_item_id') && task?.course_plan_item_id) query.set('course_plan_item_id', task.course_plan_item_id);
+      if (!query.get('lesson_key') && task?.lesson_key) query.set('lesson_key', task.lesson_key);
+      return `picker.html${query.toString() ? `?${query.toString()}` : ''}`;
+    }
+
+    function draftHref(task, entry){
+      return `draft.html?entry=${entry}&course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
+    }
+
+    function refineHref(task){
+      return `refine.html?course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
+    }
+
+    function render(){
+      const task = taskFromContext();
+      if (!task) {
+        document.getElementById('briefGuard').classList.remove('hide');
+        document.getElementById('briefContent').classList.add('hide');
+        document.getElementById('briefGuard').textContent = '请先从正式选课进入';
+        return;
+      }
+      const brief = source.buildBrief(task);
+      const draftState = source.getPrepDraftState(task);
+      const latest = source.describeLatestDraft(task);
+      document.getElementById('backPickerBtn').href = pickerHref(task);
+      document.getElementById('briefTag').textContent = params.get('flow') === 'fast' ? '简短定向' : '课前定向';
+      document.getElementById('briefHeroMeta').innerHTML = `
+        <span class="badge green">${task.topic_name}</span>
+        <span class="pill">${task.week_label} · ${task.date_range}</span>
+        <span class="pill">${task.class_name} · ${task.day_label}${task.period}</span>
+        <span class="pill">${latest.savedDraftLabel || '未开始'}</span>
+      `;
+      document.getElementById('briefIdentity').innerHTML = `
+        <div class="identity-item"><small>当前课时</small><strong>${task.topic_name}</strong></div>
+        <div class="identity-item"><small>本班</small><strong>${task.class_name}</strong></div>
+        <div class="identity-item"><small>当前状态</small><strong>${task.status}</strong></div>
+        <div class="identity-item"><small>上次完成情况</small><strong>${task.completion_summary}</strong></div>
+      `;
+      const recommendation = brief.cards.find(item => item.card_type === 'task_recommendation');
+      document.getElementById('cardFocus').innerHTML = `<h2>先抓什么</h2><div>${recommendation.bullets[0]}</div>`;
+      document.getElementById('cardRisk').innerHTML = `<h2>先防什么</h2><div>${recommendation.bullets[1]}</div>`;
+      document.getElementById('cardSupport').innerHTML = `<h2>先备什么</h2><div>${recommendation.bullets[2]}</div>`;
+      document.getElementById('cardLesson').innerHTML = `
+        <h2>本课位置</h2>
+        <div class="list">
+          <div class="list-item"><strong>单元</strong><div class="muted tiny">${task.unit_name}</div></div>
+          <div class="list-item"><strong>课型</strong><div class="muted tiny">${task.lesson_type}</div></div>
+          <div class="list-item"><strong>作业链</strong><div class="muted tiny">${task.assignment_required ? '有' : '无'}</div></div>
+        </div>
+      `;
+      document.getElementById('cardClass').innerHTML = `
+        <h2>本班提醒</h2>
+        <div class="list">
+          <div class="list-item"><strong>当前风险</strong><div class="muted tiny">${task.risk_tag}</div></div>
+          <div class="list-item"><strong>作业情况</strong><div class="muted tiny">${task.assignment_summary}</div></div>
+          <div class="list-item"><strong>备注</strong><div class="muted tiny">${task.note}</div></div>
+        </div>
+      `;
+
+      const next = document.getElementById('nextActions');
+      let primaryLabel = '推荐进入快速版';
+      let primaryHref = draftHref(task,'rapid');
+      if (draftState.refineDraft) {
+        primaryLabel = '继续精修页';
+        primaryHref = refineHref(task);
+      } else if (draftState.rapidDraft) {
+        primaryLabel = '继续快速版';
+      }
+      const minimalLabel = draftState.minimalDraft ? '继续极简版' : '进入极简版';
+      const refineLabel = draftState.refineDraft ? '继续精修页' : '进入精修页';
+      next.innerHTML = `
+        <a class="btn primary" href="${primaryHref}">${primaryLabel}</a>
+        <a class="btn" href="${draftHref(task,'minimal')}">${minimalLabel}</a>
+        <a class="btn" href="${refineHref(task)}">${refineLabel}</a>
+      `;
+    }
+
+    render();
+  </script>
+</body>
+</html>

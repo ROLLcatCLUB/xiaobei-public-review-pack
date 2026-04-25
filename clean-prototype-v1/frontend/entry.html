@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>备课入口台</title>
+  <link rel="stylesheet" href="clean.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>第一屏</small>
+          <h1>备课入口台</h1>
+        </div>
+      </div>
+
+      <section class="card hero">
+        <div class="hero-meta" id="heroActions"></div>
+      </section>
+
+      <section class="actions-grid" id="actionGrid"></section>
+
+      <section class="grid-2" style="margin-top:16px">
+        <article class="card">
+          <h2>最近在备的课</h2>
+          <div class="list" id="recentList"></div>
+        </article>
+        <article class="card">
+          <h2>当前状态</h2>
+          <div class="list" id="statusList"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'entry', title:'备课入口台', assistant:'entry' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+
+    function continueHref(item){
+      if (!item || !item.latest_draft) return 'picker.html?flow=fast';
+      const task = item.runtime_task;
+      const draft = item.latest_draft;
+      const query = new URLSearchParams({
+        course_plan_item_id: task.course_plan_item_id,
+        lesson_key: task.lesson_key
+      });
+      if (draft.draft_mode === 'refine') return `refine.html?${query.toString()}`;
+      return `draft.html?entry=${draft.draft_mode === 'minimal' ? 'minimal' : 'rapid'}&${query.toString()}`;
+    }
+
+    function renderHero(){
+      const recent = source.listRecentPrepLessons(1)[0];
+      const actions = document.getElementById('heroActions');
+      if (recent) {
+        actions.innerHTML = `
+          <span class="badge green">继续上次：${recent.runtime_task.topic_name}</span>
+          <span class="pill">${source.getSavedDraftLabel(recent.latest_draft.draft_mode)}</span>
+          <a class="btn primary" href="${continueHref(recent)}">${source.getContinueActionLabel(recent.latest_draft.draft_mode)}</a>
+        `;
+        return;
+      }
+      actions.innerHTML = `
+        <span class="badge amber">当前没有可继续草稿</span>
+        <a class="btn primary" href="picker.html?flow=fast">今天快速备一节</a>
+      `;
+    }
+
+    function renderActions(){
+      document.getElementById('actionGrid').innerHTML = `
+        <a class="action-card" href="${(source.listRecentPrepLessons(1)[0] ? continueHref(source.listRecentPrepLessons(1)[0]) : 'picker.html?flow=fast')}">
+          <strong>继续上次备课</strong>
+          <span class="muted">回到最近保存的一节课</span>
+        </a>
+        <a class="action-card" href="picker.html?flow=fast">
+          <strong>今天快速备一节</strong>
+          <span class="muted">先选课，再进快速版</span>
+        </a>
+        <a class="action-card" href="calendar.html?mode=adjust">
+          <strong>调整教学安排</strong>
+          <span class="muted">顺延、替换、插入活动课</span>
+        </a>
+        <a class="action-card" href="calendar.html">
+          <strong>查看学期安排</strong>
+          <span class="muted">按周次查看本学期</span>
+        </a>
+      `;
+    }
+
+    function renderRecent(){
+      const recent = source.listRecentPrepLessons(4);
+      const list = document.getElementById('recentList');
+      if (!recent.length) {
+        list.innerHTML = '<div class="empty">暂无已保存草稿</div>';
+        return;
+      }
+      list.innerHTML = recent.map(item => `
+        <div class="list-item">
+          <div class="list-item-head">
+            <div>
+              <strong>${item.runtime_task.topic_name}</strong>
+              <div class="muted tiny">${item.runtime_task.class_name} · ${item.runtime_task.week_label} · ${item.runtime_task.day_label}${item.runtime_task.period}</div>
+            </div>
+            <span class="status green">${source.getSavedDraftLabel(item.latest_draft.draft_mode)}</span>
+          </div>
+          <div class="inline-actions" style="margin-top:10px">
+            <span class="pill">${item.runtime_task.status}</span>
+            <span class="pill">${item.latest_draft.saved_at ? new Date(item.latest_draft.saved_at).toLocaleString('zh-CN',{hour12:false}) : ''}</span>
+            <a class="btn" href="${continueHref(item)}">${source.getContinueActionLabel(item.latest_draft.draft_mode)}</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderStatus(){
+      const drafts = source.listPrepDrafts();
+      const quickCount = drafts.filter(item => item.draft_mode === 'rapid').length;
+      const refineCount = drafts.filter(item => item.draft_mode === 'refine').length;
+      document.getElementById('statusList').innerHTML = `
+        <div class="list-item"><strong>当前主线</strong><div class="muted tiny">学期安排 → 选课 → 简报 → 快速版 → 精修</div></div>
+        <div class="list-item"><strong>已保存快速稿</strong><div class="muted tiny">${quickCount} 节</div></div>
+        <div class="list-item"><strong>已保存精修稿</strong><div class="muted tiny">${refineCount} 节</div></div>
+        <div class="list-item"><strong>默认入口</strong><div class="muted tiny">先分流，不直接逼老师选课</div></div>
+      `;
+    }
+
+    renderHero();
+    renderActions();
+    renderRecent();
+    renderStatus();
+  </script>
+</body>
+</html>

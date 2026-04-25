@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教学档案</title>
+  <link rel="stylesheet" href="clean.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>基础信息</small>
+          <h1>教学档案</h1>
+        </div>
+        <div class="head-actions">
+          <button class="btn primary" type="button" id="saveProfileBtn">保存档案</button>
+        </div>
+      </div>
+
+      <section class="grid-2">
+        <article class="card">
+          <h2>老师信息</h2>
+          <div class="grid-2">
+            <div class="field"><label>老师姓名</label><input id="teacherName"></div>
+            <div class="field"><label>学科</label><select id="subject"><option>美术</option></select></div>
+            <div class="field"><label>常教年级</label><select id="preferredGrade"><option>一年级</option><option>二年级</option><option>三年级</option><option>四年级</option><option>五年级</option><option>六年级</option></select></div>
+            <div class="field"><label>常教班级</label><input id="commonClasses"></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>偏好</h2>
+          <div class="grid-2">
+            <div class="field"><label>排课偏好</label><select id="scheduleStyle"><option>保守排</option><option>正常排</option><option>紧凑排</option></select></div>
+            <div class="field"><label>输出风格</label><select id="outputStyle"><option>简洁</option><option>详细</option></select></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top:16px">
+        <div class="page-head" style="margin:0 0 12px">
+          <div class="page-title" style="gap:2px">
+            <small>教师课表</small>
+            <h1 style="font-size:24px">我的课表</h1>
+          </div>
+          <div class="head-actions">
+            <button class="btn" type="button" id="addScheduleBtn">新增一行</button>
+          </div>
+        </div>
+        <table class="table">
+          <thead><tr><th>班级</th><th>周几</th><th>第几节</th><th>备注</th><th></th></tr></thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'profile', title:'教学档案', assistant:'profile' });
+    const KEY = 'xiaobei_teacher_profile_v1';
+    const profile = Object.assign(CLEAN_PROTO.ensureProfile(), CLEAN_PROTO.readJson(KEY));
+    let rows = Array.isArray(profile.scheduleRows) ? profile.scheduleRows.slice() : [];
+    if (!rows.length) rows = [{className:'三（1）班',weekday:'周四',period:'第1节',note:'美术教室1'}];
+
+    function rowHtml(row,index){
+      return `
+        <tr>
+          <td><input data-index="${index}" data-key="className" value="${row.className || ''}"></td>
+          <td><input data-index="${index}" data-key="weekday" value="${row.weekday || ''}"></td>
+          <td><input data-index="${index}" data-key="period" value="${row.period || ''}"></td>
+          <td><input data-index="${index}" data-key="note" value="${row.note || ''}"></td>
+          <td><button class="btn" type="button" data-remove="${index}">删除</button></td>
+        </tr>
+      `;
+    }
+
+    function renderRows(){
+      document.getElementById('scheduleBody').innerHTML = rows.map(rowHtml).join('');
+      document.querySelectorAll('[data-key]').forEach(input => {
+        input.oninput = () => { rows[Number(input.dataset.index)][input.dataset.key] = input.value; };
+      });
+      document.querySelectorAll('[data-remove]').forEach(btn => {
+        btn.onclick = () => { rows.splice(Number(btn.dataset.remove),1); renderRows(); };
+      });
+    }
+
+    function fill(){
+      document.getElementById('teacherName').value = profile.teacherName || '李老师';
+      document.getElementById('subject').value = profile.subject || '美术';
+      document.getElementById('preferredGrade').value = profile.preferredGrade || '三年级';
+      document.getElementById('commonClasses').value = profile.commonClasses || '';
+      document.getElementById('scheduleStyle').value = profile.scheduleStyle || '保守排';
+      document.getElementById('outputStyle').value = profile.outputStyle || '简洁';
+      renderRows();
+    }
+
+    document.getElementById('addScheduleBtn').onclick = () => {
+      rows.push({className:'',weekday:'周四',period:'第1节',note:''});
+      renderRows();
+    };
+    document.getElementById('saveProfileBtn').onclick = () => {
+      localStorage.setItem(KEY, JSON.stringify({
+        teacherName: document.getElementById('teacherName').value,
+        subject: document.getElementById('subject').value,
+        preferredGrade: document.getElementById('preferredGrade').value,
+        commonClasses: document.getElementById('commonClasses').value,
+        scheduleStyle: document.getElementById('scheduleStyle').value,
+        outputStyle: document.getElementById('outputStyle').value,
+        scheduleRows: rows
+      }));
+      location.reload();
+    };
+
+    fill();
+  </script>
+</body>
+</html>

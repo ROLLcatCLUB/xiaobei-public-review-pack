@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>精修页</title>
+  <link rel="stylesheet" href="clean.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>深改</small>
+          <h1>精修页</h1>
+        </div>
+        <div class="head-actions">
+          <a class="btn" id="backDraftBtn" href="draft.html?entry=rapid">返回快速版</a>
+          <button class="btn primary" type="button" id="saveRefineBtn">保存精修稿</button>
+        </div>
+      </div>
+
+      <section id="refineGuard" class="empty hide">请先从快速版进入</section>
+      <div id="refineContent" class="section">
+        <section class="identity-strip" id="refineIdentity"></section>
+
+        <section class="split">
+          <article class="card">
+            <h2>公共主稿</h2>
+            <div class="field">
+              <label>本课核心抓手</label>
+              <textarea id="mainCore"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>教学目标与重难点</label>
+              <textarea id="mainGoal"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>通用课堂流程与任务要求</label>
+              <textarea id="mainTask"></textarea>
+            </div>
+          </article>
+
+          <aside class="section">
+            <article class="card">
+              <h2>班级差异</h2>
+              <div class="tabs" id="classTabs"></div>
+              <div class="field" style="margin-top:12px">
+                <label>开场 / 支架 / 节奏 / 评价提醒</label>
+                <textarea id="classAdjust"></textarea>
+              </div>
+            </article>
+            <article class="card">
+              <h2>当前状态</h2>
+              <div class="list" id="refineStatus"></div>
+            </article>
+          </aside>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'refine', title:'精修页', assistant:'refine' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    let currentTask = null;
+    let currentClass = '';
+    let currentDraft = null;
+
+    function readJson(key){
+      try { return JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (e) { return null; }
+    }
+    function taskFromContext(){
+      const queryTask = source.resolveLessonContextFromQuery();
+      if (queryTask) { source.writeLessonSelection(queryTask); return queryTask; }
+      const lesson = readJson(source.storage_keys.selected_context) || readJson(source.storage_keys.selected_context_legacy);
+      if (!lesson) return null;
+      return source.findLessonTask({ course_plan_item_id: lesson.course_plan_item_id, lesson_key: lesson.lesson_key });
+    }
+    function guard(){
+      document.getElementById('refineGuard').classList.remove('hide');
+      document.getElementById('refineContent').classList.add('hide');
+      document.getElementById('refineGuard').textContent = '请先从快速版进入精修';
+    }
+    function siblingClasses(task){
+      return [...new Set(source.listLessonTasks().filter(item => item.topic_name === task.topic_name).map(item => item.class_name))];
+    }
+    function draftHref(task){
+      return `draft.html?entry=rapid&course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
+    }
+    function buildFallback(task){
+      const rapid = source.findLatestPrepDraft({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key, draft_mode:'rapid' });
+      const minimal = source.findLatestPrepDraft({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key, draft_mode:'minimal' });
+      const base = rapid || minimal;
+      return {
+        main_core: base?.fields?.core_focus || `先抓 ${task.topic_name} 的整体效果，再放开细节装饰。`,
+        main_goal: base?.fields?.goal_block || '目标：完成一版可继续细化的班级球衣设计稿。\\n重点：整体版式先行。\\n难点：细节不抢整体。',
+        main_task: base?.fields?.task_block || '流程：看案例 -> 定主色 -> 起整体草图 -> 再补细节。\\n评价：先看整体，再看装饰。',
+        class_adjustments: {}
+      };
+    }
+    function loadDraft(task){
+      const refine = source.findLatestPrepDraft({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key, draft_mode:'refine' });
+      if (refine) return refine;
+      return { fields: buildFallback(task), saved_at:'', draft_mode:'refine' };
+    }
+    function classAdjustmentMap(){
+      return currentDraft.fields.class_adjustments || {};
+    }
+    function renderClassTabs(classes){
+      const wrap = document.getElementById('classTabs');
+      wrap.innerHTML = classes.map(name => `<button type="button" class="tab ${name===currentClass?'active':''}" data-class="${name}">${name}</button>`).join('');
+      wrap.querySelectorAll('[data-class]').forEach(btn => {
+        btn.onclick = () => {
+          persistCurrentClass();
+          currentClass = btn.dataset.class;
+          renderClassTabs(classes);
+          renderClassAdjust();
+        };
+      });
+    }
+    function persistCurrentClass(){
+      if (!currentClass || !currentDraft) return;
+      const map = classAdjustmentMap();
+      map[currentClass] = document.getElementById('classAdjust').value;
+      currentDraft.fields.class_adjustments = map;
+    }
+    function renderClassAdjust(){
+      const map = classAdjustmentMap();
+      document.getElementById('classAdjust').value = map[currentClass] || '';
+    }
+    function render(){
+      const task = taskFromContext();
+      if (!task) { guard(); return; }
+      currentTask = task;
+      currentDraft = loadDraft(task);
+      document.getElementById('backDraftBtn').href = draftHref(task);
+      document.getElementById('refineIdentity').innerHTML = `
+        <div class="identity-item"><small>当前课时</small><strong>${task.topic_name}</strong></div>
+        <div class="identity-item"><small>班级 / 节次</small><strong>${task.class_name} · ${task.day_label}${task.period}</strong></div>
+        <div class="identity-item"><small>当前阶段</small><strong>${source.describeLatestDraft(task).savedDraftLabel || '精修中'}</strong></div>
+        <div class="identity-item"><small>风险</small><strong>${task.risk_tag}</strong></div>
+      `;
+      document.getElementById('mainCore').value = currentDraft.fields.main_core || '';
+      document.getElementById('mainGoal').value = currentDraft.fields.main_goal || '';
+      document.getElementById('mainTask').value = currentDraft.fields.main_task || '';
+      const classes = siblingClasses(task);
+      currentClass = currentClass || task.class_name || classes[0];
+      renderClassTabs(classes);
+      renderClassAdjust();
+      document.getElementById('refineStatus').innerHTML = `
+        <div class="list-item"><strong>最近保存</strong><div class="muted tiny">${currentDraft.saved_at ? new Date(currentDraft.saved_at).toLocaleString('zh-CN',{hour12:false}) : '当前还没有已保存精修稿'}</div></div>
+        <div class="list-item"><strong>当前班级</strong><div class="muted tiny">${currentClass}</div></div>
+        <div class="list-item"><strong>稿链</strong><div class="muted tiny">同一节课，继续深改</div></div>
+      `;
+      document.getElementById('saveRefineBtn').onclick = () => {
+        persistCurrentClass();
+        const saved = source.savePrepDraft(task, {
+          draft_mode:'refine',
+          fields:{
+            main_core: document.getElementById('mainCore').value,
+            main_goal: document.getElementById('mainGoal').value,
+            main_task: document.getElementById('mainTask').value,
+            class_adjustments: classAdjustmentMap()
+          },
+          risk_tag: task.risk_tag,
+          assignment_summary: task.assignment_summary
+        });
+        currentDraft = saved;
+        render();
+      };
+    }
+    render();
+  </script>
+</body>
+</html>

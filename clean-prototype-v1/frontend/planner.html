@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 学期排课向导</title>
+  <link rel="stylesheet" href="clean.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>supporting page</small>
+          <h1>AI 学期排课向导</h1>
+        </div>
+        <div class="head-actions">
+          <a class="btn" href="calendar.html">返回学期安排</a>
+          <button class="btn primary" type="button" id="generateBtn">生成草案</button>
+        </div>
+      </div>
+
+      <section class="grid-2">
+        <article class="card">
+          <h2>基础信息</h2>
+          <div class="grid-2">
+            <div class="field"><label>年级</label><select id="grade"><option>一年级</option><option>二年级</option><option selected>三年级</option><option>四年级</option><option>五年级</option><option>六年级</option></select></div>
+            <div class="field"><label>学科</label><select id="subject"><option selected>美术</option></select></div>
+            <div class="field"><label>开始日期</label><input id="startDate" type="date" value="2026-02-16"></div>
+            <div class="field"><label>结束日期</label><input id="endDate" type="date" value="2026-06-12"></div>
+            <div class="field"><label>排课偏好</label><select id="pace"><option>保守排</option><option selected>正常排</option><option>紧凑排</option></select></div>
+            <div class="field"><label>机动预留</label><input id="reserveHours" value="2"></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>教师课表</h2>
+          <table class="table">
+            <thead><tr><th>班级</th><th>周几</th><th>第几节</th><th>备注</th></tr></thead>
+            <tbody id="scheduleRows"></tbody>
+          </table>
+        </article>
+      </section>
+
+      <section class="grid-2" style="margin-top:16px">
+        <article class="card">
+          <div class="page-head" style="margin:0 0 12px">
+            <div class="page-title" style="gap:2px"><small>教材 / 课题</small><h1 style="font-size:24px">课题清单</h1></div>
+            <button class="btn" type="button" id="addTopicBtn">新增一行</button>
+          </div>
+          <table class="table">
+            <thead><tr><th>单元 / 课题</th><th>课时</th><th>类型</th><th>必上</th><th></th></tr></thead>
+            <tbody id="topicRows"></tbody>
+          </table>
+        </article>
+
+        <article class="card">
+          <div class="page-head" style="margin:0 0 12px">
+            <div class="page-title" style="gap:2px"><small>节假日 / 活动周</small><h1 style="font-size:24px">影响项</h1></div>
+            <button class="btn" type="button" id="addActivityBtn">新增一行</button>
+          </div>
+          <div class="tabs" id="holidayTags"></div>
+          <table class="table" style="margin-top:12px">
+            <thead><tr><th>开始</th><th>结束</th><th>名称</th><th>影响</th><th></th></tr></thead>
+            <tbody id="activityRows"></tbody>
+          </table>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top:16px">
+        <h2>生成草案</h2>
+        <div id="plannerOutput" class="empty">点击“生成草案”后，这里显示学期总纲、单元安排和周历草稿。</div>
+      </section>
+    </main>
+  </div>
+
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'planner', title:'AI 学期排课向导', assistant:'planner' });
+    const profile = CLEAN_PROTO.ensureProfile();
+    const holidayList = ['清明', '五一', '创艺节', '运动会', '期末周'];
+    let topics = [
+      {name:'创艺节·足球梦', hours:'4', type:'活动', required:'是'},
+      {name:'第四单元 青绿中国色', hours:'4', type:'教材', required:'是'}
+    ];
+    let activities = [
+      {start:'2026-04-03', end:'2026-04-05', name:'清明', impact:'减容量'},
+      {start:'2026-04-21', end:'2026-04-30', name:'创艺节', impact:'插入活动课'}
+    ];
+
+    function renderSchedule(){
+      document.getElementById('scheduleRows').innerHTML = (profile.scheduleRows || []).map(row => `<tr><td>${row.className}</td><td>${row.weekday}</td><td>${row.period}</td><td>${row.note || ''}</td></tr>`).join('');
+      document.getElementById('grade').value = profile.preferredGrade || '三年级';
+      document.getElementById('subject').value = profile.subject || '美术';
+    }
+    function renderTopics(){
+      document.getElementById('topicRows').innerHTML = topics.map((row,index)=>`
+        <tr>
+          <td><input data-topic="${index}" data-key="name" value="${row.name}"></td>
+          <td><input data-topic="${index}" data-key="hours" value="${row.hours}"></td>
+          <td><input data-topic="${index}" data-key="type" value="${row.type}"></td>
+          <td><input data-topic="${index}" data-key="required" value="${row.required}"></td>
+          <td><button class="btn" type="button" data-topic-remove="${index}">删</button></td>
+        </tr>
+      `).join('');
+      document.querySelectorAll('[data-topic]').forEach(input => input.oninput = () => topics[Number(input.dataset.topic)][input.dataset.key] = input.value);
+      document.querySelectorAll('[data-topic-remove]').forEach(btn => btn.onclick = () => { topics.splice(Number(btn.dataset.topicRemove),1); renderTopics(); });
+    }
+    function renderActivities(){
+      document.getElementById('holidayTags').innerHTML = holidayList.map(item => `<span class="pill">${item}</span>`).join('');
+      document.getElementById('activityRows').innerHTML = activities.map((row,index)=>`
+        <tr>
+          <td><input data-activity="${index}" data-key="start" value="${row.start}"></td>
+          <td><input data-activity="${index}" data-key="end" value="${row.end}"></td>
+          <td><input data-activity="${index}" data-key="name" value="${row.name}"></td>
+          <td><input data-activity="${index}" data-key="impact" value="${row.impact}"></td>
+          <td><button class="btn" type="button" data-activity-remove="${index}">删</button></td>
+        </tr>
+      `).join('');
+      document.querySelectorAll('[data-activity]').forEach(input => input.oninput = () => activities[Number(input.dataset.activity)][input.dataset.key] = input.value);
+      document.querySelectorAll('[data-activity-remove]').forEach(btn => btn.onclick = () => { activities.splice(Number(btn.dataset.activityRemove),1); renderActivities(); });
+    }
+    document.getElementById('addTopicBtn').onclick = () => { topics.push({name:'',hours:'2',type:'教材',required:'是'}); renderTopics(); };
+    document.getElementById('addActivityBtn').onclick = () => { activities.push({start:'',end:'',name:'',impact:'减容量'}); renderActivities(); };
+    document.getElementById('generateBtn').onclick = () => {
+      document.getElementById('plannerOutput').classList.remove('empty');
+      document.getElementById('plannerOutput').innerHTML = `
+        <div class="grid-3">
+          <div class="card"><h3>学期总纲</h3><div class="muted tiny">${document.getElementById('grade').value}${document.getElementById('subject').value} · ${document.getElementById('pace').value} · 预留 ${document.getElementById('reserveHours').value} 节</div></div>
+          <div class="card"><h3>单元安排</h3><div class="muted tiny">${topics.map(item => `${item.name}（${item.hours}课时）`).join('、')}</div></div>
+          <div class="card"><h3>周历草案</h3><div class="muted tiny">${activities.map(item => `${item.name}:${item.impact}`).join('、')}</div></div>
+        </div>
+      `;
+    };
+    renderSchedule();
+    renderTopics();
+    renderActivities();
+  </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>快速版 / 极简版</title>
+  <link rel="stylesheet" href="clean.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page">
+      <div class="page-head">
+        <div class="page-title">
+          <small id="modeTag">快速版</small>
+          <h1 id="modeTitle">快速版备课</h1>
+        </div>
+        <div class="head-actions">
+          <a class="btn" id="backBriefBtn" href="brief.html">返回课前简报</a>
+          <button class="btn primary" type="button" id="saveBtn">保存草稿</button>
+        </div>
+      </div>
+
+      <section id="guard" class="empty hide">请先选课</section>
+      <div id="content" class="section">
+        <section class="identity-strip" id="identity"></section>
+
+        <section class="grid-2">
+          <article class="card">
+            <h2>主稿</h2>
+            <div class="field">
+              <label>本课核心抓手</label>
+              <textarea id="fieldCore"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>教学目标与重难点</label>
+              <textarea id="fieldGoal"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>核心活动与任务要求</label>
+              <textarea id="fieldTask"></textarea>
+            </div>
+          </article>
+
+          <aside class="section">
+            <article class="card">
+              <h2>本课摘要</h2>
+              <div class="list" id="summaryList"></div>
+            </article>
+            <article class="card">
+              <h2>当前状态</h2>
+              <div class="list" id="draftStatus"></div>
+            </article>
+            <article class="card">
+              <h2>下一步</h2>
+              <div class="inline-actions" id="nextActions"></div>
+            </article>
+          </aside>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'draft', title:'快速版 / 极简版', assistant:'draft' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const params = new URLSearchParams(window.location.search);
+    const entry = params.get('entry') === 'minimal' ? 'minimal' : 'rapid';
+    const modeLabel = entry === 'minimal' ? '极简版' : '快速版';
+
+    function readJson(key){
+      try { return JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (e) { return null; }
+    }
+    function taskFromContext(){
+      const queryTask = source.resolveLessonContextFromQuery();
+      if (queryTask) { source.writeLessonSelection(queryTask); return queryTask; }
+      const lesson = readJson(source.storage_keys.selected_context) || readJson(source.storage_keys.selected_context_legacy);
+      if (!lesson) return null;
+      return source.findLessonTask({ course_plan_item_id: lesson.course_plan_item_id, lesson_key: lesson.lesson_key });
+    }
+    function briefHref(task){
+      return `brief.html?course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
+    }
+    function refineHref(task){
+      return `refine.html?course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
+    }
+    function guard(){
+      document.getElementById('guard').classList.remove('hide');
+      document.getElementById('content').classList.add('hide');
+      document.getElementById('guard').textContent = '请先从正式选课进入课前简报，再开始备课';
+    }
+    function fillDefaults(task){
+      if (entry === 'minimal') {
+        document.getElementById('fieldCore').value = `先把 ${task.topic_name} 这一节课的最小抓手立住。`;
+        document.getElementById('fieldGoal').value = '最小目标：今天先完成一版可继续往下做的基础草稿。';
+        document.getElementById('fieldTask').value = '最小任务：先完成整体框架，再决定是否补细节。';
+      } else {
+        document.getElementById('fieldCore').value = `先抓 ${task.topic_name} 的整体表达，再进入细节装饰。`;
+        document.getElementById('fieldGoal').value = '目标：完成一版基础设计草稿。\\n重点：整体先于细节。\\n难点：避免一开始就陷入图案堆砌。';
+        document.getElementById('fieldTask').value = '活动：看案例 -> 说整体 -> 画草图 -> 再补细节。\\n评价：先看整体，再看细节。';
+      }
+    }
+    function restoreDraft(task){
+      const draft = source.findLatestPrepDraft({
+        course_plan_item_id: task.course_plan_item_id,
+        lesson_key: task.lesson_key,
+        draft_mode: entry
+      });
+      if (!draft) return null;
+      document.getElementById('fieldCore').value = draft.fields.core_focus || '';
+      document.getElementById('fieldGoal').value = draft.fields.goal_block || '';
+      document.getElementById('fieldTask').value = draft.fields.task_block || '';
+      return draft;
+    }
+    function render(){
+      const task = taskFromContext();
+      if (!task) { guard(); return; }
+      document.getElementById('modeTag').textContent = modeLabel;
+      document.getElementById('modeTitle').textContent = `${modeLabel}备课`;
+      document.getElementById('backBriefBtn').href = briefHref(task);
+      document.getElementById('identity').innerHTML = `
+        <div class="identity-item"><small>当前课时</small><strong>${task.topic_name}</strong></div>
+        <div class="identity-item"><small>班级 / 节次</small><strong>${task.class_name} · ${task.day_label}${task.period}</strong></div>
+        <div class="identity-item"><small>当前状态</small><strong>${task.status}</strong></div>
+        <div class="identity-item"><small>草稿状态</small><strong>${source.describeLatestDraft(task).savedDraftLabel || '未保存'}</strong></div>
+      `;
+      fillDefaults(task);
+      const restored = restoreDraft(task);
+      const brief = source.buildBrief(task);
+      const recommendation = brief.cards.find(item => item.card_type === 'task_recommendation');
+      document.getElementById('summaryList').innerHTML = `
+        <div class="list-item"><strong>先抓</strong><div class="muted tiny">${recommendation.bullets[0]}</div></div>
+        <div class="list-item"><strong>先防</strong><div class="muted tiny">${recommendation.bullets[1]}</div></div>
+        <div class="list-item"><strong>先备</strong><div class="muted tiny">${recommendation.bullets[2]}</div></div>
+      `;
+      const refineDraft = source.findLatestPrepDraft({
+        course_plan_item_id: task.course_plan_item_id,
+        lesson_key: task.lesson_key,
+        draft_mode: 'refine'
+      });
+      document.getElementById('draftStatus').innerHTML = `
+        <div class="list-item"><strong>当前模式</strong><div class="muted tiny">${modeLabel}</div></div>
+        <div class="list-item"><strong>恢复状态</strong><div class="muted tiny">${restored ? '已恢复上次草稿' : '当前还没有已保存草稿'}</div></div>
+        <div class="list-item"><strong>精修状态</strong><div class="muted tiny">${refineDraft ? '已有精修稿' : '还未进入精修'}</div></div>
+      `;
+      document.getElementById('nextActions').innerHTML = `
+        <a class="btn" href="${entry === 'rapid' ? `draft.html?entry=minimal&course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}` : `draft.html?entry=rapid&course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`}">切换到${entry === 'rapid' ? '极简版' : '快速版'}</a>
+        <a class="btn primary" href="${refineHref(task)}">${refineDraft ? '继续精修页' : '进入精修页'}</a>
+      `;
+      document.getElementById('saveBtn').onclick = () => {
+        source.savePrepDraft(task, {
+          draft_mode: entry,
+          fields: {
+            core_focus: document.getElementById('fieldCore').value,
+            goal_block: document.getElementById('fieldGoal').value,
+            task_block: document.getElementById('fieldTask').value
+          },
+          brief_snapshot: recommendation.bullets,
+          risk_tag: task.risk_tag,
+          assignment_summary: task.assignment_summary
+        });
+        render();
+      };
+    }
+    render();
+  </script>
+</body>
+</html>
