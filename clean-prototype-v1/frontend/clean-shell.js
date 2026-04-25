@@ -169,10 +169,10 @@
     wrap.innerHTML = `
       <div class="shell-topbar-inner">
         <div class="brand">
-          <div class="brand-mark">备</div>
+          <img class="brand-mark" src="assets/dz-zhihui-logo.svg" alt="雕庄智绘教育">
           <div class="brand-copy">
-            <strong>${title}</strong>
-            <small>已登录 · ${(profile.teachingGrades || profile.preferredGrade)}${profile.subject}</small>
+            <strong>雕庄智绘教育</strong>
+            <small>${title} · 已登录 · ${(profile.teachingGrades || profile.preferredGrade)}${profile.subject}</small>
           </div>
         </div>
         <div class="user-nav">
