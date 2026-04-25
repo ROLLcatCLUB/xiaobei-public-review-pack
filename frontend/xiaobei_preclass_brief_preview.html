@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课前简报页 - 预览</title>
+<style>
+:root{
+  --bg:#f6f2e9;--panel:#fffdf8;--ink:#20312a;--muted:#66756e;--line:#d9d1c0;
+  --green:#46685c;--gold:#b4823c;--warn:#8e5c3a;--soft:#ece3d1;
+  --blue:#4d83c6;--rose:#87514e;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);
+  background:
+    radial-gradient(circle at top left,#f3ead6 0,transparent 28%),
+    linear-gradient(180deg,#f7f2e8 0%,#efe7d8 100%);
+}
+a,button{font:inherit}a{text-decoration:none;color:inherit}
+.wrap{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:28px 0 46px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.crumb{display:flex;align-items:center;gap:12px;color:#55655d;font-weight:800}
+.back{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:#fff}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);
+  background:#fff;color:var(--ink);font-weight:800;cursor:pointer
+}
+.btn.green{background:linear-gradient(135deg,#46685c,#355147);border-color:#46685c;color:#fff}
+.hero{
+  padding:26px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(255,253,248,.96),rgba(245,238,224,.96));
+  box-shadow:0 18px 50px rgba(92,76,43,.08)
+}
+.eyebrow{
+  display:inline-block;padding:6px 12px;border-radius:999px;background:var(--soft);color:var(--green);font-size:12px;letter-spacing:.08em
+}
+h1{margin:14px 0 8px;font-size:34px}
+.summary{color:var(--ink);line-height:1.7;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.chip{padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--muted);font-size:13px}
+.entry-note{
+  margin-top:16px;padding:12px 14px;border-radius:16px;background:#fff8ec;border:1px solid #ead3a5;color:#6f5228;line-height:1.65;font-size:13px
+}
+.quick-strip{
+  margin-top:18px;padding:16px;border-radius:18px;background:#f7fbf8;border:1px solid #dceadf;display:none
+}
+.quick-strip h3{margin:0 0 10px;font-size:18px}
+.quick-strip ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.75}
+.next-panel{margin-top:22px;padding:20px;border-radius:20px;background:rgba(255,253,248,.92);border:1px solid var(--line)}
+.next-panel h3{margin:0 0 10px;font-size:18px}
+.route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.route-card{
+  display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:18px;background:#fff;border:1px solid var(--line);
+  box-shadow:0 10px 20px rgba(75,59,32,.04)
+}
+.route-card.primary{border-color:#99ccb6;background:linear-gradient(135deg,#f5fbf7,#ffffff)}
+.route-badge{display:inline-flex;align-self:flex-start;padding:6px 10px;border-radius:999px;background:#eef8f2;color:var(--green);font-size:12px;font-weight:800}
+.route-card.primary .route-badge{background:#2f8b69;color:#fff}
+.route-card h4{margin:0;font-size:18px}
+.route-card p{margin:0;color:var(--muted);line-height:1.65;font-size:13px}
+.route-card .btn{margin-top:auto}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:22px}
+.card{
+  padding:20px;border-radius:20px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 28px rgba(75,59,32,.05)
+}
+.card.full{grid-column:1 / -1}
+.card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+.card h2{margin:0;font-size:20px}
+.status{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.badge{padding:6px 10px;border-radius:999px;font-size:12px;border:1px solid transparent}
+.resolved{background:#e4efe6;color:#2d5a44}
+.partial{background:#eef4ff;color:#355b8b}
+.sample_only{background:#f4eadf;color:#8e5c3a}
+.missing{background:#efe6e6;color:#87514e}
+.high{border-color:#87b08c;color:#2d5a44}
+.medium{border-color:#8bb1dd;color:#355b8b}
+.low{border-color:#ca9d9a;color:#87514e}
+.card-summary{color:var(--ink);line-height:1.7;margin:0 0 12px}
+ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.7}
+.panel{margin-top:22px;padding:20px;border-radius:20px;background:rgba(255,253,248,.92);border:1px solid var(--line)}
+.panel h3{margin:0 0 10px;font-size:18px}
+.footer{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+@media(max-width:840px){
+  .route-grid{grid-template-columns:1fr}
+  .grid{grid-template-columns:1fr}
+  .card.full{grid-column:auto}
+  h1{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="crumb">
+      <a id="backIconBtn" class="back" href="xiaobei_formal_lesson_picker_preview.html">←</a>
+      <div>
+        <div>正式选课 / 课前简报</div>
+        <strong style="display:block;font-size:26px;margin-top:4px">课前简报页 v1</strong>
+      </div>
+    </div>
+    <div class="actions">
+      <a id="backToPickerBtn" class="btn" href="xiaobei_formal_lesson_picker_preview.html">返回正式选课</a>
+      <a id="minimalEntryBtn" class="btn" href="xiaobei_prepare_draft_preview.html?entry=minimal">去极简版</a>
+      <a id="rapidEntryBtn" class="btn green" href="xiaobei_prepare_draft_preview.html?entry=rapid">推荐进入快速版</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <span class="eyebrow">PRECLASS BRIEF V1</span>
+    <h1 id="title"></h1>
+    <p id="summary" class="summary"></p>
+    <div class="meta" id="meta"></div>
+    <div class="entry-note" id="entryNote"></div>
+    <div class="quick-strip" id="quickStrip">
+      <h3>今天快速备一节 · 简短定向</h3>
+      <ul id="quickBullets"></ul>
+    </div>
+  </section>
+
+  <section class="next-panel">
+    <h3>下一步推荐</h3>
+    <div class="route-grid" id="routeGrid"></div>
+  </section>
+
+  <section class="grid" id="cards"></section>
+
+  <section class="panel">
+    <h3>当前 Source Gap</h3>
+    <ul id="gaps"></ul>
+  </section>
+
+  <div class="footer">
+    <a id="minimalFooterBtn" class="btn" href="xiaobei_prepare_draft_preview.html?entry=minimal">进入极简版（次级）</a>
+    <a id="rapidFooterBtn" class="btn green" href="xiaobei_prepare_draft_preview.html?entry=rapid">推荐进入快速版</a>
+    <a id="refineFooterBtn" class="btn" href="xiaobei_prepare_refine_preview.html?entry=refine">进入精修页（次级）</a>
+  </div>
+</div>
+
+<script src="xiaobei_prep_truth_source_v1.js"></script>
+<script>
+const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+const PICKER_UI_STATE_KEY = 'xiaobei_formal_lesson_picker_ui_v1';
+const briefParams = new URLSearchParams(window.location.search);
+const briefFlow = briefParams.get('flow') || 'standard';
+
+function readPickerState() {
+  try {
+    const raw = sessionStorage.getItem(PICKER_UI_STATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function buildPickerReturnHref(task) {
+  const params = new URLSearchParams(window.location.search);
+  const pickerState = readPickerState() || {};
+  const query = new URLSearchParams();
+  const week = params.get('week') || pickerState.week;
+  const unit = params.get('unit') || pickerState.unit;
+  const className = params.get('className') || pickerState.className;
+  const lessonType = params.get('lessonType') || pickerState.lessonType;
+  const coursePlanItemId = params.get('course_plan_item_id') || pickerState.course_plan_item_id || task?.course_plan_item_id;
+  const lessonKey = params.get('lesson_key') || pickerState.lesson_key || task?.lesson_key;
+
+  if (week) query.set('week', week);
+  if (unit) query.set('unit', unit);
+  if (className) query.set('className', className);
+  if (lessonType) query.set('lessonType', lessonType);
+  if (coursePlanItemId) query.set('course_plan_item_id', coursePlanItemId);
+  if (lessonKey) query.set('lesson_key', lessonKey);
+
+  const suffix = query.toString();
+  return `xiaobei_formal_lesson_picker_preview.html${suffix ? `?${suffix}` : ''}`;
+}
+
+function buildDownstreamHref(task, entry, targetPage) {
+  const query = new URLSearchParams();
+  query.set('entry', entry);
+  if (task?.course_plan_item_id) query.set('course_plan_item_id', task.course_plan_item_id);
+  if (task?.lesson_key) query.set('lesson_key', task.lesson_key);
+  if (briefFlow === 'fast') query.set('flow', 'fast');
+  return `${targetPage}?${query.toString()}`;
+}
+
+function resolveLatestDraft(task, mode) {
+  if (!task) return null;
+  return source.findLatestPrepDraft ? source.findLatestPrepDraft({
+    course_plan_item_id: task.course_plan_item_id,
+    lesson_key: task.lesson_key,
+    draft_mode: mode
+  }) : null;
+}
+
+function renderRouteGrid(task) {
+  const routeGrid = document.getElementById('routeGrid');
+  if (!task) {
+    routeGrid.innerHTML = `
+      <article class="route-card primary">
+        <span class="route-badge">先回主线</span>
+        <h4>先返回正式选课</h4>
+        <p>当前还没有 lesson context。请先选中真实课时项，再进入课前简报和后续备课页。</p>
+        <a class="btn green" href="${buildPickerReturnHref(null)}">返回正式选课</a>
+      </article>
+    `;
+    return;
+  }
+
+  const minimalHref = buildDownstreamHref(task, 'minimal', 'xiaobei_prepare_draft_preview.html');
+  const rapidHref = buildDownstreamHref(task, 'rapid', 'xiaobei_prepare_draft_preview.html');
+  const refineHref = buildDownstreamHref(task, 'refine', 'xiaobei_prepare_refine_preview.html');
+  const minimalDraft = resolveLatestDraft(task, 'minimal');
+  const rapidDraft = resolveLatestDraft(task, 'rapid');
+  const refineDraft = resolveLatestDraft(task, 'refine');
+  const primaryTitle = refineDraft
+    ? '继续精修页'
+    : (briefFlow === 'fast' ? '看完 3 条提示后进入快速版' : '先进入快速版');
+  const primaryBody = refineDraft
+    ? `这节课已经有一版精修稿，保存时间为 ${new Date(refineDraft.saved_at).toLocaleString('zh-CN', { hour12:false })}。如果你这次是回来继续做同一节课，最自然的下一步就是继续精修。`
+    : (rapidDraft
+      ? `这节课已经有一版快速草稿，保存时间为 ${new Date(rapidDraft.saved_at).toLocaleString('zh-CN', { hour12:false })}。现在更适合直接继续编辑。`
+      : briefFlow === 'fast'
+        ? '当前是“今天快速备一节”模式。先看上面的 3 条定向提示，然后直接进入快速版立稿，不要求先读完整五卡。'
+        : '看完 5 张卡后，默认先去快速版把一版可编辑草稿立起来。这里最适合承接 brief 的定向结果。');
+  const primaryHref = refineDraft ? refineHref : rapidHref;
+  const primaryLabel = refineDraft ? '继续精修页' : (rapidDraft ? '继续快速版' : '推荐进入快速版');
+  const primaryBadge = refineDraft ? '已有精修稿' : (briefFlow === 'fast' ? '短路径主推荐' : '主推荐');
+
+  routeGrid.innerHTML = `
+    <article class="route-card primary">
+      <span class="route-badge">${primaryBadge}</span>
+      <h4>${primaryTitle}</h4>
+      <p>${primaryBody}</p>
+      <a class="btn green" href="${primaryHref}">${primaryLabel}</a>
+    </article>
+    <article class="route-card">
+      <span class="route-badge">次级入口</span>
+      <h4>极简版</h4>
+      <p>${minimalDraft ? `这节课已经有一版极简稿，保存时间为 ${new Date(minimalDraft.saved_at).toLocaleString('zh-CN', { hour12:false })}。如果只想继续补最小字段，可以直接回到它。` : '只有当你只想补最小必要字段、先保底不空手时，再走极简版。'}</p>
+      <a class="btn" href="${minimalHref}">${minimalDraft ? '继续极简版' : '进入极简版'}</a>
+    </article>
+    <article class="route-card">
+      <span class="route-badge">次级入口</span>
+      <h4>${refineDraft ? '如需回到快速版' : '精修页'}</h4>
+      <p>${refineDraft ? (rapidDraft ? `这节课同时也有快速稿。如果你想先回到主稿层补字段，再重新进精修，可以从这里回快速版。` : '这节课已有精修稿。只有在你想回到更轻的主稿层重看字段时，才需要先回快速版。') : '适合已经准备细调教学设计，或已有草稿、准备继续深改时进入。'}</p>
+      <a class="btn" href="${refineDraft ? rapidHref : refineHref}">${refineDraft ? (rapidDraft ? '回快速版' : '看快速版主稿') : '进入精修页'}</a>
+    </article>
+  `;
+}
+
+function currentTask() {
+  const resolvedFromQuery = source.resolveLessonContextFromQuery();
+  if (resolvedFromQuery) {
+    source.writeLessonSelection(resolvedFromQuery);
+    return resolvedFromQuery;
+  }
+  const lesson = (() => {
+    try {
+      const raw = sessionStorage.getItem(source.storage_keys.selected_context);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      return null;
+    }
+  })();
+  if (!lesson) return null;
+  return source.findLessonTask({ course_plan_item_id: lesson.course_plan_item_id, lesson_key: lesson.lesson_key });
+}
+
+function render() {
+  const task = currentTask();
+  const backHref = buildPickerReturnHref(task);
+  document.getElementById('backIconBtn').setAttribute('href', backHref);
+  document.getElementById('backToPickerBtn').setAttribute('href', backHref);
+  if (!task) {
+    document.getElementById('title').textContent = '还没有选中课时项';
+    document.getElementById('summary').textContent = '请先回到正式选课页，从真实课时项里选中一节课，再进入课前简报。';
+    document.getElementById('meta').innerHTML = '';
+    document.getElementById('entryNote').textContent = '当前未检测到 selected_lesson_context_v1.1。';
+    document.getElementById('cards').innerHTML = '';
+    document.getElementById('gaps').innerHTML = '<li>当前没有课时上下文，brief 还不能成立。</li>';
+    renderRouteGrid(null);
+    return;
+  }
+
+  const brief = source.buildBrief(task);
+  const minimalDraft = resolveLatestDraft(task, 'minimal');
+  const rapidDraft = resolveLatestDraft(task, 'rapid');
+  const refineDraft = resolveLatestDraft(task, 'refine');
+  const minimalHref = buildDownstreamHref(task, 'minimal', 'xiaobei_prepare_draft_preview.html');
+  const rapidHref = buildDownstreamHref(task, 'rapid', 'xiaobei_prepare_draft_preview.html');
+  const refineHref = buildDownstreamHref(task, 'refine', 'xiaobei_prepare_refine_preview.html');
+  document.getElementById('minimalEntryBtn').setAttribute('href', minimalHref);
+  document.getElementById('rapidEntryBtn').setAttribute('href', refineDraft ? refineHref : rapidHref);
+  document.getElementById('minimalFooterBtn').setAttribute('href', minimalHref);
+  document.getElementById('rapidFooterBtn').setAttribute('href', refineDraft ? refineHref : rapidHref);
+  document.getElementById('refineFooterBtn').setAttribute('href', refineHref);
+  document.getElementById('minimalEntryBtn').textContent = minimalDraft ? '继续极简版' : '去极简版';
+  document.getElementById('rapidEntryBtn').textContent = refineDraft ? '继续精修页' : (rapidDraft ? '继续快速版' : '推荐进入快速版');
+  document.getElementById('minimalFooterBtn').textContent = minimalDraft ? '继续极简版（次级）' : '进入极简版（次级）';
+  document.getElementById('rapidFooterBtn').textContent = refineDraft ? '继续精修页' : (rapidDraft ? '继续快速版' : '推荐进入快速版');
+  document.getElementById('refineFooterBtn').textContent = refineDraft ? '继续精修页' : '进入精修页（次级）';
+  document.getElementById('title').textContent = `${task.topic_name} · 课前简报`;
+  document.getElementById('summary').textContent = `先看懂这节课的方向、风险和抓手，再决定进入极简版、快速版还是精修。当前这页只做定向，不做生成。`;
+  document.getElementById('meta').innerHTML = `
+    <span class="chip">${task.week_label} · ${task.date_range}</span>
+    <span class="chip">${task.class_name} · ${task.day_label}${task.period}</span>
+    <span class="chip">${task.unit_name}</span>
+    <span class="chip">${task.lesson_type}</span>
+    <span class="chip">当前状态：${task.status}</span>
+  `;
+  document.getElementById('entryNote').textContent = refineDraft
+    ? '这节课已经存在精修稿。当前最自然的下一步是继续精修；如果只是想回看主稿层，再回快速版。当前“继续编辑”判断只认已保存草稿。'
+    : briefFlow === 'fast'
+      ? '你当前走的是“今天快速备一节”短路径。这里不要求先读完整简报，但仍然先给你 3 条定向提示，再推荐进入快速版。'
+      : '你是从正式选课页进入的。当前已写入 selected_lesson_context_v1.1。推荐默认下一步先进入快速版，极简版和精修页保留为次级入口。当前“继续编辑”判断只认已保存草稿。';
+  if (briefFlow === 'fast') {
+    const quickBullets = document.getElementById('quickBullets');
+    const recommendationCard = brief.cards.find(card => card.card_type === 'task_recommendation');
+    const quickStrip = document.getElementById('quickStrip');
+    quickBullets.innerHTML = recommendationCard
+      ? recommendationCard.bullets.slice(0, 3).map(item => `<li>${item}</li>`).join('')
+      : '<li>先确认本节课的方向，再进入快速版。</li>';
+    quickStrip.style.display = 'block';
+  }
+  renderRouteGrid(task);
+  document.getElementById('cards').innerHTML = brief.cards.map(card => `
+    <article class="card ${card.card_type === 'task_recommendation' ? 'full' : ''}">
+      <div class="card-top">
+        <h2>${card.title}</h2>
+        <div class="status">
+          <span class="badge ${card.source_status}">${card.source_status}</span>
+          <span class="badge ${card.confidence}">${card.confidence}</span>
+        </div>
+      </div>
+      <p class="card-summary">${card.summary}</p>
+      <ul>
+        ${card.bullets.map(item => `<li>${item}</li>`).join('')}
+      </ul>
+    </article>
+  `).join('');
+  document.getElementById('gaps').innerHTML = brief.source_gaps.map(item => `<li>${item}</li>`).join('');
+}
+
+render();
+</script>
+<script src="xiaobei_proto_shell_v1.js"></script>
+</body>
+</html>

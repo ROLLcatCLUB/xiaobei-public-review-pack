@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>备课入口台首页 - 电脑端预览</title>
+<style>
+:root{
+  --ink:#18261e;--muted:#6b7b71;--line:#e2ebe3;--panel:#ffffff;
+  --bg:#f4faf6;--green:#1f8f60;--green-dark:#16734c;--green-soft:#ecfbf4;
+  --orange:#e99a2d;--orange-soft:#fff5e5;--blue:#5f94f2;--blue-soft:#eef4ff;
+  --purple:#7a62d9;--purple-soft:#f4efff;--shadow:0 18px 48px rgba(39,74,51,.08);
+  --shadow-sm:0 10px 24px rgba(39,74,51,.06);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 8%,rgba(226,244,231,.92),transparent 26%),
+    radial-gradient(circle at 88% 14%,rgba(255,238,206,.74),transparent 24%),
+    linear-gradient(180deg,#f5faf7 0%,#f8fbf8 42%,#f2f7f4 100%);
+}
+a,button{font:inherit}a{text-decoration:none;color:inherit}
+.page{width:min(1380px,calc(100vw - 32px));margin:22px auto 34px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-mark{
+  width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#1f8f60,#45bc8a);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;
+  box-shadow:0 12px 24px rgba(31,143,96,.22)
+}
+.brand-title{font-size:30px;font-weight:900;letter-spacing:-.03em}
+.brand-sub{margin-top:4px;color:var(--muted);font-size:13px}
+.top-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 14px;border-radius:14px;border:1px solid #d9e7dc;background:#fff;color:#4d5c51;font-weight:900;
+  cursor:pointer
+}
+.btn.green{background:linear-gradient(135deg,#1f8f60,#177951);border-color:#1f8f60;color:#fff}
+.hero,.panel,.entry-card{
+  border:1px solid var(--line);border-radius:24px;background:rgba(255,255,255,.92);box-shadow:var(--shadow-sm)
+}
+.hero{
+  padding:26px 28px;background:linear-gradient(120deg,#fffaf0,#fffdf8 48%,#eef7f2);position:relative;overflow:hidden;
+  box-shadow:var(--shadow)
+}
+.hero:after{
+  content:"";position:absolute;right:-22px;top:-10px;width:260px;height:170px;border-radius:38px;
+  background:
+    radial-gradient(circle at 22% 42%,rgba(31,143,96,.8) 0 10px,transparent 11px),
+    radial-gradient(circle at 50% 62%,rgba(233,154,45,.82) 0 10px,transparent 11px),
+    radial-gradient(circle at 76% 36%,rgba(95,148,242,.8) 0 10px,transparent 11px),
+    linear-gradient(180deg,#f7efd8,#ead9b6);
+  border:8px solid #d7c49f;transform:rotate(-7deg);opacity:.9
+}
+.hero-content{position:relative;z-index:1}
+.eyebrow,.meta-pill,.entry-tag,.status-pill{
+  display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-weight:900
+}
+.eyebrow{padding:6px 10px;background:var(--green-soft);color:var(--green);font-size:12px;letter-spacing:.04em}
+.hero h1{margin:14px 0 10px;font-size:38px;letter-spacing:-.03em}
+.hero p{margin:0;color:#5d6c61;line-height:1.8;max-width:860px}
+.meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.meta-pill{padding:8px 12px;border:1px solid #dce9df;background:#fff;color:#56645a;font-size:13px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;margin-top:18px;align-items:start}
+.entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.entry-card{padding:20px;display:grid;gap:12px}
+.entry-card.primary{background:linear-gradient(135deg,#f7fff9,#ffffff);border-color:#a9d7bc}
+.entry-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.entry-card h2{margin:0;font-size:24px}
+.entry-card p{margin:0;color:var(--muted);line-height:1.7}
+.entry-tag{padding:6px 10px;font-size:12px}
+.tag-green{background:var(--green-soft);color:var(--green)}
+.tag-orange{background:var(--orange-soft);color:#c87815}
+.tag-blue{background:var(--blue-soft);color:var(--blue)}
+.tag-purple{background:var(--purple-soft);color:var(--purple)}
+.entry-note{
+  padding:12px 14px;border-radius:16px;background:#f7fbf8;border:1px solid #e3ede5;color:#5d6a60;font-size:13px;line-height:1.65
+}
+.entry-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.entry-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.entry-kpi{padding:12px;border:1px solid #e4ece5;border-radius:16px;background:#fff}
+.entry-kpi small{display:block;color:var(--muted);font-size:12px;margin-bottom:6px;font-weight:900}
+.entry-kpi strong{font-size:15px;line-height:1.6}
+.recent-panel{margin-top:18px;padding:18px}
+.recent-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:14px}
+.recent-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.recent-card{padding:16px;border:1px solid #e4ece5;border-radius:18px;background:#fff;display:grid;gap:10px}
+.recent-card h3{margin:0;font-size:18px}
+.recent-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.65}
+.recent-meta{display:flex;gap:8px;flex-wrap:wrap}
+.recent-pill{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;background:#f4f8f5;color:#5d6b61;font-size:12px;font-weight:900}
+.recent-note{padding:10px 12px;border-radius:14px;background:#f8fbf7;border:1px solid #e3ede5;color:#5d6a60;font-size:13px;line-height:1.6}
+.recent-actions{display:flex;gap:10px;flex-wrap:wrap}
+.panel{padding:18px}
+.panel h3{margin:0;font-size:20px}
+.panel p{margin:8px 0 0;color:var(--muted);line-height:1.7}
+.path-card,.freeze-card{
+  margin-top:14px;padding:14px;border:1px solid #e4ece5;border-radius:18px;background:#fff
+}
+.path-card b,.freeze-card b{display:block;margin-bottom:6px}
+.path-card span,.freeze-card span{color:var(--muted);font-size:13px;line-height:1.7}
+.status-pill{padding:6px 10px;font-size:12px;background:#eef8f2;color:var(--green)}
+.list{display:grid;gap:10px;margin-top:12px}
+.list-item{
+  padding:12px;border:1px solid #e4ece5;border-radius:16px;background:#fbfefd;color:#55645a;font-size:13px;line-height:1.7
+}
+@media(max-width:1040px){
+  .layout{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .page{width:min(100vw - 16px,100%)}
+  .entry-grid,.entry-meta{grid-template-columns:1fr}
+  .recent-grid{grid-template-columns:1fr}
+  .hero h1{font-size:30px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">艺</div>
+      <div>
+        <div class="brand-title">备课入口台</div>
+        <div class="brand-sub">先判断今天想做什么，再进入对应的备课主线，不强迫一进来就选课。</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <a class="btn" href="xiaobei_teaching_calendar_preview.html">查看学期安排</a>
+      <a class="btn green" href="xiaobei_formal_lesson_picker_preview.html?flow=fast">今天快速备一节</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <span class="eyebrow">阶段一 · 备课系统总入口</span>
+      <h1>先问今天要做什么，而不是先逼老师选课</h1>
+      <p>这页只做意图分流。它不承担教学执行、不承担作业回收，也不直接替老师决定今天该上哪一节。系统先允许“继续上次”“今天快速备一节”“调整教学安排”“查看学期安排”，后面再进入同一条备课主线。</p>
+      <div class="meta-row">
+        <span class="meta-pill">允许快速备一节</span>
+        <span class="meta-pill">保留原计划 / 实际执行</span>
+        <span class="meta-pill">首页只分流，不强迫先选课</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="layout">
+    <main class="entry-grid">
+      <section class="entry-card primary">
+        <div class="entry-head">
+          <div>
+            <span class="entry-tag tag-green">主入口</span>
+            <h2>继续上次备课</h2>
+          </div>
+          <span class="status-pill" id="resumeStateLabel">正在检查</span>
+        </div>
+        <p id="resumeSummary">系统正在读取最近保存的草稿，确认你上次停在哪一节课、哪一种模式。</p>
+        <div class="entry-meta">
+          <div class="entry-kpi">
+            <small>最近课时</small>
+            <strong id="resumeLesson">正在载入</strong>
+          </div>
+          <div class="entry-kpi">
+            <small>上次模式</small>
+            <strong id="resumeMode">正在载入</strong>
+          </div>
+        </div>
+        <div class="entry-note" id="resumeNote">如果还没有上次草稿，主按钮会自动回到“今天快速备一节”，不会把老师送进空页面。</div>
+        <div class="entry-actions">
+          <a class="btn green" id="resumePrimaryBtn" href="xiaobei_formal_lesson_picker_preview.html?flow=fast">先去今天快速备一节</a>
+          <a class="btn" href="xiaobei_formal_lesson_picker_preview.html">从正式选课重新开始</a>
+        </div>
+      </section>
+
+      <section class="entry-card">
+        <div class="entry-head">
+          <div>
+            <span class="entry-tag tag-orange">短路径</span>
+            <h2>今天快速备一节</h2>
+          </div>
+        </div>
+        <p>适合临时上课、课务被打断、或者只是想尽快先立一版能继续编辑的草稿。快速不等于跳过课时身份，仍然会先确认班级、课题、课时和作业链。</p>
+        <div class="entry-note">最短路径：首页 → 今天快速备一节 → 轻量选课 → 简短定向 → 快速版 → 保存</div>
+        <div class="entry-actions">
+          <a class="btn green" href="xiaobei_formal_lesson_picker_preview.html?flow=fast">进入轻量选课</a>
+        </div>
+      </section>
+
+      <section class="entry-card">
+        <div class="entry-head">
+          <div>
+            <span class="entry-tag tag-blue">调整入口</span>
+            <h2>调整教学安排</h2>
+          </div>
+        </div>
+        <p>如果学期上到一半发现方向不对，或者临时被节假日、活动、比赛打乱，不应该去备课页里硬改，而应该先回上游调整未来安排。</p>
+        <div class="entry-note">系统永远保留“原计划”和“实际执行”两层。改的是未来，不抹掉过去；已完成课时不回写重排，未完成课时按新安排走。</div>
+        <div class="entry-actions">
+          <a class="btn green" href="xiaobei_teaching_calendar_preview.html?mode=adjust">进入调整模式</a>
+        </div>
+      </section>
+
+      <section class="entry-card">
+        <div class="entry-head">
+          <div>
+            <span class="entry-tag tag-purple">查看入口</span>
+            <h2>查看学期安排</h2>
+          </div>
+        </div>
+        <p>适合想先看看本学期总纲、周次排程、机动空间和本周变化的人。这一步只负责看统筹，不会直接替老师进入生成或精修。</p>
+        <div class="entry-note">标准主线：学期教学安排 → 正式选课 → 课前简报 → 快速版 → 精修版 → 保存 / 下次继续编辑</div>
+        <div class="entry-actions">
+          <a class="btn green" href="xiaobei_teaching_calendar_preview.html">查看学期安排</a>
+        </div>
+      </section>
+    </main>
+
+    <aside class="panel">
+      <h3>当前主线</h3>
+      <p>第一阶段只做备课闭环，先不把教学执行线重新拉回来。</p>
+      <div class="path-card">
+        <b>标准主线</b>
+        <span>学期教学安排 → 正式选课 → 课前简报 → 快速版 → 精修版 → 保存 / 下次继续编辑</span>
+      </div>
+      <div class="path-card">
+        <b>快速短路径</b>
+        <span>首页 → 今天快速备一节 → 轻量选课 → 简短定向 → 快速版 → 保存</span>
+      </div>
+      <div class="freeze-card">
+        <b>暂不解冻</b>
+        <span>教师教学日程台、作业回收、学生学习、AI 今日调度都先停在第二阶段，不再作为首页主功能继续扩。</span>
+      </div>
+      <div class="list">
+        <div class="list-item"><b>首页职责</b> 只做意图分流，不直接问“你选哪一课”。</div>
+        <div class="list-item"><b>学期教学安排页职责</b> 看总纲、周历、原计划 / 实际执行，并承接顺延与调整。</div>
+        <div class="list-item"><b>正式选课页职责</b> 只从真实课时项里选中一节课，写入 lesson context，再送去 brief / 快速版。</div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="panel recent-panel">
+    <div class="recent-head">
+      <div>
+        <h3>最近在备的课</h3>
+        <p>这里只看备课系统内部的继续编辑入口，不把教学执行首页重新拉回来。</p>
+      </div>
+      <span class="status-pill" id="recentCountBadge">0 条</span>
+    </div>
+    <div class="recent-grid" id="recentDraftGrid"></div>
+  </section>
+</div>
+
+<script src="xiaobei_prep_truth_source_v1.js"></script>
+<script>
+const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+
+function findNewestDraft() {
+  const drafts = source.listPrepDrafts ? source.listPrepDrafts() : [];
+  if (!drafts.length) return null;
+  return drafts.sort((a, b) => new Date(b.saved_at) - new Date(a.saved_at))[0];
+}
+
+function buildDraftHref(draft) {
+  if (!draft) return 'xiaobei_formal_lesson_picker_preview.html?flow=fast';
+  const query = new URLSearchParams();
+  query.set('course_plan_item_id', draft.course_plan_item_id);
+  query.set('lesson_key', draft.lesson_key);
+  if (draft.draft_mode === 'refine') {
+    query.set('entry', 'refine');
+    return `xiaobei_prepare_refine_preview.html?${query.toString()}`;
+  }
+  query.set('entry', draft.draft_mode || 'rapid');
+  return `xiaobei_prepare_draft_preview.html?${query.toString()}`;
+}
+
+function statusLabel(task, draft) {
+  if (task?.status) return task.status;
+  if (draft?.draft_mode && source?.getSavedDraftLabel) return source.getSavedDraftLabel(draft.draft_mode);
+  return '草稿待确认';
+}
+
+function recentLessons() {
+  return source.listRecentPrepLessons ? source.listRecentPrepLessons(4) : [];
+}
+
+function renderResumeEntry() {
+  const latestDraft = findNewestDraft();
+  const stateLabel = document.getElementById('resumeStateLabel');
+  const summary = document.getElementById('resumeSummary');
+  const lesson = document.getElementById('resumeLesson');
+  const mode = document.getElementById('resumeMode');
+  const note = document.getElementById('resumeNote');
+  const primaryBtn = document.getElementById('resumePrimaryBtn');
+
+  if (!latestDraft) {
+    stateLabel.textContent = '暂无草稿';
+    summary.textContent = '当前还没有已保存的备课草稿。第一步更适合走“今天快速备一节”，先从真实课时项里选一节课，把一版快速稿立起来。';
+    lesson.textContent = '还没有上次课';
+    mode.textContent = '先从快速版开始';
+    note.textContent = '继续上次备课入口当前为空，所以主按钮已经自动切换到“今天快速备一节”。';
+    primaryBtn.textContent = '先去今天快速备一节';
+    primaryBtn.setAttribute('href', 'xiaobei_formal_lesson_picker_preview.html?flow=fast');
+    return;
+  }
+
+  const task = source.findLessonTask({
+    course_plan_item_id: latestDraft.course_plan_item_id,
+    lesson_key: latestDraft.lesson_key
+  });
+  const latestDraftDesc = source.describeLatestDraft ? source.describeLatestDraft(task || latestDraft) : null;
+  stateLabel.textContent = '可继续';
+  summary.textContent = task
+    ? `上次编辑停在 ${task.class_name}《${task.topic_name}》。现在可以直接回到 ${(latestDraftDesc?.modeLabel) || source.getDraftModeLabel(latestDraft.draft_mode)} 继续，不需要重走选课。`
+    : '上次草稿仍然可继续编辑，但当前未匹配到完整课时信息。';
+  lesson.textContent = task ? `${task.class_name} · ${task.topic_name}` : latestDraft.lesson_key;
+  mode.textContent = latestDraftDesc?.summary || `${source.getSavedDraftLabel(latestDraft.draft_mode)} · ${new Date(latestDraft.saved_at).toLocaleString('zh-CN', { hour12: false })}`;
+  note.textContent = task
+    ? `这条继续入口仍然依赖同一份 lesson context。不会绕过课时身份，也不会重新走一套独立上下文。`
+    : '如果课时信息缺失，后续页面会继续要求先确认上下文。';
+  primaryBtn.textContent = latestDraftDesc?.continueLabel || source.getContinueActionLabel(latestDraft.draft_mode);
+  primaryBtn.setAttribute('href', buildDraftHref(latestDraft));
+}
+
+function renderRecentDrafts() {
+  const list = recentLessons();
+  const grid = document.getElementById('recentDraftGrid');
+  const badge = document.getElementById('recentCountBadge');
+  badge.textContent = `${list.length} 条`;
+
+  if (!list.length) {
+    grid.innerHTML = `
+      <div class="recent-card" style="grid-column:1 / -1">
+        <h3>还没有最近在备的课</h3>
+        <p>先从“今天快速备一节”或“正式选课”进入，保存一版草稿后，这里就会开始回显最近课时和继续编辑入口。</p>
+        <div class="recent-actions">
+          <a class="btn green" href="xiaobei_formal_lesson_picker_preview.html?flow=fast">今天快速备一节</a>
+          <a class="btn" href="xiaobei_formal_lesson_picker_preview.html">从正式选课开始</a>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = list.map(item => {
+    const draft = item.latest_draft || {};
+    const task = item.runtime_task || null;
+    const latestDraftDesc = source.describeLatestDraft ? source.describeLatestDraft(task || draft) : null;
+    const title = task ? `${task.class_name} · ${task.topic_name}` : (draft.topic_name || draft.lesson_key);
+    const subtitle = task
+      ? `${task.week_label} · ${task.date_range} · ${task.day_label}${task.period}`
+      : `lesson_key：${draft.lesson_key || '未匹配'}`;
+    const note = task?.status_note || `最近保存：${new Date(draft.saved_at).toLocaleString('zh-CN', { hour12: false })}`;
+    return `
+      <article class="recent-card">
+        <div class="recent-meta">
+          <span class="recent-pill">${(latestDraftDesc?.modeLabel) || source.getDraftModeLabel(draft.draft_mode)}</span>
+          <span class="recent-pill">${statusLabel(task, draft)}</span>
+        </div>
+        <h3>${title}</h3>
+        <p>${subtitle}</p>
+        <div class="recent-note">${note}</div>
+        <div class="recent-actions">
+          <a class="btn green" href="${buildDraftHref(draft)}">${(latestDraftDesc?.continueLabel) || source.getContinueActionLabel(draft.draft_mode)}</a>
+          <a class="btn" href="xiaobei_formal_lesson_picker_preview.html?course_plan_item_id=${encodeURIComponent(draft.course_plan_item_id || '')}&lesson_key=${encodeURIComponent(draft.lesson_key || '')}">回正式选课查看</a>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+renderResumeEntry();
+renderRecentDrafts();
+</script>
+<script src="xiaobei_proto_shell_v1.js"></script>
+</body>
+</html>

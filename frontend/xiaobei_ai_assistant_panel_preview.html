@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>统一 AI 助手台 - 电脑端预览</title>
+<style>
+:root{
+  --bg:#f5f8f5;--panel:#fff;--line:#dde7df;--text:#1f2b24;--muted:#6b7a71;
+  --green:#2f8b69;--green-soft:#eef8f3;--blue:#4c83c6;--blue-soft:#edf4ff;
+  --shadow:0 16px 32px rgba(34,56,43,.08);
+}
+*{box-sizing:border-box}body{margin:0;font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:linear-gradient(180deg,#f7faf7,#fcfbf8);color:var(--text)}
+a{text-decoration:none;color:inherit}button,input,select,textarea{font:inherit}
+.page{width:min(1320px,calc(100vw - 28px));margin:18px auto 34px}
+.topbar,.hero,.panel{background:var(--panel);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+.topbar{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.crumb{display:flex;align-items:center;gap:12px;font-weight:800}.back,.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid var(--line);background:#fff;color:#47554d;font-weight:800;cursor:pointer}.back{width:42px;height:42px;border-radius:14px}.btn{padding:11px 16px}
+.btn.green{background:var(--green);border-color:var(--green);color:#fff}
+.hero{margin-top:16px;padding:22px 24px;background:linear-gradient(130deg,#fff8ef 0%,#ffffff 56%,#eef8f3 100%)}
+.hero h1{margin:8px 0 10px;font-size:34px}.hero p{margin:0;color:var(--muted);line-height:1.8}
+.meta,.layout,.actions{display:flex;gap:10px;flex-wrap:wrap}.meta{margin-top:14px}
+.pill{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid #e5ddd1;color:#5f6b63;font-size:13px;font-weight:800}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) 360px;gap:18px;margin-top:18px;align-items:start}
+.panel{padding:18px}.panel h2{margin:0 0 8px;font-size:24px}.panel p{margin:0;color:var(--muted);line-height:1.7}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.field label{display:block;margin-bottom:6px;font-size:13px;font-weight:900;color:#54625a}
+.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1px solid #dbe6de;border-radius:14px;background:#fff;color:#344139}
+.helper,.status,.mode-box{padding:14px;border-radius:18px;margin-top:14px}
+.helper{background:#f8fbf8;border:1px solid #e2ebe4;color:#5f6d64;font-size:13px;line-height:1.7}
+.status{background:#eef8f3;border:1px solid #d4e8db;color:var(--green);font-weight:800}
+.mode-box{background:#edf4ff;border:1px solid #d9e7ff;color:#4b6586}
+.mode-box h3{margin:0 0 8px;font-size:18px;color:#20395b}
+.list{display:grid;gap:10px;margin-top:12px}.item{padding:12px;border:1px solid #e7edf2;border-radius:16px;background:#fff}.item strong{display:block;margin-bottom:4px}
+@media(max-width:960px){.layout{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="crumb">
+      <a class="back" id="backLink" href="xiaobei_ai_semester_planner_preview.html">←</a>
+      <div>
+        <div style="font-size:12px;color:#75837a">统一助手 / 页面模式化能力</div>
+        <strong style="font-size:26px">统一 AI 助手台 v1</strong>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn green" id="saveProfileBtn" type="button">保存偏好</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>不是每页一个 AI，而是同一个助手在不同页面切不同模式</h1>
+    <p>这个助手台先只做两件事：记住老师的基础信息和偏好；根据当前页面模式，告诉老师这页的 AI 应该帮什么、不该帮什么。后面接真 AI 时，就让这一套助手壳继续服务学期排课、课前简报、快速版和精修页。</p>
+    <div class="meta">
+      <span class="pill" id="modePill">当前模式：semester-planner</span>
+      <span class="pill">统一老师档案</span>
+      <span class="pill">统一说话风格</span>
+      <span class="pill">统一建议边界</span>
+    </div>
+  </section>
+
+  <div class="layout">
+    <main class="panel">
+      <h2>老师档案与助手偏好</h2>
+      <p>这些信息不等于真实排课数据，而是帮助 AI 更快理解这个账号平时教什么、偏好怎么排、喜欢怎样的建议口径。</p>
+      <div class="grid-2">
+        <div class="field"><label>老师姓名</label><input id="teacherName" placeholder="例如：李老师"></div>
+        <div class="field"><label>学科</label><select id="subject"><option selected>美术</option><option>书法</option><option>综合实践</option></select></div>
+        <div class="field"><label>常教年级</label><select id="preferredGrade"><option>一年级</option><option>二年级</option><option selected>三年级</option><option>四年级</option><option>五年级</option><option>六年级</option></select></div>
+        <div class="field"><label>常教班级</label><input id="commonClasses" placeholder="例如：三（1）班、三（2）班、三（3）班"></div>
+        <div class="field"><label>排课偏好</label><select id="scheduleStyle"><option>保守排</option><option selected>正常排</option><option>紧凑排</option></select></div>
+        <div class="field"><label>输出风格</label><select id="outputStyle"><option selected>简洁</option><option>详细</option></select></div>
+        <div class="field"><label>助手工作方式</label><select id="assistantBehavior"><option selected>先建议再生成</option><option>先生成再建议</option></select></div>
+        <div class="field"><label>提醒风格</label><select id="reminderStyle"><option selected>按需提醒</option><option>主动提醒</option></select></div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label>补充说明</label>
+        <textarea id="notes" rows="5" placeholder="例如：常常要插入创艺节项目课；更喜欢先留出机动空间；不喜欢太长的建议。"></textarea>
+      </div>
+      <div class="helper">当前先只做本地偏好保存。后面接真 AI 时，这里会变成统一的用户上下文入口，不需要每页重新问一遍老师是谁、教什么、偏好怎样。</div>
+      <div class="status" id="saveStatus">还没有保存本页偏好。</div>
+    </main>
+
+    <aside class="panel">
+      <h2>当前页面模式说明</h2>
+      <div class="mode-box" id="modeBox"></div>
+      <div class="list">
+        <div class="item"><strong>学期排课页</strong><span>AI 适合做：起草学期安排、估算容量、建议机动和顺延。AI 不适合做：直接覆盖正式教学安排。</span></div>
+        <div class="item"><strong>课前简报页</strong><span>AI 适合做：把事实压成 5 张短卡。AI 不适合做：直接跳过定向生成整课教案。</span></div>
+        <div class="item"><strong>快速版页</strong><span>AI 适合做：按 lesson context 和 brief 起草字段。AI 不适合做：修改事实或绕过课时身份。</span></div>
+        <div class="item"><strong>精修页</strong><span>AI 适合做：局部补写和建议。AI 不适合做：替老师整页重写、自动给每个班写满。</span></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function(){
+  const KEY = 'xiaobei_ai_assistant_profile_v1';
+  const mode = new URLSearchParams(window.location.search).get('mode') || 'semester-planner';
+  const modeMap = {
+    'semester-planner': {
+      title: '学期排课模式',
+      body: '这页的 AI 应该优先理解学期日期、课表、教材清单、活动周和排课偏好，然后给出一份可调整的草稿。重点是起草，不是替老师直接拍板。'
+    },
+    'preclass-brief': {
+      title: '课前定向模式',
+      body: '这页的 AI 应该把教材、目标、学情和历史问题压成短卡，帮助老师先定方向。重点是短和准，不是写小教案。'
+    },
+    'draft': {
+      title: '快速备课模式',
+      body: '这页的 AI 应该根据 lesson context 和 brief 先补出一份可编辑的草稿，让老师不是从零开始。重点是填字段，不是写厚稿。'
+    },
+    'refine': {
+      title: '精修协同模式',
+      body: '这页的 AI 应该跟着老师的意图改局部内容、给班级差异建议、提醒风险点。重点是协作，不是代替。'
+    }
+  };
+  const backMap = {
+    'semester-planner':'xiaobei_ai_semester_planner_preview.html',
+    'preclass-brief':'xiaobei_preclass_brief_preview.html',
+    'draft':'xiaobei_prepare_draft_preview.html',
+    'refine':'xiaobei_prepare_refine_preview.html'
+  };
+  const ids = ['teacherName','subject','preferredGrade','commonClasses','scheduleStyle','outputStyle','assistantBehavior','reminderStyle','notes'];
+  const $ = id => document.getElementById(id);
+  function load(){
+    try{
+      const profile = JSON.parse(localStorage.getItem(KEY) || '{}');
+      ids.forEach(id => { if (profile[id]) $(id).value = profile[id]; });
+      $('saveStatus').textContent = profile.teacherName ? `已载入 ${profile.teacherName} 的助手偏好。` : '还没有保存本页偏好。';
+    }catch(e){}
+  }
+  function save(){
+    const payload = {};
+    ids.forEach(id => payload[id] = $(id).value.trim());
+    localStorage.setItem(KEY, JSON.stringify(payload));
+    $('saveStatus').textContent = '统一 AI 助手偏好已保存。后续页面将优先读取这份账号信息。';
+  }
+  $('modePill').textContent = `当前模式：${mode}`;
+  $('backLink').href = backMap[mode] || 'xiaobei_ai_semester_planner_preview.html';
+  const block = modeMap[mode] || modeMap['semester-planner'];
+  $('modeBox').innerHTML = `<h3>${block.title}</h3><p style="margin:0;line-height:1.8">${block.body}</p>`;
+  $('saveProfileBtn').addEventListener('click', save);
+  load();
+})();
+</script>
+</body>
+</html>

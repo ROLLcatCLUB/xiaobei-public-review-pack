@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 学期排课向导 - 电脑端预览</title>
+<style>
+:root{
+  --bg:#f6f8f5;--panel:#fff;--line:#dde7df;--text:#1e2a23;--muted:#6b7a71;
+  --green:#2f8b69;--green-soft:#eef8f3;--orange:#e89a38;--orange-soft:#fff4e4;
+  --blue:#4c83c6;--blue-soft:#edf4ff;--shadow:0 16px 34px rgba(32,52,40,.08);
+}
+*{box-sizing:border-box}body{margin:0;font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:linear-gradient(180deg,#f7faf7,#fdfcf8);color:var(--text)}
+a{text-decoration:none;color:inherit}button,input,select,textarea{font:inherit}
+.page{width:min(1480px,calc(100vw - 28px));margin:18px auto 34px}
+.topbar,.hero,.panel{background:var(--panel);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+.topbar{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.crumb{display:flex;align-items:center;gap:12px;font-weight:800}
+.back,.ghost-btn,.primary-btn,.chip-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid var(--line);background:#fff;color:#44524a;font-weight:800;cursor:pointer}
+.back{width:42px;height:42px;border-radius:14px}
+.hero{margin-top:16px;padding:22px 24px;background:linear-gradient(130deg,#fff8ef 0%,#ffffff 52%,#eef8f3 100%)}
+.hero h1{margin:10px 0 8px;font-size:34px}
+.hero p{margin:0;color:var(--muted);line-height:1.8;max-width:980px}
+.eyebrow,.hero-actions,.meta,.button-row{display:flex;flex-wrap:wrap;gap:10px}
+.tag,.pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-weight:900}
+.tag{padding:7px 12px;font-size:12px;letter-spacing:.04em}
+.tag.green{background:var(--green-soft);color:var(--green)}
+.tag.orange{background:var(--orange-soft);color:#b96f17}
+.tag.blue{background:var(--blue-soft);color:var(--blue)}
+.meta{margin-top:14px}
+.pill{padding:8px 12px;background:#fff;border:1px solid #e5ddd1;color:#5a675f;font-size:13px}
+.hero-actions{margin-top:16px}
+.primary-btn{padding:11px 16px;background:var(--green);border-color:var(--green);color:#fff}
+.ghost-btn,.chip-btn{padding:11px 16px}
+.layout{display:grid;grid-template-columns:minmax(0,1.35fr) 380px;gap:18px;margin-top:18px;align-items:start}
+.stack{display:grid;gap:18px}
+.panel{padding:18px}
+.panel h2{margin:0 0 8px;font-size:23px}
+.panel p{margin:0;color:var(--muted);line-height:1.7}
+.panel-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.step-label{font-size:12px;font-weight:900;color:var(--green);letter-spacing:.06em}
+.grid-2,.grid-3{display:grid;gap:12px}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.field label{display:block;margin-bottom:6px;font-size:13px;font-weight:900;color:#536159}
+.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1px solid #dbe6de;border-radius:14px;background:#fff;color:#314037}
+.field small{display:block;margin-top:6px;color:#7b8a81;font-size:12px}
+.helper{padding:12px 14px;border-radius:16px;background:#f8fbf8;border:1px solid #e2ebe4;color:#5f6d64;font-size:13px;line-height:1.7}
+.table-wrap{display:grid;gap:10px}
+.table-head,.table-row{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr auto;gap:10px;align-items:center}
+.topic-head,.topic-row{display:grid;grid-template-columns:1.4fr .7fr .95fr .8fr auto;gap:10px;align-items:center}
+.activity-head,.activity-row{display:grid;grid-template-columns:1fr 1fr 1.2fr 1fr auto;gap:10px;align-items:center}
+.table-head,.topic-head,.activity-head{padding:0 4px;color:#6e7b73;font-size:12px;font-weight:900}
+.table-row,.topic-row,.activity-row{padding:12px;border:1px solid #e7eee8;border-radius:18px;background:#fcfdfc}
+.danger-btn{padding:9px 12px;border-radius:12px;border:1px solid #ecd4cf;background:#fff3f1;color:#b95e4f;font-weight:800;cursor:pointer}
+.holiday-list{display:grid;gap:10px}
+.holiday-item{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;border:1px solid #e7ece8;border-radius:16px;background:#fcfdfc}
+.holiday-meta strong{display:block}
+.holiday-meta span{display:block;margin-top:4px;color:var(--muted);font-size:13px}
+.checkbox{display:inline-flex;gap:8px;align-items:center;color:#44524a;font-size:13px}
+.preview-card{padding:14px;border:1px solid #e3ebf1;border-radius:18px;background:#fbfdff}
+.preview-card h3{margin:0 0 10px;font-size:17px}
+.preview-list{display:grid;gap:10px}
+.preview-item{padding:12px;border:1px solid #e7edf2;border-radius:16px;background:#fff}
+.preview-item strong{display:block;margin-bottom:4px}
+.assistant-box{padding:16px;border:1px solid #dfe8ff;border-radius:18px;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
+.assistant-box h3{margin:0 0 8px}
+.assistant-box p{margin:0;color:#617089;line-height:1.75}
+.status{margin-top:12px;padding:12px 14px;border-radius:16px;background:#eef8f3;border:1px solid #d6e9dc;color:var(--green);font-weight:800}
+.subtle{font-size:12px;color:#7a8880}
+@media(max-width:1120px){.layout{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="crumb">
+      <a class="back" href="xiaobei_teaching_calendar_preview.html">←</a>
+      <div>
+        <div class="subtle">学期教学安排 / AI 辅助入口</div>
+        <strong style="font-size:26px">AI 学期排课向导 v2</strong>
+      </div>
+    </div>
+    <div class="button-row">
+      <a class="ghost-btn" href="xiaobei_user_profile_preview.html#assistant">查看老师档案 / 助手偏好</a>
+      <a class="ghost-btn" href="xiaobei_teaching_calendar_preview.html">返回学期教学安排</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">
+      <span class="tag green">结构化输入优先</span>
+      <span class="tag orange">AI 只起草，不直接写正式表</span>
+      <span class="tag blue">可保存为排课草稿</span>
+    </div>
+    <h1>先填真实约束，再让 AI 起一份可调整的学期安排草稿</h1>
+    <p>这页不要求老师写长文。能选的就选、能上传的就上传、能自动生成的就不从零填。AI 输出的是“学期总纲草案 + 单元安排 + 周历排程草案”，确认后再回到学期教学安排页做调整。</p>
+    <div class="meta">
+      <span class="pill">年级：单选</span>
+      <span class="pill">学科：单选</span>
+      <span class="pill">学期起止：日历区间</span>
+      <span class="pill">课表：上传或手动表格</span>
+      <span class="pill">课题：可加减表格或上传目录</span>
+    </div>
+  </section>
+
+  <div class="layout">
+    <main class="stack">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="step-label">STEP 1</div>
+            <h2>基础信息与学期日期</h2>
+          </div>
+          <span class="subtle" id="weekEstimate">系统将根据日期自动估算周数</span>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>老师姓名</label><input id="teacherName" value="李老师"></div>
+          <div class="field"><label>年级</label><select id="grade"><option>一年级</option><option>二年级</option><option selected>三年级</option><option>四年级</option><option>五年级</option><option>六年级</option></select></div>
+          <div class="field"><label>学科</label><select id="subject"><option selected>美术</option><option>书法</option><option>综合实践</option></select></div>
+          <div class="field"><label>学期</label><select id="term"><option>2025学年第一学期</option><option selected>2025学年第二学期</option><option>2026学年第一学期</option></select></div>
+          <div class="field"><label>开始日期</label><input id="startDate" type="date" value="2025-02-17"></div>
+          <div class="field"><label>结束日期</label><input id="endDate" type="date" value="2025-06-20"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><div class="step-label">STEP 2</div><h2>课表来源</h2></div>
+          <div class="button-row">
+            <button class="chip-btn" id="useProfileScheduleBtn" type="button">沿用我的教师课表</button>
+            <button class="chip-btn" id="fillScheduleBtn" type="button">加载示例课表</button>
+            <button class="ghost-btn" type="button">上传课表（占位）</button>
+            <a class="ghost-btn" href="xiaobei_user_profile_preview.html#schedule">去教学档案维护课表</a>
+          </div>
+        </div>
+        <div class="helper">默认先读取老师档案里的教师课表；如果本学期课表临时变了，再在这里做“本学期覆写”。手动填写时，不只填“每周几节”，而是直接告诉系统：这个年级有哪些班、每班在周几第几节上美术。这样 AI 才能算出真实容量。</div>
+        <div class="table-wrap" style="margin-top:14px">
+          <div class="table-head"><span>班级</span><span>周几</span><span>第几节</span><span>备注</span><span></span></div>
+          <div id="scheduleRows"></div>
+          <div class="button-row"><button class="primary-btn" id="addScheduleBtn" type="button">新增一行课表</button></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><div class="step-label">STEP 3</div><h2>教材 / 课题清单</h2></div>
+          <div class="button-row">
+            <button class="chip-btn" id="fillTopicsBtn" type="button">加载示例课题</button>
+            <button class="ghost-btn" type="button">上传教材目录（占位）</button>
+          </div>
+        </div>
+        <div class="topic-head"><span>单元 / 课题名</span><span>建议课时</span><span>类型</span><span>机动性</span><span></span></div>
+        <div id="topicRows"></div>
+        <div class="button-row" style="margin-top:12px"><button class="primary-btn" id="addTopicBtn" type="button">新增课题</button></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><div class="step-label">STEP 4</div><h2>节假日、活动周和排课偏好</h2></div></div>
+        <div class="grid-2">
+          <div>
+            <div class="helper">节假日和常见考试周由系统先生成建议，老师只做勾选和修正。</div>
+            <div class="holiday-list" id="holidayList" style="margin-top:14px"></div>
+          </div>
+          <div class="stack">
+            <div>
+              <div class="activity-head"><span>开始</span><span>结束</span><span>活动名称</span><span>影响类型</span><span></span></div>
+              <div id="activityRows"></div>
+              <div class="button-row" style="margin-top:12px"><button class="primary-btn" id="addActivityBtn" type="button">新增活动周</button></div>
+            </div>
+            <div class="grid-2">
+              <div class="field"><label>排课偏好</label><select id="pace"><option>保守排</option><option selected>正常排</option><option>紧凑排</option></select></div>
+              <div class="field"><label>机动预留（课时）</label><input id="reserveHours" type="number" min="0" value="3"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><div class="step-label">STEP 5</div><h2>生成与保存草稿</h2></div></div>
+        <div class="button-row">
+          <button class="primary-btn" id="generateBtn" type="button">AI 生成学期草稿</button>
+          <button class="ghost-btn" id="saveBtn" type="button">保存为排课草稿</button>
+          <a class="ghost-btn" href="xiaobei_teaching_calendar_preview.html">回到学期教学安排</a>
+        </div>
+        <div class="status" id="plannerStatus">这份草稿只作为 AI 起草结果，确认后再映射到学期教学安排页。</div>
+      </section>
+    </main>
+
+    <aside class="stack">
+      <section class="assistant-box">
+        <h3>统一 AI 助手台（本页模式）</h3>
+        <p id="assistantSummary">当前模式：学期排课。助手会优先理解你的年级、学科、常教班级和排课偏好，然后在生成草稿时给出更贴近你的安排建议。</p>
+        <div class="button-row" style="margin-top:14px">
+          <a class="primary-btn" href="xiaobei_user_profile_preview.html#assistant">配置老师档案与助手偏好</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>AI 草稿预览</h2>
+        <div class="preview-card">
+          <h3>学期总纲草案</h3>
+          <div class="preview-list" id="outlinePreview"></div>
+        </div>
+        <div class="preview-card" style="margin-top:12px">
+          <h3>单元 / 课题安排</h3>
+          <div class="preview-list" id="topicPreview"></div>
+        </div>
+        <div class="preview-card" style="margin-top:12px">
+          <h3>周历排程草案</h3>
+          <div class="preview-list" id="weekPreview"></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function(){
+  const DRAFT_KEY = 'xiaobei_ai_semester_plan_draft_v2';
+  const ASSISTANT_PROFILE_KEY = 'xiaobei_ai_assistant_profile_v1';
+  const TEACHER_PROFILE_KEY = 'xiaobei_teacher_profile_v1';
+  const scheduleRows = [];
+  const topicRows = [];
+  const activityRows = [];
+  const holidaySelections = new Set();
+  const $ = id => document.getElementById(id);
+  const uid = p => p + Math.random().toString(36).slice(2,8);
+
+  function addScheduleRow(row){ scheduleRows.push(Object.assign({id:uid('sc'),className:'三（1）班',weekday:'周四',period:'第1节',note:'美术教室1'}, row||{})); }
+  function addTopicRow(row){ topicRows.push(Object.assign({id:uid('tp'),name:'青绿山水色阶练习',hours:1,type:'教材单元',flex:'必上'}, row||{})); }
+  function addActivityRow(row){ activityRows.push(Object.assign({id:uid('ac'),start:'2025-05-19',end:'2025-05-25',name:'创艺节周',impact:'插入活动课'}, row||{})); }
+
+  function readJson(key){
+    try{return JSON.parse(localStorage.getItem(key)||'{}');}catch(e){return {};}
+  }
+  function applyProfile(){
+    const teacher = readJson(TEACHER_PROFILE_KEY);
+    const assistant = readJson(ASSISTANT_PROFILE_KEY);
+    const p = Object.assign({}, assistant, teacher);
+    if (p.teacherName) $('teacherName').value = p.teacherName;
+    if (p.preferredGrade) $('grade').value = p.preferredGrade;
+    if (p.subject) $('subject').value = p.subject;
+    if (p.scheduleStyle) $('pace').value = p.scheduleStyle;
+    if (Array.isArray(teacher.scheduleRows) && teacher.scheduleRows.length) {
+      scheduleRows.splice(0, scheduleRows.length, ...teacher.scheduleRows.map(row => Object.assign({id: uid('sc')}, row)));
+    }
+    const lines = [
+      p.teacherName ? `当前老师：${p.teacherName}` : '当前老师：未设置',
+      p.preferredGrade ? `常教年级：${p.preferredGrade}` : '常教年级：未设置',
+      Array.isArray(teacher.scheduleRows) && teacher.scheduleRows.length ? `教师课表：${teacher.scheduleRows.length} 条` : '教师课表：未预置',
+      p.assistantBehavior ? `助手模式：${p.assistantBehavior}` : '助手模式：先建议再生成'
+    ];
+    $('assistantSummary').textContent = lines.join('｜');
+  }
+
+  function parseDate(v){ return v ? new Date(v + 'T00:00:00') : null; }
+  function formatShort(d){ return `${d.getMonth()+1}.${d.getDate()}`; }
+  function weeksBetween(a,b){
+    if(!a || !b || b < a) return 0;
+    return Math.max(1, Math.ceil(((b - a)/86400000 + 1) / 7));
+  }
+  function holidayCandidates(){
+    return [
+      {id:'qingming',name:'清明假期',range:'2025-04-04 ~ 2025-04-06',hint:'建议该周减少教材课容量'},
+      {id:'labor',name:'五一假期',range:'2025-05-01 ~ 2025-05-05',hint:'建议提前预留顺延空间'},
+      {id:'exam',name:'期末考试周',range:'2025-06-16 ~ 2025-06-20',hint:'建议改为复习 / 机动周'}
+    ];
+  }
+
+  function renderScheduleRows(){
+    $('scheduleRows').innerHTML = scheduleRows.map(row => `
+      <div class="table-row">
+        <input data-id="${row.id}" data-key="className" value="${row.className}">
+        <select data-id="${row.id}" data-key="weekday"><option ${row.weekday==='周一'?'selected':''}>周一</option><option ${row.weekday==='周二'?'selected':''}>周二</option><option ${row.weekday==='周三'?'selected':''}>周三</option><option ${row.weekday==='周四'?'selected':''}>周四</option><option ${row.weekday==='周五'?'selected':''}>周五</option></select>
+        <select data-id="${row.id}" data-key="period"><option ${row.period==='第1节'?'selected':''}>第1节</option><option ${row.period==='第2节'?'selected':''}>第2节</option><option ${row.period==='第3节'?'selected':''}>第3节</option><option ${row.period==='第4节'?'selected':''}>第4节</option></select>
+        <input data-id="${row.id}" data-key="note" value="${row.note}">
+        <button class="danger-btn" data-remove="schedule" data-id="${row.id}" type="button">删除</button>
+      </div>`).join('');
+  }
+
+  function renderTopicRows(){
+    $('topicRows').innerHTML = topicRows.map(row => `
+      <div class="topic-row">
+        <input data-id="${row.id}" data-key="name" value="${row.name}">
+        <input data-id="${row.id}" data-key="hours" type="number" min="1" value="${row.hours}">
+        <select data-id="${row.id}" data-key="type"><option ${row.type==='教材单元'?'selected':''}>教材单元</option><option ${row.type==='活动项目'?'selected':''}>活动项目</option><option ${row.type==='复习总结'?'selected':''}>复习总结</option><option ${row.type==='校本项目'?'selected':''}>校本项目</option></select>
+        <select data-id="${row.id}" data-key="flex"><option ${row.flex==='必上'?'selected':''}>必上</option><option ${row.flex==='可机动'?'selected':''}>可机动</option></select>
+        <button class="danger-btn" data-remove="topic" data-id="${row.id}" type="button">删除</button>
+      </div>`).join('');
+  }
+
+  function renderActivityRows(){
+    $('activityRows').innerHTML = activityRows.map(row => `
+      <div class="activity-row">
+        <input data-id="${row.id}" data-key="start" type="date" value="${row.start}">
+        <input data-id="${row.id}" data-key="end" type="date" value="${row.end}">
+        <input data-id="${row.id}" data-key="name" value="${row.name}">
+        <select data-id="${row.id}" data-key="impact"><option ${row.impact==='插入活动课'?'selected':''}>插入活动课</option><option ${row.impact==='减少容量'?'selected':''}>减少容量</option><option ${row.impact==='提醒顺延'?'selected':''}>提醒顺延</option></select>
+        <button class="danger-btn" data-remove="activity" data-id="${row.id}" type="button">删除</button>
+      </div>`).join('');
+  }
+
+  function renderHolidayList(){
+    $('holidayList').innerHTML = holidayCandidates().map(item => `
+      <div class="holiday-item">
+        <div class="holiday-meta"><strong>${item.name}</strong><span>${item.range}｜${item.hint}</span></div>
+        <label class="checkbox"><input type="checkbox" data-holiday="${item.id}" ${holidaySelections.has(item.id)?'checked':''}>纳入本学期约束</label>
+      </div>`).join('');
+  }
+
+  function currentForm(){
+    return {
+      teacherName:$('teacherName').value.trim(),
+      grade:$('grade').value,
+      subject:$('subject').value,
+      term:$('term').value,
+      startDate:$('startDate').value,
+      endDate:$('endDate').value,
+      pace:$('pace').value,
+      reserveHours:Number($('reserveHours').value||0),
+      holidays:[...holidaySelections],
+      scheduleRows:scheduleRows.slice(),
+      topicRows:topicRows.slice(),
+      activityRows:activityRows.slice()
+    };
+  }
+
+  function buildDraft(){
+    const form = currentForm();
+    const weeks = weeksBetween(parseDate(form.startDate), parseDate(form.endDate));
+    const lessonsPerWeek = form.scheduleRows.length;
+    const capacity = Math.max(0, weeks * lessonsPerWeek - form.holidays.length - form.activityRows.length);
+    const mustHours = form.topicRows.filter(x => x.flex === '必上').reduce((s,x)=>s+Number(x.hours||0),0);
+    const allHours = form.topicRows.reduce((s,x)=>s+Number(x.hours||0),0);
+    const firstTopics = form.topicRows.slice(0, Math.min(weeks, form.topicRows.length));
+    const weekLines = Array.from({length: Math.min(8, weeks||1)}, (_,idx) => {
+      const topic = firstTopics[idx] || form.topicRows[idx % Math.max(form.topicRows.length,1)] || {name:'机动 / 复习',type:'复习总结'};
+      return {
+        title:`第${idx+1}周｜${topic.name}`,
+        body:`计划 ${lessonsPerWeek || 0} 节｜${topic.type || '教材单元'}｜${idx === 0 ? '建议先稳排' : '可根据活动周顺延'}`
+      };
+    });
+    return {
+      summary:[
+        {title:'学期目标',body:`面向${form.grade}${form.subject}，优先保证必上内容，再根据${form.pace}节奏预留 ${form.reserveHours} 课时机动。`},
+        {title:'排课判断',body:`系统根据 ${weeks} 周、每周约 ${lessonsPerWeek} 节、节假日/活动影响 ${form.holidays.length + form.activityRows.length} 项，估算可用容量约 ${capacity} 课时。`},
+        {title:'风险提醒',body:`当前课题总需求约 ${allHours} 课时，其中必上内容 ${mustHours} 课时。若容量不足，优先顺延可机动活动课。`}
+      ],
+      topics:form.topicRows.slice(0,6).map(x => ({title:x.name,body:`${x.hours} 课时｜${x.type}｜${x.flex}`})),
+      weeks:weekLines
+    };
+  }
+
+  function renderDraft(){
+    const draft = buildDraft();
+    $('outlinePreview').innerHTML = draft.summary.map(x => `<div class="preview-item"><strong>${x.title}</strong><span>${x.body}</span></div>`).join('');
+    $('topicPreview').innerHTML = draft.topics.map(x => `<div class="preview-item"><strong>${x.title}</strong><span>${x.body}</span></div>`).join('') || '<div class="preview-item"><strong>还没有课题</strong><span>先补充课题清单，再让 AI 起草。</span></div>';
+    $('weekPreview').innerHTML = draft.weeks.map(x => `<div class="preview-item"><strong>${x.title}</strong><span>${x.body}</span></div>`).join('');
+    $('weekEstimate').textContent = `当前日期范围约 ${weeksBetween(parseDate($('startDate').value), parseDate($('endDate').value)) || 0} 周`;
+  }
+
+  function saveDraft(){
+    const payload = {form:currentForm(), draft:buildDraft(), updatedAt:new Date().toISOString()};
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+    $('plannerStatus').textContent = 'AI 学期排课草稿已保存。回到学期教学安排页后，会看到“已存在 AI 排课草稿”的提示。';
+  }
+
+  function restoreDraft(){
+    try{
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if(!raw) return;
+      const saved = JSON.parse(raw);
+      if(saved.form){
+        $('teacherName').value = saved.form.teacherName || $('teacherName').value;
+        $('grade').value = saved.form.grade || $('grade').value;
+        $('subject').value = saved.form.subject || $('subject').value;
+        $('term').value = saved.form.term || $('term').value;
+        $('startDate').value = saved.form.startDate || $('startDate').value;
+        $('endDate').value = saved.form.endDate || $('endDate').value;
+        $('pace').value = saved.form.pace || $('pace').value;
+        $('reserveHours').value = saved.form.reserveHours ?? $('reserveHours').value;
+        (saved.form.holidays || []).forEach(x => holidaySelections.add(x));
+        scheduleRows.splice(0, scheduleRows.length, ...(saved.form.scheduleRows || []));
+        topicRows.splice(0, topicRows.length, ...(saved.form.topicRows || []));
+        activityRows.splice(0, activityRows.length, ...(saved.form.activityRows || []));
+        $('plannerStatus').textContent = '已恢复上次 AI 学期排课草稿，你可以继续修改后再生成。';
+      }
+    }catch(e){}
+  }
+
+  function bindRowInput(containerId, collection){
+    $(containerId).addEventListener('input', event => {
+      const id = event.target.dataset.id, key = event.target.dataset.key;
+      if(!id || !key) return;
+      const row = collection.find(x => x.id === id);
+      if(row) row[key] = event.target.value;
+      renderDraft();
+    });
+    $(containerId).addEventListener('change', event => {
+      const id = event.target.dataset.id, key = event.target.dataset.key;
+      if(!id || !key) return;
+      const row = collection.find(x => x.id === id);
+      if(row) row[key] = event.target.value;
+      renderDraft();
+    });
+    $(containerId).addEventListener('click', event => {
+      const type = event.target.dataset.remove, id = event.target.dataset.id;
+      if(!type || !id) return;
+      const map = {schedule:scheduleRows,topic:topicRows,activity:activityRows}[type];
+      const idx = map.findIndex(x => x.id === id);
+      if(idx >= 0) map.splice(idx,1);
+      if(type==='schedule') renderScheduleRows();
+      if(type==='topic') renderTopicRows();
+      if(type==='activity') renderActivityRows();
+      renderDraft();
+    });
+  }
+
+  $('fillScheduleBtn').addEventListener('click', () => {
+    scheduleRows.splice(0,scheduleRows.length);
+    addScheduleRow({className:'三（1）班',weekday:'周四',period:'第1节',note:'美术教室1'});
+    addScheduleRow({className:'三（2）班',weekday:'周五',period:'第2节',note:'美术教室1'});
+    renderScheduleRows(); renderDraft();
+  });
+  $('useProfileScheduleBtn').addEventListener('click', () => {
+    const teacher = readJson(TEACHER_PROFILE_KEY);
+    scheduleRows.splice(0, scheduleRows.length);
+    if (Array.isArray(teacher.scheduleRows) && teacher.scheduleRows.length) {
+      teacher.scheduleRows.forEach(row => addScheduleRow(row));
+      $('plannerStatus').textContent = '已从教学档案带入教师课表。若本学期课表临时变化，可在这里继续覆写。';
+    } else {
+      addScheduleRow();
+      $('plannerStatus').textContent = '教学档案里还没有教师课表，先补一行示例供你继续填写。';
+    }
+    renderScheduleRows(); renderDraft();
+  });
+  $('fillTopicsBtn').addEventListener('click', () => {
+    topicRows.splice(0,topicRows.length);
+    addTopicRow({name:'青绿山水色阶练习',hours:1,type:'教材单元',flex:'必上'});
+    addTopicRow({name:'心中的青绿山水',hours:1,type:'教材单元',flex:'必上'});
+    addTopicRow({name:'足球梦创艺节海报',hours:2,type:'活动项目',flex:'可机动'});
+    addTopicRow({name:'机动 / 复习 / 总结',hours:2,type:'复习总结',flex:'可机动'});
+    renderTopicRows(); renderDraft();
+  });
+  $('addScheduleBtn').addEventListener('click', () => { addScheduleRow({className:'三（3）班'}); renderScheduleRows(); renderDraft(); });
+  $('addTopicBtn').addEventListener('click', () => { addTopicRow({name:'新课题',hours:1}); renderTopicRows(); renderDraft(); });
+  $('addActivityBtn').addEventListener('click', () => { addActivityRow({start:$('startDate').value,end:$('startDate').value,name:'新活动',impact:'提醒顺延'}); renderActivityRows(); renderDraft(); });
+  $('generateBtn').addEventListener('click', () => { renderDraft(); $('plannerStatus').textContent = 'AI 草稿已重新生成。请先审草案，再保存到本地。'; });
+  $('saveBtn').addEventListener('click', saveDraft);
+  $('holidayList').addEventListener('change', event => {
+    const id = event.target.dataset.holiday;
+    if(!id) return;
+    if(event.target.checked) holidaySelections.add(id); else holidaySelections.delete(id);
+    renderDraft();
+  });
+  ['teacherName','grade','subject','term','startDate','endDate','pace','reserveHours'].forEach(id => {
+    $(id).addEventListener('input', renderDraft); $(id).addEventListener('change', renderDraft);
+  });
+
+  addScheduleRow(); addTopicRow(); addActivityRow();
+  applyProfile();
+  restoreDraft();
+  renderScheduleRows(); renderTopicRows(); renderActivityRows(); renderHolidayList(); renderDraft();
+  bindRowInput('scheduleRows', scheduleRows);
+  bindRowInput('topicRows', topicRows);
+  bindRowInput('activityRows', activityRows);
+})();
+</script>
+<script src="xiaobei_proto_shell_v1.js"></script>
+</body>
+</html>

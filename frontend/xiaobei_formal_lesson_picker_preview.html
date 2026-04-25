@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>正式选课页 - 预览</title>
+<style>
+:root{
+  --ink:#1b2a20;--muted:#758277;--line:#e3ece5;--panel:#ffffff;--bg:#f5faf7;
+  --green:#1f8f60;--green-soft:#ecfbf4;--green-dark:#15724b;
+  --blue:#5f94f2;--blue-soft:#eef4ff;--orange:#e99b36;--orange-soft:#fff6e8;
+  --rose:#e66b6b;--rose-soft:#fff1f1;--purple:#7962d9;--purple-soft:#f3efff;
+  --shadow:0 18px 48px rgba(39,74,51,.08);--shadow-sm:0 10px 24px rgba(39,74,51,.06);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);
+  background:
+    radial-gradient(circle at 10% 8%,rgba(226,244,231,.9),transparent 24%),
+    radial-gradient(circle at 88% 12%,rgba(255,239,204,.74),transparent 22%),
+    linear-gradient(180deg,#f5faf7 0%,#f8fbf8 40%,#f3f7f4 100%);
+}
+a,button,select{font:inherit}a{text-decoration:none;color:inherit}
+.page{width:min(1460px,calc(100vw - 32px));margin:22px auto 30px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+.crumb{display:flex;align-items:center;gap:12px;color:#4d5d52;font-weight:800}
+.back{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);box-shadow:var(--shadow-sm)}
+.top-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #d9e7dc;background:#fff;border-radius:14px;
+  padding:10px 14px;font-weight:900;color:#4d5c51;cursor:pointer
+}
+.btn.green{background:linear-gradient(135deg,#1f8f60,#177951);border-color:#1f8f60;color:#fff}
+.mode-switch{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.mode-tab{
+  display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:999px;border:1px solid #dce9df;background:#fff;color:#55645a;font-weight:900
+}
+.mode-tab.active{background:#eef8f2;border-color:#9dcdb2;color:var(--green)}
+.hero,.panel{
+  border:1px solid var(--line);border-radius:24px;background:rgba(255,255,255,.92);box-shadow:var(--shadow-sm)
+}
+.hero{padding:24px 26px;position:relative;overflow:hidden;background:linear-gradient(120deg,#fffaf0,#fffdf8 48%,#eef7f2)}
+.hero:after{
+  content:"";position:absolute;right:-20px;top:-12px;width:250px;height:170px;border-radius:36px;
+  background:
+    radial-gradient(circle at 24% 42%,rgba(31,143,96,.82) 0 10px,transparent 11px),
+    radial-gradient(circle at 50% 62%,rgba(233,155,54,.82) 0 10px,transparent 11px),
+    radial-gradient(circle at 74% 36%,rgba(95,148,242,.82) 0 10px,transparent 11px),
+    linear-gradient(180deg,#f7efd9,#eadab7);
+  border:8px solid #d7c49f;transform:rotate(-7deg);opacity:.9
+}
+.hero-content{position:relative;z-index:1}
+.eyebrow,.meta-pill,.filter-pill,.status-pill,.risk-pill{
+  display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-weight:900
+}
+.eyebrow{padding:6px 10px;background:var(--green-soft);color:var(--green);font-size:12px;letter-spacing:.04em}
+.hero h1{margin:14px 0 8px;font-size:36px;letter-spacing:-.03em}
+.hero p{margin:0;color:#5d6c61;line-height:1.8;max-width:860px}
+.meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.meta-pill{padding:8px 12px;border:1px solid #dce9df;background:#fff;color:#56645a;font-size:13px}
+.layout{display:grid;grid-template-columns:320px minmax(0,1fr) 360px;gap:18px;margin-top:18px;align-items:start}
+.panel{padding:18px}
+.panel h2{margin:6px 0 0;font-size:22px}
+.panel p{margin:8px 0 0;color:var(--muted);line-height:1.65;font-size:14px}
+.section-eyebrow{display:inline-flex;padding:5px 10px;border-radius:999px;background:#f1f8f4;color:var(--green);font-size:11px;font-weight:900;letter-spacing:.04em}
+.filter-stack{display:grid;gap:12px;margin-top:14px}
+.prefill-card{margin-top:14px;padding:12px 14px;border-radius:16px;background:#eef4ff;border:1px solid #dae7ff;color:#4c6788;font-size:13px;line-height:1.65}
+.prefill-card b{display:block;margin-bottom:6px;color:#27496f}
+.prefill-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.prefill-tag{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid #dbe6f8;color:#5f7088;font-size:12px;font-weight:900}
+.slot-quick-card{display:none;margin-top:12px;padding:12px 14px;border-radius:16px;background:#fffdf8;border:1px solid #ece2d2;color:#6d604d;font-size:13px;line-height:1.65}
+.slot-quick-card b{display:block;margin-bottom:6px;color:#6a5232}
+.slot-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.slot-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:999px;border:1px solid #eadcc6;background:#fff;color:#6b5a42;font-size:12px;font-weight:900;cursor:pointer}
+.slot-btn.active{background:#eef8f2;border-color:#9dcdb2;color:var(--green)}
+.filter-group label{display:block;color:#647267;font-size:13px;font-weight:900;margin-bottom:7px}
+.filter-group select{
+  width:100%;padding:11px 12px;border:1px solid #dce9df;border-radius:14px;background:#fff;color:#37453d
+}
+.helper{margin-top:14px;padding:12px 14px;border-radius:16px;background:#f7fbf8;border:1px solid #e3ede5;color:#5c6960;font-size:13px;line-height:1.65}
+.helper b{display:block;margin-bottom:6px}
+.helper.quick{background:#fff8ec;border-color:#f1d9af;color:#6f5228}
+.list-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:14px}
+.list-head .count{color:#5c6d61;font-weight:900}
+.lesson-list{display:grid;gap:12px}
+.lesson-card{
+  padding:16px;border:1px solid #e3ece5;border-radius:20px;background:#fff;cursor:pointer;transition:.15s ease;
+  display:grid;gap:10px
+}
+.lesson-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.lesson-card.active{border-color:#98cfb0;background:linear-gradient(135deg,#f7fff9,#ffffff)}
+.lesson-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.lesson-title{font-size:18px;font-weight:900}
+.lesson-sub{color:var(--muted);font-size:13px;line-height:1.65;margin-top:5px}
+.lesson-meta{display:flex;gap:8px;flex-wrap:wrap}
+.filter-pill{padding:6px 10px;font-size:12px;background:#f5f8fb;color:#5e7066}
+.status-pill{padding:6px 10px;font-size:12px}
+.s-brief_pending{background:#fff3de;color:#dd7d22}
+.s-brief_done{background:#eaf8f0;color:var(--green)}
+.s-rapid_ready{background:#eef4ff;color:var(--blue)}
+.s-refine_done{background:#f3efff;color:var(--purple)}
+.s-minimal_saved{background:#f7f3e8;color:#9a6d2e}
+.s-not_started{background:#fff0ee;color:var(--rose)}
+.risk-pill{padding:5px 10px;background:#fff0ee;color:var(--rose);font-size:12px}
+.draft-pill{display:inline-flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:900;background:#eef8f2;color:var(--green)}
+.detail-card{
+  padding:16px;border:1px solid #e3ece5;border-radius:20px;background:#fbfefd
+}
+.detail-card + .detail-card{margin-top:12px}
+.detail-card h3{margin:0 0 10px;font-size:18px}
+.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.detail-item{padding:12px;border:1px solid #e2ece4;border-radius:16px;background:#fff}
+.detail-item small{display:block;color:#748277;font-size:12px;margin-bottom:6px;font-weight:900}
+.detail-item strong{font-size:14px;line-height:1.55}
+.detail-note{margin-top:12px;padding:12px 14px;border-radius:16px;background:#fff8ec;border:1px solid #f1d9af;color:#6f5228;font-size:13px;line-height:1.65}
+.detail-actions{display:grid;gap:10px;margin-top:14px}
+.primary-tip{padding:12px 14px;border-radius:16px;background:#f7fbf8;border:1px solid #e3ede5;color:#5b6960;font-size:13px;line-height:1.65}
+.empty{padding:18px;border:1px dashed #d7e6da;border-radius:20px;background:#fbfefd;color:var(--muted);line-height:1.7}
+@media(max-width:1180px){
+  .layout{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .page{width:min(100vw - 16px,100%)}
+  .detail-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+      <div class="crumb">
+        <a class="back" href="xiaobei_prepare_desktop_preview.html">←</a>
+        <div>
+          <div>备课入口台 / 正式选课</div>
+          <strong style="display:block;font-size:26px;margin-top:4px">正式选课页 v2</strong>
+        </div>
+      </div>
+      <div class="top-actions">
+        <a class="btn" href="xiaobei_prepare_desktop_preview.html">返回备课入口台</a>
+        <a class="btn" href="xiaobei_teaching_calendar_preview.html">返回学期教学安排</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <span class="eyebrow" id="heroEyebrow">备课主线 · 第一步</span>
+      <h1 id="heroTitle">先确认：我现在要处理的是哪一节课</h1>
+      <p id="heroSummary">这里不是学期总纲页，也不是备课页。它只负责从真实课时项里选中一节课，写出干净的 `selected_lesson_context_v1.1`，然后固定送老师进入课前简报页。</p>
+      <div class="meta-row">
+        <span class="meta-pill" id="metaPill1">只做筛课，不做生成</span>
+        <span class="meta-pill" id="metaPill2">只写 lesson context，不写草稿</span>
+        <span class="meta-pill" id="metaPill3">主按钮固定进入 brief</span>
+      </div>
+      <div class="mode-switch" id="modeSwitch"></div>
+    </div>
+  </section>
+
+  <div class="layout">
+    <aside class="panel">
+      <span class="section-eyebrow">筛课</span>
+      <h2>筛选真实课时项</h2>
+      <p id="filterIntro">老师看到的是这周、这班、这节课，而不是示例课题。先把范围收窄，再确认这一节到底是谁。</p>
+      <div class="filter-stack">
+        <div class="filter-group">
+          <label for="weekFilter">按周次</label>
+          <select id="weekFilter"></select>
+        </div>
+        <div class="filter-group">
+          <label for="unitFilter">按单元</label>
+          <select id="unitFilter"></select>
+        </div>
+        <div class="filter-group">
+          <label for="classFilter">按班级</label>
+          <select id="classFilter"></select>
+        </div>
+        <div class="filter-group">
+          <label for="typeFilter">按课型</label>
+          <select id="typeFilter"></select>
+        </div>
+      </div>
+      <div class="prefill-card" id="prefillCard"></div>
+      <div class="slot-quick-card" id="profileSlotCard"></div>
+      <div class="helper" id="filterHelper">
+        <b>这页只做 4 件事</b>
+        能筛课、能选中真实课时项、能写入最小 lesson context、主按钮固定进入课前简报。
+      </div>
+    </aside>
+
+    <main class="panel">
+      <div class="list-head">
+        <div>
+          <span class="section-eyebrow">课时项</span>
+          <h2>本周 / 本单元真实课时项</h2>
+          <p>每一条都是“哪一周、哪一班、上哪一课、当前到哪一步”的课时任务项。</p>
+        </div>
+        <div class="count" id="resultCount">共 0 条</div>
+      </div>
+      <div class="lesson-list" id="lessonList"></div>
+    </main>
+
+    <aside class="panel">
+      <span class="section-eyebrow">确认</span>
+      <h2>当前选中课时项</h2>
+      <p>右侧只确认“这节课是谁”。不在这里写备课，也不在这里做 AI 生成。</p>
+      <div id="selectionDetail" class="empty">先从中间列表选中一节课，再确认它的周次、班级、课型和当前状态。</div>
+    </aside>
+  </div>
+</div>
+
+<script src="xiaobei_prep_truth_source_v1.js"></script>
+<script>
+const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+const params = new URLSearchParams(window.location.search);
+const PICKER_UI_STATE_KEY = 'xiaobei_formal_lesson_picker_ui_v1';
+const TEACHER_PROFILE_KEY = 'xiaobei_teacher_profile_v1';
+const pickerFlow = params.get('flow') || 'standard';
+
+function readTeacherProfile() {
+  try {
+    return JSON.parse(localStorage.getItem(TEACHER_PROFILE_KEY) || '{}');
+  } catch (error) {
+    return {};
+  }
+}
+
+function primaryClassFromProfile(profile) {
+  if (Array.isArray(profile.scheduleRows) && profile.scheduleRows.length) {
+    return profile.scheduleRows[0].className || '';
+  }
+  if (profile.commonClasses) {
+    return String(profile.commonClasses).split(/[、,，]/).map(item => item.trim()).find(Boolean) || '';
+  }
+  return '';
+}
+
+const teacherProfile = readTeacherProfile();
+const defaultProfileClass = primaryClassFromProfile(teacherProfile);
+
+function readPickerState() {
+  try {
+    const raw = sessionStorage.getItem(PICKER_UI_STATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function writePickerState(state) {
+  try {
+    sessionStorage.setItem(PICKER_UI_STATE_KEY, JSON.stringify(state));
+  } catch (error) {}
+}
+
+const pickerState = readPickerState() || {};
+
+let filters = {
+  week: params.get('week') || pickerState.week || (pickerFlow === 'fast' ? '8' : 'all'),
+  unit: params.get('unit') || pickerState.unit || 'all',
+  className: params.get('className') || pickerState.className || (pickerFlow === 'fast' ? defaultProfileClass || 'all' : 'all'),
+  lessonType: params.get('lessonType') || pickerState.lessonType || 'all'
+};
+let selectedTaskId = params.get('course_plan_item_id') || pickerState.course_plan_item_id || '';
+
+function renderFlowCopy() {
+  document.getElementById('modeSwitch').innerHTML = `
+    <a class="mode-tab ${pickerFlow !== 'fast' ? 'active' : ''}" href="xiaobei_formal_lesson_picker_preview.html">标准选课</a>
+    <a class="mode-tab ${pickerFlow === 'fast' ? 'active' : ''}" href="xiaobei_formal_lesson_picker_preview.html?flow=fast">今天快速备一节</a>
+  `;
+  if (pickerFlow !== 'fast') return;
+  document.getElementById('heroEyebrow').textContent = '今天快速备一节';
+  document.getElementById('heroTitle').textContent = '先用轻量选课，别跳过这节课的身份';
+  document.getElementById('heroSummary').textContent = '快速备一节不等于直接跳过课时身份。这里仍然会先确认班级、课题、课时和作业链，然后进入简短定向，再去快速版。';
+  document.getElementById('metaPill1').textContent = '短路径，但不跳过选课';
+  document.getElementById('metaPill2').textContent = '先确认班 / 课 / 课时 / 作业链';
+  document.getElementById('metaPill3').textContent = '主按钮固定进入简短定向';
+  document.getElementById('filterIntro').textContent = '这是“今天快速备一节”的轻量选课。老师不需要先读学期总纲，但仍然必须先确认今天到底处理哪一节。';
+  document.getElementById('filterHelper').innerHTML = `
+    <b>快速备一节也要守住 4 件事</b>
+    先确认哪个班、哪一课、哪个课时、是否有作业链；然后进入简短定向，再去快速版。
+  `;
+  document.getElementById('filterHelper').classList.add('quick');
+}
+
+function uniqueValues(key) {
+  return [...new Set(source.listLessonTasks().map(item => item[key]))];
+}
+
+function populateSelect(id, values, allLabel, selectedValue) {
+  const el = document.getElementById(id);
+  el.innerHTML = [`<option value="all">${allLabel}</option>`].concat(
+    values.map(value => `<option value="${value}">${value}</option>`)
+  ).join('');
+  el.value = values.includes(selectedValue) || selectedValue === 'all' ? selectedValue : 'all';
+}
+
+function filteredTasks() {
+  return source.listLessonTasks()
+    .map(task => source.buildRuntimeLessonTask ? source.buildRuntimeLessonTask(task) : task)
+    .filter(task => {
+    if (filters.week !== 'all' && String(task.week_no) !== String(filters.week)) return false;
+    if (filters.unit !== 'all' && task.unit_name !== filters.unit) return false;
+    if (filters.className !== 'all' && task.class_name !== filters.className) return false;
+    if (filters.lessonType !== 'all' && task.lesson_type !== filters.lessonType) return false;
+    return true;
+  });
+}
+
+function tasksForQuickSlots() {
+  return source.listLessonTasks()
+    .map(task => source.buildRuntimeLessonTask ? source.buildRuntimeLessonTask(task) : task)
+    .filter(task => {
+      if (filters.week !== 'all' && String(task.week_no) !== String(filters.week)) return false;
+      if (filters.unit !== 'all' && task.unit_name !== filters.unit) return false;
+      if (filters.lessonType !== 'all' && task.lesson_type !== filters.lessonType) return false;
+      return true;
+    });
+}
+
+function selectedTask(tasks) {
+  if (!tasks.length) return null;
+  return tasks.find(item => item.course_plan_item_id === selectedTaskId) || tasks[0];
+}
+
+function statusClass(code) {
+  return `s-${code}`;
+}
+
+function formatSavedAt(value) {
+  try {
+    return new Date(value).toLocaleString('zh-CN', { hour12: false });
+  } catch (error) {
+    return value || '';
+  }
+}
+
+function detailHtml(task) {
+  const lessonContext = source.buildSelectedLessonContext(task);
+  const latestDraftDesc = source.describeLatestDraft ? source.describeLatestDraft(task) : null;
+  const draftLabel = latestDraftDesc?.summary || '当前还没有已保存草稿';
+  return `
+    <div class="detail-card">
+      <h3>${task.topic_name}</h3>
+      <div class="detail-grid">
+        <div class="detail-item"><small>周次 / 日期</small><strong>${task.week_label} · ${task.date_range}</strong></div>
+        <div class="detail-item"><small>班级 / 节次</small><strong>${task.class_name} · ${task.day_label}${task.period}</strong></div>
+        <div class="detail-item"><small>单元 / 课型</small><strong>${task.unit_name} · ${task.lesson_type}</strong></div>
+        <div class="detail-item"><small>当前状态</small><strong>${task.status}</strong></div>
+        <div class="detail-item"><small>作业链</small><strong>${task.assignment_required ? '是' : '否'}</strong></div>
+        <div class="detail-item"><small>风险标签</small><strong>${task.risk_tag}</strong></div>
+        <div class="detail-item"><small>草稿状态</small><strong>${draftLabel}</strong></div>
+        <div class="detail-item"><small>上次完成情况</small><strong>${task.completion_summary}</strong></div>
+      </div>
+      <div class="detail-note">${task.note}</div>
+    </div>
+    <div class="detail-card">
+      <h3>即将写入的 lesson context</h3>
+      <div class="detail-grid">
+        <div class="detail-item"><small>course_plan_item_id</small><strong>${lessonContext.course_plan_item_id}</strong></div>
+        <div class="detail-item"><small>lesson_key</small><strong>${lessonContext.lesson_key}</strong></div>
+        <div class="detail-item"><small>topic_name</small><strong>${lessonContext.topic_name}</strong></div>
+        <div class="detail-item"><small>planned_week</small><strong>${lessonContext.planned_week}</strong></div>
+      </div>
+      <div class="primary-tip">${pickerFlow === 'fast' ? '当前走的是“今天快速备一节”短路径。主按钮会先带你进入简短定向，而不是直接跳过定向去快速版。' : task.refineDraft ? '这节课已经有精修稿。当前主线仍然先回到课前简报，再由 brief 优先推荐你继续精修。' : task.rapidDraft ? '这节课已经有快速版草稿。当前主线仍然先回到课前简报，再由 brief 默认推荐你继续快速版。' : task.minimalDraft ? '这节课已经有极简版草稿。当前主线仍然先回到课前简报，再决定是否继续极简版或进入快速版。' : '主按钮不会直接去快速版或精修版，而是先把这节课的最小上下文写入 session，再固定进入课前简报页。'}</div>
+      <div class="detail-actions">
+        <button class="btn green" type="button" onclick="enterBrief()">${pickerFlow === 'fast' ? '进入简短定向' : task.refineDraft || task.rapidDraft || task.minimalDraft ? '继续进入课前简报' : '进入课前简报'}</button>
+        <a class="btn" href="xiaobei_teaching_calendar_preview.html">回到学期教学安排</a>
+      </div>
+    </div>
+  `;
+}
+
+function renderFilters() {
+  populateSelect('weekFilter', uniqueValues('week_no'), '全部周次', filters.week);
+  populateSelect('unitFilter', uniqueValues('unit_name'), '全部单元', filters.unit);
+  populateSelect('classFilter', uniqueValues('class_name'), '全部班级', filters.className);
+  populateSelect('typeFilter', uniqueValues('lesson_type'), '全部课型', filters.lessonType);
+
+  document.getElementById('weekFilter').onchange = event => {
+    filters.week = event.target.value;
+    renderAll();
+  };
+  document.getElementById('unitFilter').onchange = event => {
+    filters.unit = event.target.value;
+    renderAll();
+  };
+  document.getElementById('classFilter').onchange = event => {
+    filters.className = event.target.value;
+    renderAll();
+  };
+  document.getElementById('typeFilter').onchange = event => {
+    filters.lessonType = event.target.value;
+    renderAll();
+  };
+
+  const classPrefill = defaultProfileClass || '还没有预置常教班级';
+  const scheduleCount = Array.isArray(teacherProfile.scheduleRows) ? teacherProfile.scheduleRows.length : 0;
+  const prefillLines = pickerFlow === 'fast'
+    ? `
+      <b>快速路径默认帮你缩小到常教班级</b>
+      当前优先从老师档案里预填：${classPrefill}。如果今天临时上别的班，再改筛选就行。
+      <div class="prefill-tags">
+        <span class="prefill-tag">常教班级：${classPrefill}</span>
+        <span class="prefill-tag">教师课表：${scheduleCount || 0} 条</span>
+        <span class="prefill-tag">默认周次：${filters.week === 'all' ? '未锁定' : '第' + filters.week + '周'}</span>
+      </div>
+    `
+    : `
+      <b>先沿用老师档案，再做标准筛课</b>
+      当前会优先读取老师姓名、常教年级、常教班级和教师课表。标准路径不强迫锁定某个班，但会把老师常教信息放在眼前，减少从空白开始筛选。
+      <div class="prefill-tags">
+        <span class="prefill-tag">老师：${teacherProfile.teacherName || '李老师'}</span>
+        <span class="prefill-tag">常教年级：${teacherProfile.preferredGrade || '三年级'}</span>
+        <span class="prefill-tag">常教班级：${classPrefill}</span>
+      </div>
+    `;
+  document.getElementById('prefillCard').innerHTML = prefillLines;
+}
+
+function renderProfileSlotCard(tasks) {
+  const card = document.getElementById('profileSlotCard');
+  const scheduleRows = Array.isArray(teacherProfile.scheduleRows) ? teacherProfile.scheduleRows.filter(row => row && row.className) : [];
+  if (pickerFlow !== 'fast') {
+    card.style.display = 'none';
+    card.innerHTML = '';
+    return;
+  }
+  if (!scheduleRows.length) {
+    card.style.display = 'block';
+    card.innerHTML = `
+      <b>还没有预置教师课表</b>
+      你仍然可以继续手动筛课；如果想让快速路径更顺，先去教学档案补教师课表。
+      <div class="slot-buttons">
+        <a class="slot-btn" href="xiaobei_user_profile_preview.html#schedule">去补教师课表</a>
+      </div>
+    `;
+    return;
+  }
+
+  const tasksByClass = new Map();
+  tasks.forEach(task => {
+    const existing = tasksByClass.get(task.class_name) || [];
+    existing.push(task);
+    tasksByClass.set(task.class_name, existing);
+  });
+
+  const slotButtons = scheduleRows.map((row, index) => {
+    const className = row.className || `班级${index + 1}`;
+    const matchingTasks = tasksByClass.get(className) || [];
+    const active = filters.className === className;
+    const disabled = !matchingTasks.length;
+    const label = `${row.weekday || '周?'} · ${row.period || '第?节'} · ${className}`;
+    const suffix = disabled ? '（本周无课）' : `（${matchingTasks.length} 节）`;
+    return `
+      <button
+        class="slot-btn ${active ? 'active' : ''}"
+        type="button"
+        data-slot-class="${className}"
+        ${disabled ? 'disabled style="opacity:.45;cursor:not-allowed"' : ''}
+      >${label}${suffix}</button>
+    `;
+  }).join('');
+
+  card.style.display = 'block';
+  card.innerHTML = `
+    <b>按我的教师课表快速锁定班级</b>
+    先从老师档案里的课表班级里点一个，再从右侧确认这节课。系统只帮你缩小范围，不会跳过 lesson context。
+    <div class="slot-buttons">${slotButtons}</div>
+  `;
+
+  card.querySelectorAll('[data-slot-class]').forEach(button => {
+    button.onclick = () => {
+      const className = button.dataset.slotClass;
+      filters.className = className;
+      const nextTask = tasks.find(task => task.class_name === className);
+      if (nextTask) selectedTaskId = nextTask.course_plan_item_id;
+      renderAll();
+    };
+  });
+}
+
+function renderLessonList(tasks) {
+  const list = document.getElementById('lessonList');
+  document.getElementById('resultCount').textContent = `共 ${tasks.length} 条`;
+  if (!tasks.length) {
+    list.innerHTML = `<div class="empty">当前筛选条件下没有可选课时项。请放宽周次、班级或课型筛选。</div>`;
+    document.getElementById('selectionDetail').innerHTML = `<div class="empty">当前没有可确认的课时项。</div>`;
+    return;
+  }
+  const activeTask = selectedTask(tasks);
+  selectedTaskId = activeTask.course_plan_item_id;
+  writePickerState({
+    week: filters.week,
+    unit: filters.unit,
+    className: filters.className,
+    lessonType: filters.lessonType,
+    course_plan_item_id: activeTask.course_plan_item_id,
+    lesson_key: activeTask.lesson_key
+  });
+  list.innerHTML = tasks.map(task => `
+    <article class="lesson-card ${task.course_plan_item_id === selectedTaskId ? 'active' : ''}" data-id="${task.course_plan_item_id}">
+      <div class="lesson-head">
+        <div>
+          <div class="lesson-title">${task.topic_name}</div>
+          <div class="lesson-sub">${task.week_label} · ${task.date_range} · ${task.class_name} · ${task.day_label}${task.period}</div>
+        </div>
+        <span class="status-pill ${statusClass(task.status_code)}">${task.status}</span>
+      </div>
+      <div class="lesson-meta">
+        <span class="filter-pill">${task.unit_name}</span>
+        <span class="filter-pill">${task.lesson_type}</span>
+        <span class="filter-pill">${task.assignment_required ? '有作业链' : '无作业链'}</span>
+        <span class="risk-pill">${task.risk_tag}</span>
+        ${task.refineDraft ? '<span class="draft-pill">已保存精修稿</span>' : task.rapidDraft ? '<span class="draft-pill">已保存快速稿</span>' : task.minimalDraft ? '<span class="draft-pill">已保存极简稿</span>' : ''}
+      </div>
+      <div class="lesson-sub">${task.status_note || task.note}</div>
+    </article>
+  `).join('');
+  list.querySelectorAll('.lesson-card').forEach(card => {
+    card.onclick = () => {
+      selectedTaskId = card.dataset.id;
+      renderAll();
+    };
+  });
+  document.getElementById('selectionDetail').innerHTML = detailHtml(activeTask);
+}
+
+function enterBrief() {
+  const tasks = filteredTasks();
+  const task = selectedTask(tasks);
+  if (!task) return;
+  source.writeLessonSelection(task);
+  const query = new URLSearchParams({
+    week: filters.week,
+    unit: filters.unit,
+    className: filters.className,
+    lessonType: filters.lessonType,
+    course_plan_item_id: task.course_plan_item_id,
+    lesson_key: task.lesson_key
+  });
+  if (pickerFlow === 'fast') query.set('flow', 'fast');
+  window.location.href = `xiaobei_preclass_brief_preview.html?${query.toString()}`;
+}
+
+function renderAll() {
+  renderFlowCopy();
+  renderFilters();
+  renderProfileSlotCard(tasksForQuickSlots());
+  renderLessonList(filteredTasks());
+}
+
+renderAll();
+</script>
+<script src="xiaobei_proto_shell_v1.js"></script>
+</body>
+</html>

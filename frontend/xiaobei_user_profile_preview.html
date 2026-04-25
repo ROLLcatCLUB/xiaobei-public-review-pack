@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教学档案与教师课表 - 电脑端预览</title>
+<style>
+:root{
+  --ink:#1f2c24;--muted:#6d7a73;--line:#dfe8e0;--panel:#fff;--bg:#f5f8f5;
+  --green:#2f8b69;--green-soft:#eef8f3;--blue:#4c83c6;--blue-soft:#edf4ff;
+  --shadow:0 16px 34px rgba(32,52,40,.08);
+}
+*{box-sizing:border-box}body{margin:0;font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:linear-gradient(180deg,#f7faf7,#fdfcf9);color:var(--ink)}
+a{text-decoration:none;color:inherit}button,input,select,textarea{font:inherit}
+.page{width:min(1360px,calc(100vw - 28px));margin:18px auto 34px}
+.topbar,.hero,.panel{background:var(--panel);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+.topbar{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.crumb{display:flex;align-items:center;gap:12px;font-weight:800}.back,.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid var(--line);background:#fff;color:#47554d;font-weight:800;cursor:pointer}.back{width:42px;height:42px;border-radius:14px}.btn{padding:11px 16px}
+.btn.green{background:var(--green);border-color:var(--green);color:#fff}
+.hero{margin-top:16px;padding:22px 24px;background:linear-gradient(130deg,#fff8ef 0%,#ffffff 56%,#eef8f3 100%)}
+.hero h1{margin:10px 0 8px;font-size:34px}.hero p{margin:0;color:var(--muted);line-height:1.8}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.pill{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid #e5ddd1;color:#5f6b63;font-size:13px;font-weight:800}
+.layout{display:grid;grid-template-columns:minmax(0,1.1fr) .9fr;gap:18px;margin-top:18px;align-items:start}
+.stack{display:grid;gap:18px}.panel{padding:18px}.panel h2{margin:0 0 8px;font-size:24px}.panel p{margin:0;color:var(--muted);line-height:1.7}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.field label{display:block;margin-bottom:6px;font-size:13px;font-weight:900;color:#54625a}
+.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1px solid #dbe6de;border-radius:14px;background:#fff;color:#344139}
+.helper,.status{padding:14px;border-radius:18px;margin-top:14px}
+.helper{background:#f8fbf8;border:1px solid #e2ebe4;color:#5f6d64;font-size:13px;line-height:1.7}
+.status{background:#eef8f3;border:1px solid #d4e8db;color:var(--green);font-weight:800}
+.table-head,.table-row{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr auto;gap:10px;align-items:center}
+.table-head{padding:0 4px;color:#6d7a73;font-size:12px;font-weight:900}
+.table-row{padding:12px;border:1px solid #e7eee8;border-radius:18px;background:#fcfdfc}
+.danger-btn{padding:9px 12px;border-radius:12px;border:1px solid #ecd4cf;background:#fff3f1;color:#b95e4f;font-weight:800;cursor:pointer}
+.list{display:grid;gap:10px;margin-top:12px}.item{padding:12px;border:1px solid #e7edf2;border-radius:16px;background:#fff}.item strong{display:block;margin-bottom:4px}
+@media(max-width:980px){.layout{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="crumb">
+      <a class="back" href="xiaobei_prepare_desktop_preview.html">←</a>
+      <div>
+        <div style="font-size:12px;color:#75837a">登录态原型 / 教师基础档案</div>
+        <strong style="font-size:26px">教学档案与教师课表</strong>
+      </div>
+    </div>
+    <div>
+      <button class="btn green" id="saveProfileBtn" type="button">保存档案</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>默认已登录，教师课表先放进用户档案里维护</h1>
+    <p>后面的学期排课向导、正式选课、课前简报和快速版，都优先读取这里的老师基础信息和教师课表。学期页只做“本学期调用和临时调整”，不要求每次重新手填整份课表。</p>
+    <div class="meta">
+      <span class="pill">用户层：老师身份 / 课表 / 偏好</span>
+      <span class="pill">学期层：本学期安排与临时调整</span>
+      <span class="pill">默认登录态运行</span>
+    </div>
+  </section>
+
+  <div class="layout">
+    <main class="stack">
+      <section class="panel">
+        <h2>老师基础信息</h2>
+        <div class="grid-2">
+          <div class="field"><label>老师姓名</label><input id="teacherName" value="李老师"></div>
+          <div class="field"><label>学科</label><select id="subject"><option selected>美术</option><option>书法</option><option>综合实践</option></select></div>
+          <div class="field"><label>常教年级</label><select id="preferredGrade"><option>一年级</option><option>二年级</option><option selected>三年级</option><option>四年级</option><option>五年级</option><option>六年级</option></select></div>
+          <div class="field"><label>常教班级</label><input id="commonClasses" value="三（1）班、三（2）班、三（3）班、三（4）班"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="schedule">
+        <h2>教师课表</h2>
+        <p>这份课表是账号级长期资料。学期排课向导默认先沿用它，再做本学期临时覆写。</p>
+        <div class="helper">这里先不做真实上传解析，只保留“上传占位 + 手动课表表格”。后面接 API 时，再把课表解析接进来。</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+          <button class="btn" type="button">上传课表（占位）</button>
+          <button class="btn" id="loadSampleScheduleBtn" type="button">加载示例课表</button>
+        </div>
+        <div class="table-head" style="margin-top:14px"><span>班级</span><span>周几</span><span>第几节</span><span>备注</span><span></span></div>
+        <div id="scheduleRows" class="list" style="margin-top:10px"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+          <button class="btn green" id="addScheduleBtn" type="button">新增一行课表</button>
+        </div>
+      </section>
+    </main>
+
+    <aside class="stack">
+      <section class="panel" id="assistant">
+        <h2>助手偏好</h2>
+        <p>这里先只保存账号偏好。右下角悬浮助手会统一读取这份配置，不再要求每页重新设一遍。</p>
+        <div class="grid-2">
+          <div class="field"><label>排课偏好</label><select id="scheduleStyle"><option>保守排</option><option selected>正常排</option><option>紧凑排</option></select></div>
+          <div class="field"><label>输出风格</label><select id="outputStyle"><option selected>简洁</option><option>详细</option></select></div>
+          <div class="field"><label>助手工作方式</label><select id="assistantBehavior"><option selected>先建议再生成</option><option>先生成再建议</option></select></div>
+          <div class="field"><label>提醒风格</label><select id="reminderStyle"><option selected>按需提醒</option><option>主动提醒</option></select></div>
+        </div>
+        <div class="field" style="margin-top:12px"><label>补充说明</label><textarea id="notes" rows="6" placeholder="例如：更喜欢先保留机动课；不喜欢太长的建议；常常要插入活动课。"></textarea></div>
+        <div class="status" id="saveStatus">还没有保存教学档案。</div>
+      </section>
+
+      <section class="panel">
+        <h2>后续页面如何读取</h2>
+        <div class="list">
+          <div class="item"><strong>学期排课向导</strong><span>默认读取老师姓名、年级、学科、教师课表和排课偏好。</span></div>
+          <div class="item"><strong>正式选课 / 课前简报</strong><span>读取老师身份和常教班级，让上下文更像真实账号。</span></div>
+          <div class="item"><strong>快速版 / 精修页</strong><span>读取输出偏好和助手工作方式，统一 AI 助手口径。</span></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function(){
+  const PROFILE_KEY = 'xiaobei_teacher_profile_v1';
+  const ASSISTANT_KEY = 'xiaobei_ai_assistant_profile_v1';
+  const scheduleRows = [];
+  const $ = id => document.getElementById(id);
+  const uid = () => 'sc' + Math.random().toString(36).slice(2,8);
+  function addRow(row){ scheduleRows.push(Object.assign({id:uid(),className:'三（1）班',weekday:'周四',period:'第1节',note:'美术教室1'}, row||{})); }
+  function renderRows(){
+    $('scheduleRows').innerHTML = scheduleRows.map(row => `
+      <div class="table-row">
+        <input data-id="${row.id}" data-key="className" value="${row.className}">
+        <select data-id="${row.id}" data-key="weekday"><option ${row.weekday==='周一'?'selected':''}>周一</option><option ${row.weekday==='周二'?'selected':''}>周二</option><option ${row.weekday==='周三'?'selected':''}>周三</option><option ${row.weekday==='周四'?'selected':''}>周四</option><option ${row.weekday==='周五'?'selected':''}>周五</option></select>
+        <select data-id="${row.id}" data-key="period"><option ${row.period==='第1节'?'selected':''}>第1节</option><option ${row.period==='第2节'?'selected':''}>第2节</option><option ${row.period==='第3节'?'selected':''}>第3节</option><option ${row.period==='第4节'?'selected':''}>第4节</option></select>
+        <input data-id="${row.id}" data-key="note" value="${row.note}">
+        <button class="danger-btn" type="button" data-remove="${row.id}">删除</button>
+      </div>
+    `).join('');
+  }
+  function save(){
+    const payload = {
+      teacherName:$('teacherName').value.trim(),
+      subject:$('subject').value,
+      preferredGrade:$('preferredGrade').value,
+      commonClasses:$('commonClasses').value.trim(),
+      scheduleRows:scheduleRows.slice(),
+      scheduleStyle:$('scheduleStyle').value
+    };
+    const assistant = {
+      teacherName:payload.teacherName,
+      subject:payload.subject,
+      preferredGrade:payload.preferredGrade,
+      commonClasses:payload.commonClasses,
+      scheduleStyle:$('scheduleStyle').value,
+      outputStyle:$('outputStyle').value,
+      assistantBehavior:$('assistantBehavior').value,
+      reminderStyle:$('reminderStyle').value,
+      notes:$('notes').value.trim()
+    };
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(payload));
+    localStorage.setItem(ASSISTANT_KEY, JSON.stringify(assistant));
+    $('saveStatus').textContent = '教学档案、教师课表和助手偏好已保存。后续原型页会默认读取这份信息。';
+  }
+  function load(){
+    try{
+      const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+      const assistant = JSON.parse(localStorage.getItem(ASSISTANT_KEY) || '{}');
+      $('teacherName').value = profile.teacherName || assistant.teacherName || $('teacherName').value;
+      $('subject').value = profile.subject || assistant.subject || $('subject').value;
+      $('preferredGrade').value = profile.preferredGrade || assistant.preferredGrade || $('preferredGrade').value;
+      $('commonClasses').value = profile.commonClasses || assistant.commonClasses || $('commonClasses').value;
+      $('scheduleStyle').value = profile.scheduleStyle || assistant.scheduleStyle || $('scheduleStyle').value;
+      $('outputStyle').value = assistant.outputStyle || $('outputStyle').value;
+      $('assistantBehavior').value = assistant.assistantBehavior || $('assistantBehavior').value;
+      $('reminderStyle').value = assistant.reminderStyle || $('reminderStyle').value;
+      $('notes').value = assistant.notes || '';
+      scheduleRows.splice(0, scheduleRows.length, ...((profile.scheduleRows || []).length ? profile.scheduleRows : []));
+    }catch(e){}
+    if (!scheduleRows.length) {
+      addRow({className:'三（1）班',weekday:'周四',period:'第1节'});
+      addRow({className:'三（2）班',weekday:'周五',period:'第2节'});
+    }
+    renderRows();
+  }
+  $('addScheduleBtn').addEventListener('click', () => { addRow({className:'新班级'}); renderRows(); });
+  $('loadSampleScheduleBtn').addEventListener('click', () => {
+    scheduleRows.splice(0, scheduleRows.length);
+    addRow({className:'三（1）班',weekday:'周四',period:'第1节',note:'美术教室1'});
+    addRow({className:'三（2）班',weekday:'周五',period:'第2节',note:'美术教室1'});
+    addRow({className:'三（3）班',weekday:'周四',period:'第3节',note:'综合楼3层'});
+    renderRows();
+  });
+  $('scheduleRows').addEventListener('input', event => {
+    const id = event.target.dataset.id, key = event.target.dataset.key;
+    if (!id || !key) return;
+    const row = scheduleRows.find(item => item.id === id);
+    if (row) row[key] = event.target.value;
+  });
+  $('scheduleRows').addEventListener('change', event => {
+    const id = event.target.dataset.id, key = event.target.dataset.key;
+    if (!id || !key) return;
+    const row = scheduleRows.find(item => item.id === id);
+    if (row) row[key] = event.target.value;
+  });
+  $('scheduleRows').addEventListener('click', event => {
+    const id = event.target.dataset.remove;
+    if (!id) return;
+    const idx = scheduleRows.findIndex(item => item.id === id);
+    if (idx >= 0) scheduleRows.splice(idx, 1);
+    renderRows();
+  });
+  $('saveProfileBtn').addEventListener('click', save);
+  load();
+})();
+</script>
+<script src="xiaobei_proto_shell_v1.js"></script>
+</body>
+</html>
