@@ -35,6 +35,7 @@
 
         <article class="card">
           <h2>教师课表</h2>
+          <div class="muted tiny" style="margin-bottom:10px">当前来源：<span id="scheduleSourceText"></span></div>
           <table class="table">
             <thead><tr><th>班级</th><th>周几</th><th>第几节</th><th>备注</th></tr></thead>
             <tbody id="scheduleRows"></tbody>
@@ -89,6 +90,7 @@
     ];
 
     function renderSchedule(){
+      document.getElementById('scheduleSourceText').textContent = profile.scheduleSource || '教学档案维护';
       document.getElementById('scheduleRows').innerHTML = (profile.scheduleRows || []).map(row => `<tr><td>${row.className}</td><td>${row.weekday}</td><td>${row.period}</td><td>${row.note || ''}</td></tr>`).join('');
       document.getElementById('grade').value = profile.preferredGrade || '三年级';
       document.getElementById('subject').value = profile.subject || '美术';

@@ -12,21 +12,46 @@
 
   function defaultProfile(){
     return {
-      teacherName:'李老师',
+      teacherName:'徐涛老师',
       subject:'美术',
+      teachingGrades:'三年级、四年级',
       preferredGrade:'三年级',
-      commonClasses:'三（1）班、三（2）班',
+      commonClasses:'三年级1-5班 · 四年级1-5班',
+      scheduleSource:'教学档案维护',
+      feishuImported:false,
       scheduleRows:[
-        {className:'三（1）班', weekday:'周四', period:'第1节', note:'美术教室1'},
-        {className:'三（2）班', weekday:'周四', period:'第3节', note:'美术教室1'},
-        {className:'三（4）班', weekday:'周五', period:'第4节', note:'美术教室1'}
+        {className:'三（1）班', weekday:'周一', period:'第1节', note:'美术教室1'},
+        {className:'三（2）班', weekday:'周一', period:'第3节', note:'美术教室1'},
+        {className:'三（3）班', weekday:'周二', period:'第1节', note:'美术教室1'},
+        {className:'三（4）班', weekday:'周二', period:'第3节', note:'美术教室1'},
+        {className:'三（5）班', weekday:'周三', period:'第2节', note:'美术教室1'},
+        {className:'四（1）班', weekday:'周三', period:'第4节', note:'美术教室2'},
+        {className:'四（2）班', weekday:'周四', period:'第1节', note:'美术教室2'},
+        {className:'四（3）班', weekday:'周四', period:'第3节', note:'美术教室2'},
+        {className:'四（4）班', weekday:'周五', period:'第1节', note:'美术教室2'},
+        {className:'四（5）班', weekday:'周五', period:'第3节', note:'美术教室2'}
       ]
     };
   }
 
   function ensureProfile(){
     const existing = readJson(PROFILE_KEY);
-    const merged = Object.assign(defaultProfile(), existing || {});
+    const defaults = defaultProfile();
+    const merged = Object.assign({}, defaults, existing || {});
+    const shouldSeedDefaultTeacher = !existing || !existing.teacherName || existing.teacherName === '李老师';
+    if (shouldSeedDefaultTeacher) {
+      const seeded = Object.assign({}, merged, {
+        teacherName: defaults.teacherName,
+        teachingGrades: defaults.teachingGrades,
+        preferredGrade: existing && existing.preferredGrade ? existing.preferredGrade : defaults.preferredGrade,
+        commonClasses: defaults.commonClasses,
+        scheduleSource: existing && existing.scheduleSource ? existing.scheduleSource : defaults.scheduleSource,
+        feishuImported: existing && typeof existing.feishuImported === 'boolean' ? existing.feishuImported : defaults.feishuImported,
+        scheduleRows: existing && Array.isArray(existing.scheduleRows) && existing.scheduleRows.length ? existing.scheduleRows : defaults.scheduleRows
+      });
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(seeded));
+      return seeded;
+    }
     if (!existing || !existing.teacherName) {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));
     }
@@ -91,10 +116,11 @@
       },
       profile:{
         title:'档案助手',
-        intro:'维护老师信息和课表',
+        intro:'维护老师信息、课表和课表来源',
         actions:[
           ['改姓名与年级','保持基础信息准确'],
           ['维护课表','后面选课会默认带出'],
+          ['导入飞书现有课','后面可用飞书课表覆盖当前表'],
           ['保存档案','学期排课会直接读取']
         ]
       },
@@ -103,6 +129,7 @@
         intro:'先起草，再确认',
         actions:[
           ['补基础信息','年级、学科、学期'],
+          ['沿用教师课表','先读教学档案里的课表'],
           ['补课题清单','表格里加减即可'],
           ['生成草案','先出草案，再回学期安排']
         ]
@@ -145,7 +172,7 @@
           <div class="brand-mark">备</div>
           <div class="brand-copy">
             <strong>${title}</strong>
-            <small>已登录 · ${profile.preferredGrade}${profile.subject}</small>
+            <small>已登录 · ${(profile.teachingGrades || profile.preferredGrade)}${profile.subject}</small>
           </div>
         </div>
         <div class="user-nav">
