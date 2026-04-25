@@ -34,14 +34,10 @@
           <article class="card" id="cardSupport"></article>
         </section>
 
-        <section class="grid-2">
-          <article class="card" id="cardLesson"></article>
-          <article class="card" id="cardClass"></article>
-        </section>
-
         <section class="card">
-          <h2>下一步</h2>
-          <div class="inline-actions" id="nextActions"></div>
+          <h2>现在就做这一步</h2>
+          <div class="list" id="decisionSummary"></div>
+          <div class="inline-actions" id="nextActions" style="margin-top:12px"></div>
         </section>
       </div>
     </main>
@@ -124,22 +120,6 @@
       document.getElementById('cardFocus').innerHTML = `<h2>先抓什么</h2><div>${recommendation.bullets[0]}</div>`;
       document.getElementById('cardRisk').innerHTML = `<h2>先防什么</h2><div>${recommendation.bullets[1]}</div>`;
       document.getElementById('cardSupport').innerHTML = `<h2>先备什么</h2><div>${recommendation.bullets[2]}</div>`;
-      document.getElementById('cardLesson').innerHTML = `
-        <h2>本课位置</h2>
-        <div class="list">
-          <div class="list-item"><strong>单元</strong><div class="muted tiny">${task.unit_name}</div></div>
-          <div class="list-item"><strong>课型</strong><div class="muted tiny">${task.lesson_type}</div></div>
-          <div class="list-item"><strong>作业链</strong><div class="muted tiny">${task.assignment_required ? '有' : '无'}</div></div>
-        </div>
-      `;
-      document.getElementById('cardClass').innerHTML = `
-        <h2>本班提醒</h2>
-        <div class="list">
-          <div class="list-item"><strong>当前风险</strong><div class="muted tiny">${task.risk_tag}</div></div>
-          <div class="list-item"><strong>作业情况</strong><div class="muted tiny">${task.assignment_summary}</div></div>
-          <div class="list-item"><strong>备注</strong><div class="muted tiny">${task.note}</div></div>
-        </div>
-      `;
 
       const next = document.getElementById('nextActions');
       let primaryLabel = '推荐进入快速版';
@@ -152,6 +132,10 @@
       }
       const minimalLabel = draftState.minimalDraft ? '继续极简版' : '进入极简版';
       const refineLabel = draftState.refineDraft ? '继续精修页' : '进入精修页';
+      document.getElementById('decisionSummary').innerHTML = `
+        <div class="list-item"><strong>当前判断</strong><div class="muted tiny">${task.unit_name} · ${task.lesson_type} · ${task.assignment_required ? '有作业链' : '无作业链'}</div></div>
+        <div class="list-item"><strong>本班提醒</strong><div class="muted tiny">${task.risk_tag} · ${task.assignment_summary}</div></div>
+      `;
       next.innerHTML = `
         <a class="btn primary" href="${primaryHref}">${primaryLabel}</a>
         <a class="btn" href="${draftHref(task,'minimal')}">${minimalLabel}</a>
