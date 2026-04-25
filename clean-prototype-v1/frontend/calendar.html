@@ -15,18 +15,12 @@
           <h1>学期教学安排</h1>
         </div>
         <div class="head-actions">
-          <a class="btn" href="planner.html">AI 快速生成学期表</a>
+          <a class="btn" href="planner.html">AI 预生成学期表</a>
           <a class="btn primary" id="goPickerBtn" href="picker.html">进入正式选课</a>
         </div>
       </div>
 
-      <section class="card hero">
-        <div class="hero-meta">
-          <span class="badge green">原计划</span>
-          <span class="badge blue">实际执行</span>
-          <span class="badge amber">只改未来</span>
-        </div>
-      </section>
+      <section class="card hero" id="planBanner"></section>
 
       <section class="grid-2" style="margin-top:16px">
         <article class="card">
@@ -57,36 +51,108 @@
   <script src="clean-shell.js"></script>
   <script>
     CLEAN_PROTO.mount({ page:'calendar', title:'学期教学安排', assistant:'calendar' });
+    const DRAFT_KEY = 'xiaobei_semester_plan_draft_v1';
+    const CURRENT_KEY = 'xiaobei_semester_plan_current_v1';
     const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
     const params = new URLSearchParams(window.location.search);
-    const adjustMode = params.get('mode') === 'adjust';
     const tasks = source.listLessonTasks();
-    const grouped = [...new Map(tasks.map(item => [item.week_no, null])).keys()].map(week => {
+    function defaultWeeks(){
+      return [...new Map(tasks.map(item => [item.week_no, null])).keys()].map(week => {
       const rows = tasks.filter(item => item.week_no === week);
       return {
         week_no: week,
         week_label: rows[0].week_label,
         date_range: rows[0].date_range,
         lesson_count: rows.length,
-        rows,
-        actual_note: week === 9 ? '足球奖杯设计顺延到第10周前半' : week === 8 ? '按原计划执行' : '按原计划执行'
+        planned_summary: rows.map(item => item.topic_name).join('、'),
+        actual_summary: week === 9 ? '足球奖杯设计顺延到第10周前半' : '按原计划执行',
+        holiday_summary: week === 9 ? '五一前后' : '—',
+        note: week === 9 ? '活动周压缩了可用容量。' : '当前无额外变动。',
+        rows
       };
     });
-    let activeWeek = Number(params.get('week')) || grouped[0].week_no;
+    }
+
+    function readJson(key){
+      try{
+        return JSON.parse(localStorage.getItem(key) || 'null');
+      }catch(error){
+        return null;
+      }
+    }
+
+    function saveJson(key, value){
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function ensureCurrentPlan(){
+      const existing = readJson(CURRENT_KEY);
+      if (existing && Array.isArray(existing.weeks) && existing.weeks.length) return existing;
+      const seeded = {
+        source:'manual',
+        updatedAt:new Date().toISOString(),
+        weeks: defaultWeeks()
+      };
+      saveJson(CURRENT_KEY, seeded);
+      return seeded;
+    }
+
+    function getPlanState(){
+      return {
+        draft: readJson(DRAFT_KEY),
+        current: ensureCurrentPlan()
+      };
+    }
+
+    let state = getPlanState();
+    let activeWeek = Number(params.get('week')) || state.current.weeks[0].week_no;
+
+    function renderBanner(){
+      const banner = document.getElementById('planBanner');
+      const draft = state.draft;
+      const current = state.current;
+      banner.innerHTML = `
+        <div class="hero-meta">
+          <span class="badge green">当前安排</span>
+          <span class="badge blue">${current.source === 'planner' ? '来自 AI 草案' : '人工维护中'}</span>
+          <span class="badge amber">可随时调整</span>
+        </div>
+        <div class="page-head" style="margin:14px 0 0">
+          <div class="page-title" style="gap:6px">
+            <h1 style="font-size:26px;margin:0">${draft ? '已存在一份 AI 草案，可决定是否写入当前安排' : '这里是长期维护页，不是一次性生成页'}</h1>
+            <small>${draft ? `草案更新时间：${new Date(draft.updatedAt).toLocaleString('zh-CN')}` : '需要生成新草案时，再去 AI 预生成页。'}</small>
+          </div>
+          <div class="head-actions">
+            ${draft ? '<button class="btn primary" type="button" id="applyDraftBtn">把草案写入当前安排</button><a class="btn" href="planner.html">继续修改 AI 草案</a>' : '<a class="btn" href="planner.html">去生成 AI 草案</a>'}
+          </div>
+        </div>
+      `;
+      if (draft) {
+        document.getElementById('applyDraftBtn').onclick = () => {
+          state.current = {
+            source:'planner',
+            updatedAt:new Date().toISOString(),
+            weeks: draft.weeks.map(item => Object.assign({}, item))
+          };
+          saveJson(CURRENT_KEY, state.current);
+          renderAll();
+        };
+      }
+    }
 
     function renderWeeks(){
-      document.getElementById('weekList').innerHTML = grouped.map(week => `
+      document.getElementById('weekList').innerHTML = state.current.weeks.map(week => `
         <div class="list-item ${week.week_no === activeWeek ? 'active' : ''}" data-week="${week.week_no}">
           <div class="list-item-head">
             <div>
               <strong>${week.week_label}</strong>
               <div class="muted tiny">${week.date_range}</div>
             </div>
-            <span class="status ${week.week_no === 9 ? 'amber' : 'green'}">${week.lesson_count} 节</span>
+            <span class="status ${week.actual_summary !== '按原计划执行' ? 'amber' : 'green'}">${week.lesson_count || 0} 节</span>
           </div>
           <div class="inline-actions" style="margin-top:10px">
-            <span class="pill">原计划：${week.rows.map(item => item.topic_name).slice(0,2).join(' / ')}</span>
-            <span class="pill">实际执行：${week.actual_note}</span>
+            <span class="pill">原计划：${week.planned_summary}</span>
+            <span class="pill">实际执行：${week.actual_summary}</span>
           </div>
         </div>
       `).join('');
@@ -99,46 +165,56 @@
     }
 
     function renderDetail(){
-      const week = grouped.find(item => item.week_no === activeWeek);
+      const week = state.current.weeks.find(item => item.week_no === activeWeek);
       if (!week) return;
-      document.getElementById('sideTitle').textContent = `${week.week_label}`;
+      document.getElementById('sideTitle').textContent = week.week_label;
       document.getElementById('goPickerBtn').href = `picker.html?week=${week.week_no}`;
       document.getElementById('weekDetail').innerHTML = `
         <div class="identity-strip">
           <div class="identity-item"><small>日期</small><strong>${week.date_range}</strong></div>
-          <div class="identity-item"><small>计划课时</small><strong>${week.lesson_count} 节</strong></div>
-          <div class="identity-item"><small>原计划</small><strong>${week.rows.map(item => item.topic_name).join('、')}</strong></div>
-          <div class="identity-item"><small>实际执行</small><strong>${week.actual_note}</strong></div>
+          <div class="identity-item"><small>本周课时</small><strong>${week.lesson_count || 0} 节</strong></div>
+          <div class="identity-item"><small>原计划</small><strong>${week.planned_summary}</strong></div>
+          <div class="identity-item"><small>实际执行</small><strong>${week.actual_summary}</strong></div>
         </div>
         <div class="list">
-          ${week.rows.map(item => `<div class="list-item"><strong>${item.class_name} · ${item.topic_name}</strong><div class="muted tiny">${item.day_label}${item.period} · ${item.lesson_type}</div></div>`).join('')}
+          ${(week.rows || []).map(item => `<div class="list-item"><strong>${item.class_name} · ${item.topic_name}</strong><div class="muted tiny">${item.day_label}${item.period} · ${item.lesson_type}</div></div>`).join('') || `<div class="list-item"><strong>${week.planned_summary}</strong><div class="muted tiny">${week.note || '本周内容已从 AI 草案写入，可继续人工调整。'}</div></div>`}
         </div>
       `;
-      document.getElementById('adjustPanel').innerHTML = adjustMode ? `
+      document.getElementById('adjustPanel').innerHTML = `
         <div class="card">
           <h3>调整教学安排</h3>
           <div class="grid-2">
             <div class="field"><label>调整范围</label><select><option>本周</option><option>本单元</option><option>后半学期</option></select></div>
             <div class="field"><label>调整动作</label><select><option>顺延一节</option><option>替换内容</option><option>插入活动课</option><option>压缩本周课时</option></select></div>
           </div>
-          <div class="field" style="margin-top:12px"><label>原因</label><input value="活动占课 / 节奏调整"></div>
-          <div class="list" style="margin-top:12px">
-            <div class="list-item"><strong>影响项</strong><div class="muted tiny">${week.actual_note}</div></div>
-          </div>
+          <div class="field" style="margin-top:12px"><label>原计划</label><input id="plannedSummaryInput" value="${week.planned_summary}"></div>
+          <div class="field" style="margin-top:12px"><label>实际执行</label><input id="actualSummaryInput" value="${week.actual_summary}"></div>
+          <div class="field" style="margin-top:12px"><label>节假日 / 特殊安排</label><input id="holidaySummaryInput" value="${week.holiday_summary || '—'}"></div>
+          <div class="field" style="margin-top:12px"><label>调整原因 / 备注</label><textarea id="noteInput">${week.note || ''}</textarea></div>
           <div class="inline-actions" style="margin-top:12px">
-            <button class="btn primary" type="button">保存调整</button>
-            <a class="btn" href="calendar.html">退出调整</a>
+            <button class="btn primary" type="button" id="saveAdjustBtn">保存调整</button>
+            <a class="btn" href="picker.html?week=${week.week_no}">进入正式选课</a>
           </div>
-        </div>
-      ` : `
-        <div class="inline-actions">
-          <a class="btn primary" href="picker.html?week=${week.week_no}">进入正式选课</a>
-          <a class="btn" href="calendar.html?mode=adjust&week=${week.week_no}">调整本周安排</a>
         </div>
       `;
+      document.getElementById('saveAdjustBtn').onclick = () => {
+        week.planned_summary = document.getElementById('plannedSummaryInput').value;
+        week.actual_summary = document.getElementById('actualSummaryInput').value;
+        week.holiday_summary = document.getElementById('holidaySummaryInput').value;
+        week.note = document.getElementById('noteInput').value;
+        state.current.updatedAt = new Date().toISOString();
+        saveJson(CURRENT_KEY, state.current);
+        renderWeeks();
+        renderDetail();
+      };
     }
 
     function renderAll(){
+      state = getPlanState();
+      if (!state.current.weeks.some(item => item.week_no === activeWeek)) {
+        activeWeek = state.current.weeks[0].week_no;
+      }
+      renderBanner();
       renderWeeks();
       renderDetail();
     }

@@ -16,6 +16,7 @@
         </div>
         <div class="head-actions">
           <a class="btn" href="calendar.html">返回学期安排</a>
+          <button class="btn" type="button" id="saveDraftBtn">保存为草案</button>
           <button class="btn primary" type="button" id="generateBtn">生成学期周历草案</button>
         </div>
       </div>
@@ -139,6 +140,8 @@
   <script src="clean-shell.js"></script>
   <script>
     CLEAN_PROTO.mount({ page:'planner', title:'AI 学期排课向导', assistant:'planner' });
+    const DRAFT_KEY = 'xiaobei_semester_plan_draft_v1';
+    const CURRENT_KEY = 'xiaobei_semester_plan_current_v1';
     const profile = CLEAN_PROTO.ensureProfile();
     const IMPACT_OPTIONS = ['减容量', '插入活动课', '占课顺延', '考试周', '其他'];
     let holidayList = [
@@ -156,6 +159,19 @@
       {start:'2026-04-03', end:'2026-04-05', name:'清明', impact:'减容量', impactCustom:'', note:'法定节假日'},
       {start:'2026-04-21', end:'2026-04-30', name:'创艺节', impact:'插入活动课', impactCustom:'', note:'活动周'}
     ];
+    let latestDraft = null;
+
+    function readJson(key){
+      try{
+        return JSON.parse(localStorage.getItem(key) || 'null');
+      }catch(error){
+        return null;
+      }
+    }
+
+    function saveJson(key, value){
+      localStorage.setItem(key, JSON.stringify(value));
+    }
 
     function parseDate(value){
       return value ? new Date(`${value}T00:00:00`) : null;
@@ -305,15 +321,44 @@
       return rows.length;
     }
 
-    function renderOutput(){
+    function buildDraftPayload(){
       const weeks = buildWeeks();
       const selectedHolidays = holidayList.filter(item => item.selected).map(item => item.label).join('、') || '无';
+      return {
+        source: 'planner',
+        updatedAt: new Date().toISOString(),
+        summary: {
+          grade: document.getElementById('grade').value,
+          subject: document.getElementById('subject').value,
+          pace: document.getElementById('pace').value,
+          reserveHours: document.getElementById('reserveHours').value,
+          selectedHolidays
+        },
+        topics: topics.map(item => Object.assign({}, item)),
+        activities: activities.map(item => Object.assign({}, item)),
+        weeks: weeks.map((row, index) => ({
+          week_no: index + 1,
+          week_label: row.weekLabel,
+          date_range: row.dateRange,
+          lesson_count: Number(String(row.capacity).split('/')[0]) || 0,
+          planned_summary: row.topicName,
+          actual_summary: '待确认写入',
+          holiday_summary: row.holidayNote,
+          note: row.note
+        }))
+      };
+    }
+
+    function renderOutput(){
+      latestDraft = buildDraftPayload();
+      const weeks = latestDraft.weeks;
+      const selectedHolidays = latestDraft.summary.selectedHolidays;
       document.getElementById('plannerOutput').classList.remove('empty');
       document.getElementById('plannerOutput').innerHTML = `
         <div class="grid-3" style="margin-bottom:12px">
           <div class="card">
             <h3>学期总纲</h3>
-            <div class="muted tiny">${document.getElementById('grade').value}${document.getElementById('subject').value} · ${document.getElementById('pace').value} · 预留 ${document.getElementById('reserveHours').value} 节</div>
+            <div class="muted tiny">${latestDraft.summary.grade}${latestDraft.summary.subject} · ${latestDraft.summary.pace} · 预留 ${latestDraft.summary.reserveHours} 节</div>
           </div>
           <div class="card">
             <h3>课题安排</h3>
@@ -329,17 +374,70 @@
           <tbody>
             ${weeks.map(row => `
               <tr>
-                <td>${row.weekLabel}</td>
-                <td>${row.dateRange}</td>
-                <td>${row.capacity}</td>
-                <td>${row.topicName}</td>
-                <td>${row.holidayNote}</td>
+                <td>${row.week_label}</td>
+                <td>${row.date_range}</td>
+                <td>${row.lesson_count} 节</td>
+                <td>${row.planned_summary}</td>
+                <td>${row.holiday_summary}</td>
                 <td>${row.note}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
+        <div class="inline-actions" style="margin-top:12px">
+          <button class="btn primary" type="button" id="saveDraftInlineBtn">保存为 AI 草案</button>
+          <button class="btn" type="button" id="applyDraftInlineBtn">写入学期教学安排</button>
+          <a class="btn" href="calendar.html">返回学期安排继续调整</a>
+        </div>
       `;
+      document.getElementById('saveDraftInlineBtn').onclick = saveDraftOnly;
+      document.getElementById('applyDraftInlineBtn').onclick = applyDraftToCalendar;
+    }
+
+    function ensureDraft(){
+      if (!latestDraft) {
+        renderOutput();
+      }
+      return latestDraft;
+    }
+
+    function saveDraftOnly(){
+      const draft = ensureDraft();
+      saveJson(DRAFT_KEY, draft);
+      document.getElementById('plannerOutput').insertAdjacentHTML('afterbegin', `
+        <div class="card" style="margin-bottom:12px">
+          <strong>已保存为 AI 草案</strong>
+          <div class="muted tiny">现在不会直接覆盖当前学期安排，你可以返回学期安排页决定是否写入。</div>
+        </div>
+      `);
+    }
+
+    function applyDraftToCalendar(){
+      const draft = ensureDraft();
+      saveJson(DRAFT_KEY, draft);
+      saveJson(CURRENT_KEY, {
+        source: 'planner',
+        updatedAt: new Date().toISOString(),
+        weeks: draft.weeks.map(item => Object.assign({}, item))
+      });
+      window.location.href = 'calendar.html';
+    }
+
+    function hydrateFromExistingDraft(){
+      const saved = readJson(DRAFT_KEY);
+      if (!saved) return;
+      latestDraft = saved;
+      const summary = saved.summary || {};
+      if (summary.grade) document.getElementById('grade').value = summary.grade;
+      if (summary.subject) document.getElementById('subject').value = summary.subject;
+      if (summary.pace) document.getElementById('pace').value = summary.pace;
+      if (summary.reserveHours) document.getElementById('reserveHours').value = summary.reserveHours;
+      if (saved.topics?.length) topics = saved.topics.map(item => Object.assign({}, item));
+      if (saved.activities?.length) activities = saved.activities.map(item => Object.assign({}, item));
+      const selectedHolidayNames = new Set((summary.selectedHolidays || '').split('、').filter(Boolean));
+      if (selectedHolidayNames.size) {
+        holidayList = holidayList.map(item => ({ label: item.label, selected: selectedHolidayNames.has(item.label) }));
+      }
     }
 
     document.getElementById('uploadTopicBtn').onclick = () => document.getElementById('topicFileInput').click();
@@ -368,11 +466,16 @@
       renderActivities();
     };
     document.getElementById('generateBtn').onclick = renderOutput;
+    document.getElementById('saveDraftBtn').onclick = saveDraftOnly;
 
     renderSchedule();
+    hydrateFromExistingDraft();
     renderTopics();
     renderHolidayTags();
     renderActivities();
+    if (latestDraft) {
+      renderOutput();
+    }
   </script>
 </body>
 </html>
