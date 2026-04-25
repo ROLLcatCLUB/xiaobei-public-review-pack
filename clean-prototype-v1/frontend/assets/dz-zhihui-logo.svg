@@ -1,20 +1,21 @@
 <svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="dzBg" x1="40" y1="32" x2="208" y2="224" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#2CCB87"/>
-      <stop offset="1" stop-color="#146E53"/>
+    <linearGradient id="logoBg" x1="40" y1="28" x2="214" y2="226" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2AC98A"/>
+      <stop offset="1" stop-color="#136D51"/>
     </linearGradient>
-    <linearGradient id="dzStroke" x1="80" y1="62" x2="174" y2="178" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#F8FFF8"/>
-      <stop offset="1" stop-color="#DDF8E8"/>
-    </linearGradient>
+    <radialGradient id="logoGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(188 56) rotate(131.987) scale(120.59 114.866)">
+      <stop stop-color="#EFFFF6" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#EFFFF6" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect x="18" y="18" width="220" height="220" rx="56" fill="url(#dzBg)"/>
-  <circle cx="188" cy="66" r="18" fill="#F4FFF6" fill-opacity="0.92"/>
-  <path d="M70 170C70 127.294 104.294 93 147 93H164C170.627 93 176 98.3726 176 105V105C176 111.627 170.627 117 164 117H147C117.549 117 94 140.549 94 170V175C94 181.627 88.6274 187 82 187H82C75.3726 187 70 181.627 70 175V170Z" fill="url(#dzStroke)"/>
-  <path d="M93 85C93 73.9543 101.954 65 113 65H122C133.046 65 142 73.9543 142 85V88C142 99.0457 133.046 108 122 108H113C101.954 108 93 99.0457 93 88V85Z" fill="#F7FFF8"/>
-  <path d="M124.918 136.358L164.722 176.162C169.408 180.848 169.408 188.446 164.722 193.132L164.149 193.705C159.463 198.391 151.865 198.391 147.179 193.705L107.375 153.901L124.918 136.358Z" fill="#F7FFF8"/>
-  <path d="M126.5 137L142 121.5" stroke="#1A7C5B" stroke-width="11" stroke-linecap="round"/>
-  <path d="M86 135L171 50" stroke="#E8FFF1" stroke-width="14" stroke-linecap="round"/>
-  <path d="M77 63C80.3137 63 83 65.6863 83 69C83 72.3137 80.3137 75 77 75C73.6863 75 71 72.3137 71 69C71 65.6863 73.6863 63 77 63Z" fill="#E7FFF0"/>
+  <rect x="18" y="18" width="220" height="220" rx="56" fill="url(#logoBg)"/>
+  <rect x="18" y="18" width="220" height="220" rx="56" fill="url(#logoGlow)"/>
+  <g transform="translate(32 30) scale(8)">
+    <path d="M12 22a1 1 0 0 1 0-20a10 9 0 0 1 10 9a5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3 .4A1.75 1.75 0 0 1 12 22z" stroke="#F8FFF9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="13.5" cy="6.5" r="0.95" fill="#F8FFF9"/>
+    <circle cx="17.6" cy="10.4" r="0.95" fill="#DFF7E9"/>
+    <circle cx="6.6" cy="12.4" r="0.95" fill="#B6F0D1"/>
+    <circle cx="8.6" cy="7.6" r="0.95" fill="#F3FFB8"/>
+  </g>
 </svg>
