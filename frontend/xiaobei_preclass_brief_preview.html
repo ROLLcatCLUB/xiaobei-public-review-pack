@@ -124,7 +124,7 @@ ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.7}
       <span class="chip">活动设计课</span>
       <span class="chip">当前状态：已有快速稿</span>
     </div>
-    <div class="entry-note" id="entryNote">你是从正式选课页进入的。当前已写入 selected_lesson_context_v1.1。推荐默认下一步先进入快速版，极简版和精修页保留为次级入口。</div>
+    <div class="entry-note" id="entryNote">你是从正式选课页进入的，这一页已经锁定当前课时。推荐默认下一步先进入快速版，极简版和精修页保留为次级入口。</div>
     <div class="quick-strip" id="quickStrip">
       <h3>今天快速备一节 · 简短定向</h3>
       <ul id="quickBullets"></ul>
@@ -146,7 +146,7 @@ ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.7}
   <section class="grid" id="cards"></section>
 
   <section class="panel">
-    <h3>当前资料缺口</h3>
+    <h3>目前还缺的资料</h3>
     <ul id="gaps"></ul>
   </section>
 
@@ -332,7 +332,7 @@ function render() {
     document.getElementById('title').textContent = '还没有选中课时项';
     document.getElementById('summary').textContent = '请先回到正式选课页，从真实课时项里选中一节课，再进入课前简报。';
     document.getElementById('meta').innerHTML = '';
-    document.getElementById('entryNote').textContent = '当前未检测到 selected_lesson_context_v1.1。';
+    document.getElementById('entryNote').textContent = '当前还没有锁定本节课。请先回正式选课页选中一节真实课时，再回来查看课前简报。';
     renderIdentityStrip(null);
     document.getElementById('cards').innerHTML = '';
     document.getElementById('gaps').innerHTML = '<li>当前没有课时上下文，brief 还不能成立。</li>';
@@ -370,7 +370,7 @@ function render() {
     ? '这节课已经存在精修稿。当前最自然的下一步是继续精修；如果只是想回看主稿层，再回快速版。当前“继续编辑”判断只认已保存草稿。'
     : briefFlow === 'fast'
       ? '你当前走的是“今天快速备一节”短路径。这里不要求先读完整简报，但仍然先给你 3 条定向提示，再推荐进入快速版。'
-      : '你是从正式选课页进入的。当前已写入 selected_lesson_context_v1.1。推荐默认下一步先进入快速版，极简版和精修页保留为次级入口。当前“继续编辑”判断只认已保存草稿。';
+      : '你是从正式选课页进入的，这一页已经锁定当前课时。推荐默认下一步先进入快速版，极简版和精修页保留为次级入口。当前只有已保存草稿才会显示“继续编辑”。';
   if (briefFlow === 'fast') {
     const quickBullets = document.getElementById('quickBullets');
     const recommendationCard = brief.cards.find(card => card.card_type === 'task_recommendation');

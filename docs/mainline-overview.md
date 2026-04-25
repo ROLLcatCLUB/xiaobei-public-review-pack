@@ -49,17 +49,7 @@ Role:
 - enter quick prep
 - adjust / view semester arrangement
 
-### 2. AI Semester Planner
-
-File:
-- [../frontend/xiaobei_ai_semester_planner_preview.html](../frontend/xiaobei_ai_semester_planner_preview.html)
-
-Role:
-- mock AI planner wizard
-- build a semester arrangement draft
-- read teacher profile schedule by default
-
-### 3. Teaching Calendar
+### 2. Teaching Calendar
 
 File:
 - [../frontend/xiaobei_teaching_calendar_preview.html](../frontend/xiaobei_teaching_calendar_preview.html)
@@ -69,7 +59,7 @@ Role:
 - keep both original plan and actual execution
 - support adjustment mode
 
-### 4. Formal Lesson Picker
+### 3. Formal Lesson Picker
 
 File:
 - [../frontend/xiaobei_formal_lesson_picker_preview.html](../frontend/xiaobei_formal_lesson_picker_preview.html)
@@ -79,7 +69,7 @@ Role:
 - write the minimal lesson context
 - support standard path and fast path
 
-### 5. Preclass Brief
+### 4. Preclass Brief
 
 File:
 - [../frontend/xiaobei_preclass_brief_preview.html](../frontend/xiaobei_preclass_brief_preview.html)
@@ -89,7 +79,7 @@ Role:
 - not a generation page
 - not a mini lesson plan
 
-### 6. Draft Prep
+### 5. Draft Prep
 
 File:
 - [../frontend/xiaobei_prepare_draft_preview.html](../frontend/xiaobei_prepare_draft_preview.html)
@@ -99,7 +89,7 @@ Role:
 - minimal draft remains secondary
 - supports save / restore / continue editing
 
-### 7. Refine Workspace
+### 6. Refine Workspace
 
 File:
 - [../frontend/xiaobei_prepare_refine_preview.html](../frontend/xiaobei_prepare_refine_preview.html)
@@ -119,3 +109,16 @@ These are intentionally not part of this review pack:
 - real login/account system
 - complex agentic AI orchestration
 - deep backend refactor
+
+## Supporting page outside the current mainline review path
+
+### AI Semester Planner
+
+File:
+- [../frontend/xiaobei_ai_semester_planner_preview.html](../frontend/xiaobei_ai_semester_planner_preview.html)
+
+Role:
+- mock AI planner wizard
+- build a semester arrangement draft
+- read teacher profile schedule by default
+- support upstream planning, but not the current prep-mainline continuity review

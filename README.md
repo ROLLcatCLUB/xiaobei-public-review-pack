@@ -10,16 +10,21 @@ It is intended for:
 
 ## What is included
 
-This pack only includes the current **prep mainline prototype**:
+This pack includes the current **prep mainline prototype** and one upstream planning helper page:
 
 ```text
 Prep Entry Hub
--> AI Semester Planner
 -> Teaching Calendar
 -> Formal Lesson Picker
 -> Preclass Brief
 -> Draft Prep (Minimal / Rapid)
 -> Refine Workspace
+```
+
+Supporting page (not part of the current mainline review path):
+
+```text
+AI Semester Planner
 ```
 
 It also includes the shared prototype shell and shared prototype truth-source file.
@@ -40,12 +45,12 @@ This pack does **not** include:
 1. [docs/review-brief.md](./docs/review-brief.md)
 2. [docs/mainline-overview.md](./docs/mainline-overview.md)
 3. [frontend/xiaobei_prepare_desktop_preview.html](./frontend/xiaobei_prepare_desktop_preview.html)
-4. [frontend/xiaobei_ai_semester_planner_preview.html](./frontend/xiaobei_ai_semester_planner_preview.html)
-5. [frontend/xiaobei_teaching_calendar_preview.html](./frontend/xiaobei_teaching_calendar_preview.html)
-6. [frontend/xiaobei_formal_lesson_picker_preview.html](./frontend/xiaobei_formal_lesson_picker_preview.html)
-7. [frontend/xiaobei_preclass_brief_preview.html](./frontend/xiaobei_preclass_brief_preview.html)
-8. [frontend/xiaobei_prepare_draft_preview.html](./frontend/xiaobei_prepare_draft_preview.html)
-9. [frontend/xiaobei_prepare_refine_preview.html](./frontend/xiaobei_prepare_refine_preview.html)
+4. [frontend/xiaobei_teaching_calendar_preview.html](./frontend/xiaobei_teaching_calendar_preview.html)
+5. [frontend/xiaobei_formal_lesson_picker_preview.html](./frontend/xiaobei_formal_lesson_picker_preview.html)
+6. [frontend/xiaobei_preclass_brief_preview.html](./frontend/xiaobei_preclass_brief_preview.html)
+7. [frontend/xiaobei_prepare_draft_preview.html](./frontend/xiaobei_prepare_draft_preview.html)
+8. [frontend/xiaobei_prepare_refine_preview.html](./frontend/xiaobei_prepare_refine_preview.html)
+9. [frontend/xiaobei_ai_semester_planner_preview.html](./frontend/xiaobei_ai_semester_planner_preview.html) (supporting page)
 
 ## Prototype assumptions
 

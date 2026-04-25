@@ -15,6 +15,8 @@ Prep Entry Hub
 -> Save / Continue Editing
 ```
 
+`AI Semester Planner` is included in this repo as an upstream supporting page only. It is not the main subject of this continuity review.
+
 ## Important constraints
 
 - user is assumed to be already logged in

@@ -429,7 +429,7 @@ function renderContextGuard(){
   document.getElementById('heroTag').textContent = '上下文缺失';
   document.getElementById('heroTitle').textContent = '请先从正式选课进入课前简报，再开始备课';
   document.getElementById('heroVersion').textContent = '当前不能空上下文进入精修';
-  document.getElementById('heroSummary').textContent = '精修页不会假装接收一节没有身份的课。请先回到正式选课选中真实课时项，再通过课前简报进入。';
+  document.getElementById('heroSummary').textContent = '精修页不会假装接收一节没有明确身份的课。请先回到正式选课选中真实课时项，再通过课前简报进入。';
   renderIdentityStrip(null);
   document.getElementById('heroMeta').innerHTML = `
     <span class="chip">当前状态：未选课</span>
@@ -440,7 +440,7 @@ function renderContextGuard(){
   document.getElementById('contextGuard').style.display = 'block';
   document.getElementById('contextGuard').innerHTML = `
     <h2>当前不能直接进入精修页</h2>
-    <p>请先从正式选课进入课前简报，再开始备课。精修页只承接已经明确 lesson context 的课时项，不会在缺上下文时继续往下跑。</p>
+    <p>请先从正式选课进入课前简报，再开始备课。精修页只承接已经明确课时上下文的课，不会在缺上下文时继续往下跑。</p>
     <div class="actions">
       <a class="btn" href="xiaobei_formal_lesson_picker_preview.html">返回正式选课</a>
       <a class="btn green" href="xiaobei_preclass_brief_preview.html">返回课前简报</a>
@@ -462,7 +462,7 @@ function applyContextToPage(task){
   document.getElementById('heroTag').textContent = '教学设计精修页';
   document.getElementById('heroTitle').textContent = task.topic_name;
   document.getElementById('heroVersion').textContent = '公共主稿 + 班级差异';
-  document.getElementById('heroSummary').textContent = `你是从课前简报进入精修页的。这里继续沿用同一份 selected_lesson_context_v1.1：先维护公共主稿，再对 ${task.class_name} 等班级做轻量差异调整。${refineDraft ? '当前已恢复上次精修稿。' : seedSource ? `当前先承接已保存${seedSource.draft_mode === 'rapid' ? '快速稿' : '极简稿'}。` : '当前先从默认主稿起步。'}`;
+  document.getElementById('heroSummary').textContent = `你是从课前简报进入精修页的。这里继续沿用同一节课的上下文：先维护公共主稿，再对 ${task.class_name} 等班级做轻量差异调整。${refineDraft ? '当前已恢复上次精修稿。' : seedSource ? `当前先承接已保存${seedSource.draft_mode === 'rapid' ? '快速稿' : '极简稿'}。` : '当前先从默认主稿起步。'}`;
   document.getElementById('heroMeta').innerHTML = `
     <span class="chip">年级：${task.grade_scope}</span>
     <span class="chip">课型：${task.lesson_type}</span>
