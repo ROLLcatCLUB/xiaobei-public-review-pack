@@ -44,13 +44,15 @@ This pack does **not** include:
 
 1. [docs/review-brief.md](./docs/review-brief.md)
 2. [docs/mainline-overview.md](./docs/mainline-overview.md)
-3. [frontend/xiaobei_prepare_desktop_preview.html](./frontend/xiaobei_prepare_desktop_preview.html)
-4. [frontend/xiaobei_teaching_calendar_preview.html](./frontend/xiaobei_teaching_calendar_preview.html)
-5. [frontend/xiaobei_formal_lesson_picker_preview.html](./frontend/xiaobei_formal_lesson_picker_preview.html)
-6. [frontend/xiaobei_preclass_brief_preview.html](./frontend/xiaobei_preclass_brief_preview.html)
-7. [frontend/xiaobei_prepare_draft_preview.html](./frontend/xiaobei_prepare_draft_preview.html)
-8. [frontend/xiaobei_prepare_refine_preview.html](./frontend/xiaobei_prepare_refine_preview.html)
-9. [frontend/xiaobei_ai_semester_planner_preview.html](./frontend/xiaobei_ai_semester_planner_preview.html) (supporting page)
+3. [docs/prototype-closeout.md](./docs/prototype-closeout.md)
+4. [docs/personal-review-checklist.md](./docs/personal-review-checklist.md)
+5. [frontend/xiaobei_prepare_desktop_preview.html](./frontend/xiaobei_prepare_desktop_preview.html)
+6. [frontend/xiaobei_teaching_calendar_preview.html](./frontend/xiaobei_teaching_calendar_preview.html)
+7. [frontend/xiaobei_formal_lesson_picker_preview.html](./frontend/xiaobei_formal_lesson_picker_preview.html)
+8. [frontend/xiaobei_preclass_brief_preview.html](./frontend/xiaobei_preclass_brief_preview.html)
+9. [frontend/xiaobei_prepare_draft_preview.html](./frontend/xiaobei_prepare_draft_preview.html)
+10. [frontend/xiaobei_prepare_refine_preview.html](./frontend/xiaobei_prepare_refine_preview.html)
+11. [frontend/xiaobei_ai_semester_planner_preview.html](./frontend/xiaobei_ai_semester_planner_preview.html) (supporting page)
 
 ## Prototype assumptions
 
