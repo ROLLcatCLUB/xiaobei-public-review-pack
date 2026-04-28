@@ -127,13 +127,12 @@
   function assistantCopy(mode){
     const map = {
       entry:{
-        title:'执行助手',
-        intro:'先排学期，再排课次，最后备课',
+        title:'备课助手',
+        intro:'先快速备一节，复杂工具需要时再打开',
         actions:[
-          ['生成学期安排','从课表、教材目录和节假日生成周历'],
-          ['排课到班级','把内容落到周次、班级和节次'],
-          ['进入课前备课','锁定课次后再看简报和备课'],
-          ['回设计中心','需要补设计稿时再回去']
+          ['快速备一节','先用推荐课直接生成快速稿'],
+          ['继续上次备课','回到同一节课的草稿链'],
+          ['换一节课','需要时再打开筛选']
         ]
       },
       design_center:{
@@ -182,21 +181,21 @@
         ]
       },
       calendar:{
-        title:'排课助手',
-        intro:'先确认学期节奏，再落到课次',
+        title:'安排助手',
+        intro:'只在需要调整学期节奏时打开',
         actions:[
-          ['看本周','优先确认本周要上的课'],
+          ['看本周','优先确认本周要备的课'],
           ['调整安排','顺延、替换、插入活动课'],
-          ['去排课备课','从安排进入具体课次']
+          ['去正式选课','从安排进入具体备课对象']
         ]
       },
       picker:{
-        title:'课次助手',
-        intro:'从已排课次进入备课',
+        title:'选课助手',
+        intro:'换课时才需要筛选',
         actions:[
           ['按周次缩小','先把列表缩到这周'],
           ['按班级缩小','先锁到当前班级'],
-          ['进入简报','锁定后再看课前定向']
+          ['就备这节','快速路径会直接进入快速版']
         ]
       },
       brief:{
@@ -2145,19 +2144,17 @@
       },
       {
         href:'entry.html',
-        label:'教学执行中心',
-        desc:'学期安排 / 选课 / 上课 / 作业 / 评价',
+        label:'备课主线',
+        desc:'入口 / 选课 / 起稿 / 精修',
         icon:'execute',
-        keys:['entry','planner','calendar','picker','classroom','assignments','evaluation','class_record','brief','draft','refine'],
+        keys:['entry','planner','calendar','picker','brief','draft','refine'],
         children:[
-          ['entry.html','执行总控','entry'],
-          ['planner.html','生成安排','planner'],
+          ['entry.html','备课入口','entry'],
           ['calendar.html','学期安排','calendar'],
-          ['picker.html','选课','picker'],
-          ['classroom.html','上课','classroom'],
-          ['assignments.html','收作业','assignments'],
-          ['evaluation.html','评价','evaluation'],
-          ['class-record.html','课堂记录','class_record']
+          ['picker.html','正式选课','picker'],
+          ['brief.html','完整简报','brief'],
+          ['draft.html','快速版','draft'],
+          ['refine.html','精修页','refine']
         ]
       },
       {

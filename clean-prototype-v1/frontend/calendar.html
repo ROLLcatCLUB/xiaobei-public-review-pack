@@ -12,13 +12,13 @@
     <main class="page design-saas calendar-page">
       <div class="page-head">
         <div class="page-title">
-          <small>教学执行中心</small>
+          <small>备课主线</small>
           <h1>学期安排</h1>
-          <p>确认本学期内容节奏、周次变化和每节课的执行位置，后续从“选课”进入真实课堂。</p>
+          <p>确认本学期内容节奏、周次变化和每节课的备课位置；需要备课时，从这里锁定一节课进入课前简报。</p>
         </div>
         <div class="head-actions">
           <a class="btn" href="planner.html">生成/重算学期安排</a>
-          <a class="btn primary" id="goPickerBtn" href="picker.html">进入选课</a>
+          <a class="btn primary" id="goPickerBtn" href="picker.html">进入正式选课</a>
         </div>
       </div>
 
@@ -154,14 +154,14 @@
           </a>
           <a class="execution-step-card" href="picker.html">
             <span>03</span>
-            <strong>选课上课</strong>
-            <em>锁定一节课后进入课堂执行台</em>
+            <strong>正式选课</strong>
+            <em>锁定要备的一节课，再进入课前简报</em>
           </a>
         </div>
         <div class="page-head" style="margin:14px 0 0">
           <div class="page-title" style="gap:6px">
-            <h1 style="font-size:26px;margin:0">${draft ? '已存在一份 AI 草案，可决定是否写入当前安排' : '当前安排用于承接真实教学执行'}</h1>
-            <small>${draft ? `草案更新时间：${new Date(draft.updatedAt).toLocaleString('zh-CN')}` : '生成学期安排后，再从这里把课程排到周次、班级和节次。'}</small>
+            <h1 style="font-size:26px;margin:0">${draft ? '已存在一份 AI 草案，可决定是否写入当前安排' : '当前安排用于锁定本学期备课对象'}</h1>
+            <small>${draft ? `草案更新时间：${new Date(draft.updatedAt).toLocaleString('zh-CN')}` : '生成学期安排后，再从这里把备课对象落到周次、班级和节次。'}</small>
           </div>
           <div class="head-actions">
             ${draft ? '<button class="btn primary" type="button" id="applyDraftBtn">写入当前安排</button><a class="btn" href="planner.html">继续修改草案</a>' : '<a class="btn" href="planner.html">去生成学期安排</a>'}
@@ -243,7 +243,7 @@
                 <div class="inline-actions" style="margin-top:10px">
                   <span class="pill">${item.unit_name || week.planned_summary}</span>
                   <span class="pill">${item.assignment_required ? '有作业链' : '无作业链'}</span>
-                  <a class="btn" href="${taskPickerHref(item)}">锁定这节课</a>
+                  <a class="btn" href="${taskPickerHref(item)}">备这一节</a>
                 </div>
               </div>
             `).join('');
@@ -290,7 +290,7 @@
           </div>
           <div class="inline-actions" style="margin-top:12px">
             <button class="btn primary" type="button" id="saveAdjustBtn">保存调整</button>
-            <a class="btn" href="picker.html?week=${week.week_no}">进入选课</a>
+            <a class="btn" href="picker.html?week=${week.week_no}">进入正式选课</a>
           </div>
         </div>
       `;

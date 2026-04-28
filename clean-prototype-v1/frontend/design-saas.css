@@ -365,6 +365,64 @@
   font-size:12px;
 }
 
+.entry-page .supporting-tools summary{
+  cursor:pointer;
+  list-style:none;
+}
+
+.entry-page .supporting-tools summary::-webkit-details-marker{
+  display:none;
+}
+
+.entry-page .supporting-tools summary span{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+
+.entry-page .supporting-tools summary strong{
+  color:#0f6c6b;
+  font-size:18px;
+}
+
+.entry-page .supporting-tools summary em{
+  color:#8a94ba;
+  font-size:13px;
+  font-style:normal;
+}
+
+.draft-page .draft-brief-strip{
+  margin-bottom:16px;
+}
+
+.draft-page .draft-tip-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+.draft-page .draft-tip{
+  padding:14px 16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.86);
+  border:1px solid #dcece6;
+}
+
+.draft-page .draft-tip small{
+  display:block;
+  margin-bottom:6px;
+  color:#0f8f86;
+  font-weight:900;
+}
+
+.draft-page .draft-tip strong{
+  display:block;
+  color:#243356;
+  font-size:14px;
+  line-height:1.65;
+}
+
 .design-center-page .design-center-hero{
   padding:26px 30px;
   grid-template-columns:minmax(0,1fr) minmax(320px,auto);
@@ -1911,6 +1969,10 @@ body[data-clean-proto-page="lesson_design"] .design-saas .split{
     grid-template-columns:repeat(2,minmax(0,1fr));
     border-left:0;
     border-top:1px solid #dcece6;
+  }
+
+  .draft-page .draft-tip-row{
+    grid-template-columns:1fr;
   }
 }
 

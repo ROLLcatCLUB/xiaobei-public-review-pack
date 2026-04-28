@@ -16,7 +16,8 @@
           <h1 id="modeTitle">快速版备课</h1>
         </div>
         <div class="head-actions">
-          <a class="btn" id="backBriefBtn" href="brief.html">返回课前简报</a>
+          <a class="btn" id="backBriefBtn" href="brief.html">查看完整课前简报</a>
+          <a class="btn" id="changeLessonBtn" href="picker.html?flow=fast">换一节课</a>
           <button class="btn primary" type="button" id="saveBtn">保存运行稿</button>
         </div>
       </div>
@@ -24,6 +25,7 @@
       <section id="guard" class="empty hide">请先锁定课次</section>
       <div id="content" class="section">
         <section class="identity-strip" id="identity"></section>
+        <section class="card status-card draft-brief-strip" id="draftBriefStrip"></section>
 
         <section class="grid-2">
           <article class="card editor-card">
@@ -82,7 +84,10 @@
       return source.findCoursePlanItem({ course_plan_item_id: lesson.course_plan_item_id, lesson_key: lesson.lesson_key });
     }
     function briefHref(task){
-      return `brief.html?course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
+      return `brief.html?course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}&flow=fast`;
+    }
+    function pickerHref(task){
+      return `picker.html?flow=fast&course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
     }
     function refineHref(task){
       return `refine.html?course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
@@ -90,7 +95,7 @@
     function guard(){
       document.getElementById('guard').classList.remove('hide');
       document.getElementById('content').classList.add('hide');
-      document.getElementById('guard').textContent = '请先从课次排课进入课前简报，再开始这节课的运行稿';
+      document.getElementById('guard').textContent = '请先从备课入口台或正式选课锁定一节课';
     }
     function fillDefaults(task){
       if (entry === 'minimal') {
@@ -121,16 +126,25 @@
       document.getElementById('modeTag').textContent = modeLabel;
       document.getElementById('modeTitle').textContent = `${modeLabel}备课`;
       document.getElementById('backBriefBtn').href = briefHref(task);
+      document.getElementById('changeLessonBtn').href = pickerHref(task);
       document.getElementById('identity').innerHTML = `
-        <div class="identity-item"><small>当前课时</small><strong>${task.topic_name}</strong></div>
-        <div class="identity-item"><small>班级 / 节次</small><strong>${task.class_name} · ${task.day_label}${task.period}</strong></div>
-        <div class="identity-item"><small>当前状态</small><strong>${task.status}</strong></div>
-        <div class="identity-item"><small>运行稿状态</small><strong>${source.describeLatestPrepRun(task).savedDraftLabel || '未保存运行稿'}</strong></div>
+        <div class="identity-item"><small>课时身份</small><strong>${task.week_label}｜${task.class_name}</strong></div>
+        <div class="identity-item"><small>时间位置</small><strong>${task.day_label}${task.period}</strong></div>
+        <div class="identity-item"><small>课题</small><strong>${task.topic_name}</strong></div>
+        <div class="identity-item"><small>当前阶段</small><strong>${modeLabel}</strong></div>
+        <div class="identity-item"><small>草稿状态</small><strong>${source.describeLatestPrepRun(task).savedDraftLabel || '未保存'}</strong></div>
       `;
       fillDefaults(task);
       const restored = restoreDraft(task);
       const brief = source.buildBrief(task);
       const recommendation = brief.cards.find(item => item.card_type === 'task_recommendation');
+      document.getElementById('draftBriefStrip').innerHTML = `
+        <div class="draft-tip-row">
+          <div class="draft-tip"><small>先抓</small><strong>${recommendation.bullets[0]}</strong></div>
+          <div class="draft-tip"><small>先防</small><strong>${recommendation.bullets[1]}</strong></div>
+          <div class="draft-tip"><small>先备</small><strong>${recommendation.bullets[2]}</strong></div>
+        </div>
+      `;
       document.getElementById('summaryList').innerHTML = `
         <div class="list-item"><strong>先抓</strong><div class="muted tiny">${recommendation.bullets[0]}</div></div>
         <div class="list-item"><strong>先防</strong><div class="muted tiny">${recommendation.bullets[1]}</div></div>
