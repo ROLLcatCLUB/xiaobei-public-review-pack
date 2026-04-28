@@ -127,12 +127,12 @@
   function assistantCopy(mode){
     const map = {
       entry:{
-        title:'备课助手',
-        intro:'先快速备一节，复杂工具需要时再打开',
+        title:'入口助手',
+        intro:'快速备课归设计中心，课堂和作业评价归执行中心',
         actions:[
-          ['快速备一节','先用推荐课直接生成快速稿'],
-          ['继续上次备课','回到同一节课的草稿链'],
-          ['换一节课','需要时再打开筛选']
+          ['快速备一节','进入教学设计中心的轻量备课入口'],
+          ['进入执行中心','查看上课、收作业、评价和课堂记录'],
+          ['整理设计内容','回到单元、课时和设计草稿']
         ]
       },
       design_center:{
@@ -2129,32 +2129,46 @@
   function navGroups(){
     return [
       {
+        href:'entry.html',
+        label:'教学中心首页',
+        desc:'快速入口 / 分流 / 总览',
+        icon:'assistant',
+        keys:['entry'],
+        children:[
+          ['entry.html','首页总览','entry']
+        ]
+      },
+      {
         href:'design-center.html',
         label:'教学设计中心',
-        desc:'祖层 / 父层 / 完整设计稿',
+        desc:'内容库 / 单元 / 课时 / 草稿',
         icon:'design',
-        keys:['design_center','unit_design','lesson_design','design_drafts','design_attach'],
+        keys:['design_center','unit_design','lesson_design','design_drafts','design_attach','brief','draft','refine'],
         children:[
           ['design-center.html','设计总览','design_center'],
           ['unit-design.html','单元设计','unit_design'],
           ['lesson-design.html','课时设计','lesson_design'],
           ['design-drafts.html','设计草稿','design_drafts'],
-          ['design-attach.html','挂接安排','design_attach']
+          ['design-attach.html','挂接安排','design_attach'],
+          ['brief.html','完整简报','brief'],
+          ['draft.html','快速备课','draft'],
+          ['refine.html','精修页','refine']
         ]
       },
       {
         href:'entry.html',
-        label:'备课主线',
-        desc:'入口 / 选课 / 起稿 / 精修',
+        label:'教学执行中心',
+        desc:'学期安排 / 上课 / 作业 / 评价',
         icon:'execute',
-        keys:['entry','planner','calendar','picker','brief','draft','refine'],
+        keys:['planner','calendar','picker','classroom','assignments','evaluation','class_record'],
         children:[
-          ['entry.html','备课入口','entry'],
+          ['planner.html','生成安排','planner'],
           ['calendar.html','学期安排','calendar'],
-          ['picker.html','正式选课','picker'],
-          ['brief.html','完整简报','brief'],
-          ['draft.html','快速版','draft'],
-          ['refine.html','精修页','refine']
+          ['picker.html','选课','picker'],
+          ['classroom.html','上课','classroom'],
+          ['assignments.html','收作业','assignments'],
+          ['evaluation.html','评价','evaluation'],
+          ['class-record.html','课堂记录','class_record']
         ]
       },
       {

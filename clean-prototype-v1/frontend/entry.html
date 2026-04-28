@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>备课入口台</title>
+  <title>教学中心首页</title>
   <link rel="stylesheet" href="clean.css">
   <link rel="stylesheet" href="design-saas.css">
 </head>
@@ -13,21 +13,21 @@
       <section class="entry-brand-hero">
         <div class="entry-brand-copy">
           <small>智绘教育</small>
-          <h1>小备入口台</h1>
-          <p>先选定要备的那一节课，再看简报、起草稿、做精修。复杂系统先收起来，今天只做下一步。</p>
+          <h1>教学中心首页</h1>
+          <p>这里负责分流：备课进入教学设计中心，课堂、收作业、评价和课堂记录进入教学执行中心。</p>
         </div>
         <div class="entry-brand-tags">
-          <span>继续备课</span>
-          <span>快速起稿</span>
-          <span>精修打磨</span>
+          <span>教学设计</span>
+          <span>教学执行</span>
+          <span>AI 助手</span>
         </div>
       </section>
 
       <div class="page-head">
         <div class="page-title">
-          <small>备课主线</small>
-          <h1>今天想做什么</h1>
-          <p>默认只走“选课 → 课前简报 → 快速版 → 精修”这一条轻路径；设计中心和执行工具先作为辅助入口。</p>
+          <small>教学中心首页</small>
+          <h1>今天从哪里开始</h1>
+          <p>快速备课属于教学设计中心；上课后的收作业、评价、课堂记录属于教学执行中心。两条线分开，入口在这里汇合。</p>
         </div>
       </div>
 
@@ -51,8 +51,8 @@
       <details class="card panel-card supporting-tools" style="margin-top:16px">
         <summary>
           <span>
-            <strong>二阶段工具</strong>
-            <em>收作业、评价、课堂记录先收起，不作为这轮备课主线。</em>
+            <strong>教学执行中心</strong>
+            <em>上课、收作业、评价、课堂记录从这里进入，不和教学设计混在一起。</em>
           </span>
         </summary>
         <div class="actions-grid" id="legacyBridgeGrid" style="margin-top:14px"></div>
@@ -65,7 +65,7 @@
   <script src="server-execution-bridge.js"></script>
   <script src="clean-shell.js"></script>
   <script>
-    CLEAN_PROTO.mount({ page:'entry', title:'备课入口台', assistant:'entry' });
+    CLEAN_PROTO.mount({ page:'entry', title:'教学中心首页', assistant:'entry' });
     const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
     const CURRENT_PLAN_KEY = 'xiaobei_semester_plan_current_v1';
     const DRAFT_PLAN_KEY = 'xiaobei_semester_plan_draft_v1';
@@ -105,7 +105,7 @@
       actions.innerHTML = `
         <div class="command-board">
           <div class="command-board-main">
-            <small>快速备一节</small>
+            <small>教学设计中心 · 快速备课</small>
             <h2>${nextTask ? `${continueText}：${nextTask.topic_name}` : '先安排这学期要备的课'}</h2>
             <p>${nextTask ? `${nextTask.week_label || '待定周次'}｜${nextTask.class_name || '待选班级'}｜${nextTask.day_label || ''}${nextTask.period || ''}` : (currentPlan ? '已有安排，可以先选一节课进入课前简报。' : (draftPlan ? '已有草案待确认。' : '先从教材目录和课表生成一份安排。'))}</p>
             <div class="inline-actions" style="margin-top:14px">
@@ -117,8 +117,8 @@
           <div class="command-stat-grid">
             <div class="command-stat"><small>可备课次</small><strong>${taskCount}</strong><span>${currentPlan ? '来自当前安排' : (draftPlan ? '草案待确认' : '样例课次')}</span></div>
             <div class="command-stat"><small>最近草稿</small><strong>${source.listPrepRunDrafts().length}</strong><span>快速版 / 精修稿</span></div>
-            <div class="command-stat"><small>默认路径</small><strong>3</strong><span>推荐、起稿、保存</span></div>
-            <div class="command-stat"><small>复杂工具</small><strong>收起</strong><span>需要时再展开</span></div>
+            <div class="command-stat"><small>备课路径</small><strong>3</strong><span>推荐、起稿、保存</span></div>
+            <div class="command-stat"><small>执行中心</small><strong>独立</strong><span>上课后流程单独处理</span></div>
           </div>
         </div>
       `;
@@ -138,7 +138,7 @@
     function renderActions(){
       document.getElementById('actionGrid').innerHTML = `
         <a class="action-card nav-card primary-action-card" href="picker.html?flow=fast">
-          <strong>今天快速备一节</strong>
+          <strong>教学设计中心：快速备一节</strong>
           <span class="guide-text">系统先推荐当前课，点“就备这节”后直接进入快速版。</span>
         </a>
         <a class="action-card nav-card" href="#recentList">
@@ -146,8 +146,8 @@
           <span class="guide-text">有已保存草稿时，从这里回到同一节课的草稿链。</span>
         </a>
         <a class="action-card nav-card" href="calendar.html">
-          <strong>学期安排 / 精修管理</strong>
-          <span class="guide-text">需要认真规划、换课、顺延或进入设计中心时再打开。</span>
+          <strong>教学执行中心：学期安排</strong>
+          <span class="guide-text">需要排课、换课、顺延或进入上课流程时再打开。</span>
         </a>
       `;
     }
@@ -200,11 +200,11 @@
       const quickCount = drafts.filter(item => item.draft_mode === 'rapid').length;
       const refineCount = drafts.filter(item => item.draft_mode === 'refine').length;
       document.getElementById('statusList').innerHTML = `
-        <div class="list-item"><strong>默认主线</strong><div class="guide-text">推荐当前课 → 快速版 → 保存；需要时再换课或精修。</div></div>
-        <div class="list-item"><strong>高级设计</strong><div class="guide-text">大单元和完整课时设计先放在辅助入口。</div></div>
+        <div class="list-item"><strong>教学设计中心</strong><div class="guide-text">快速备课、单元设计、课时设计、设计草稿都放在这里。</div></div>
+        <div class="list-item"><strong>教学执行中心</strong><div class="guide-text">学期安排、上课、收作业、评价、课堂记录单独处理。</div></div>
         <div class="list-item"><strong>已保存快速运行稿</strong><div class="detail-text tiny">${quickCount} 节</div></div>
         <div class="list-item"><strong>已保存精修运行稿</strong><div class="detail-text tiny">${refineCount} 节</div></div>
-        <div class="list-item"><strong>入口原则</strong><div class="guide-text">先确认要备哪一节，再决定快速起稿还是深度精修。</div></div>
+        <div class="list-item"><strong>入口原则</strong><div class="guide-text">备课不吞执行，执行不吞备课，两套体系在首页分流。</div></div>
       `;
     }
 
@@ -217,19 +217,19 @@
       document.getElementById('legacyBridgeGrid').innerHTML = `
         <a class="action-card nav-card" href="${legacyHref('student_submit_kiosk.html')}" target="_blank" rel="noopener">
           <strong>课堂提交机</strong>
-          <span class="guide-text">放进“收作业”：学生作品上传、补生成作业槽、班级学生选择。</span>
+          <span class="guide-text">执行中心的收作业入口：学生作品上传、补生成作业槽、班级学生选择。</span>
         </a>
         <a class="action-card nav-card" href="${legacyHref('work_manage.html')}" target="_blank" rel="noopener">
           <strong>作品管理</strong>
-          <span class="guide-text">放进“收作业 / 评价”：待评价、已评价、回收站、图片调整。</span>
+          <span class="guide-text">执行中心的作品流转：待评价、已评价、回收站、图片调整。</span>
         </a>
         <a class="action-card nav-card" href="${legacyHref('xiaoping_review.html')}" target="_blank" rel="noopener">
           <strong>小评工作台</strong>
-          <span class="guide-text">放进“评价”：作品进入后，再按维度和评语生成评价结果。</span>
+          <span class="guide-text">执行中心的评价入口：作品进入后，再按维度和评语生成评价结果。</span>
         </a>
         <a class="action-card nav-card" href="${legacyHref('bot_chat.html')}" target="_blank" rel="noopener">
           <strong>Coze / 智能体互动</strong>
-          <span class="guide-text">放进“课堂记录”：课中口述、观察整理、课后反思先由 Coze 承接。</span>
+          <span class="guide-text">执行中心的课堂记录入口：课中口述、观察整理、课后反思先由 Coze 承接。</span>
         </a>
       `;
     }

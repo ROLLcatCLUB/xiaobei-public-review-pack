@@ -1,8 +1,8 @@
 # Review Brief: Clean Prototype V1
 
-Please review this folder as a **clean first-phase prep prototype**.
+Please review this folder as a **clean first-phase quick prep prototype** while keeping the teaching execution center separate.
 
-The main question is no longer whether the full system is complete. Please focus on whether the default experience feels light enough for a teacher who wants to quickly prep one lesson.
+The main question is no longer whether the full system is complete. Please focus on whether the default design-side prep experience feels light enough for a teacher who wants to quickly prep one lesson, without turning the teaching execution center into another prep system.
 
 Focus on whether the pages now feel:
 
@@ -17,7 +17,7 @@ Focus on whether the pages now feel:
 1. Can a teacher understand the entry page without learning the whole system?
 2. Does the quick path feel short enough: entry -> recommended lesson -> fast draft?
 3. Does the fast draft page provide enough orientation with only the three embedded tips?
-4. Are the full picker, full brief, design center, planner, and knowledge base clearly secondary?
+4. Is the teaching execution center still clearly a separate chain for class, homework, evaluation, and records?
 5. Which page still creates too much choice or too much explanation?
 6. If only one thing should be simplified next, what is it?
 

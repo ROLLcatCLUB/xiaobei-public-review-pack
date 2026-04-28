@@ -1,13 +1,13 @@
 # Clean Prototype V1
 
-This folder is a **first-phase lightweight prep review cut** of the Xiaobei prototype.
+This folder is a **review cut** of the Xiaobei prototype after separating the quick prep entrance from the teaching execution center.
 
 It is intended for:
 
 - one more GPT review before human review
-- checking whether a teacher can quickly finish one lesson prep
-- reviewing the short default path instead of the full system architecture
-- keeping design center, knowledge base, and execution tools visible only as supporting or stage-two pages
+- checking whether a teacher can quickly finish one lesson prep from the design side
+- checking whether the teaching execution center remains a separate chain for class, homework, evaluation, and records
+- reviewing the short default prep path without renaming the execution center into a prep system
 
 ## Review order
 
@@ -39,7 +39,8 @@ Stage-two pages, not mainline review:
 ## Prototype structure under review
 
 ```text
-Prep Entry
+Teaching Center Home
+-> Teaching Design Center quick prep
 -> Recommended Lesson
 -> Fast Draft Prep
 -> Save / Continue Editing
@@ -48,6 +49,14 @@ Optional:
 Formal Lesson Picker
 -> Full Preclass Brief
 -> Refine Workspace
+
+Separate execution chain:
+Teaching Execution Center
+-> Semester Arrangement
+-> Class
+-> Homework Collection
+-> Evaluation
+-> Class Record
 ```
 
 ## Not the focus of this review
