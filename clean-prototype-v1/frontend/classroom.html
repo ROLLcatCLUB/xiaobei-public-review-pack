@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>上课执行台</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas classroom-page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>教学执行中心</small>
+          <h1>上课执行台</h1>
+          <p>锁定一节课后，在这里看上课支撑、课堂清单、作业入口和课堂记录入口。</p>
+        </div>
+        <div class="head-actions">
+          <a class="btn" id="backPickerBtn" href="picker.html">返回选课</a>
+          <a class="btn" id="briefBtn" href="brief.html">课前简报</a>
+          <a class="btn" id="legacySubmitBtn" href="#" target="_blank" rel="noopener">课堂提交机</a>
+          <button class="btn primary" type="button" id="saveClassroomBtn">保存课堂状态</button>
+        </div>
+      </div>
+
+      <section id="classroomGuard" class="empty hide">请先从选课进入</section>
+
+      <div id="classroomContent" class="section">
+        <section class="card status-card hero" id="classroomBanner"></section>
+        <section class="identity-strip" id="classroomIdentity"></section>
+
+        <section class="split" style="margin-top:16px">
+          <article class="card editor-card">
+            <h2>课堂执行</h2>
+            <div class="list" id="classroomChecklist"></div>
+            <div class="field" style="margin-top:14px">
+              <label>课堂观察 / 临场提醒</label>
+              <textarea id="classNote" placeholder="记录这节课现场要注意的节奏、学生状态或临时调整。"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>完成情况</label>
+              <textarea id="completionNote" placeholder="课后简单记录：完成到哪一步、哪些内容需要顺延。"></textarea>
+            </div>
+          </article>
+
+          <aside class="section">
+            <article class="card panel-card">
+              <h2>备课支撑</h2>
+              <div class="list" id="prepSupport"></div>
+              <div class="inline-actions" id="prepActions" style="margin-top:12px"></div>
+            </article>
+            <article class="card panel-card">
+              <h2>作业与评价</h2>
+              <div class="list" id="assignmentSupport"></div>
+              <div class="inline-actions" id="assignmentActions" style="margin-top:12px"></div>
+            </article>
+            <article class="card status-card">
+              <h2>课堂记录</h2>
+              <p class="guide-text">当前课堂记录先接你正在使用的 Coze 智能体，系统负责保存这节课的课次上下文。</p>
+              <div class="inline-actions" id="recordActions" style="margin-top:12px"></div>
+            </article>
+          </aside>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'classroom', title:'上课执行台', assistant:'classroom' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const params = new URLSearchParams(window.location.search);
+    const CHECK_KEYS = ['brief','prep','materials','assignment','record'];
+
+    function legacyHref(path){
+      return window.location.protocol === 'file:' ? `https://47.102.219.247/${path}` : `/${path}`;
+    }
+
+    function readJson(key){
+      try { return JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (error) { return null; }
+    }
+
+    function taskFromContext(){
+      const queryTask = source.resolveCoursePlanContextFromQuery();
+      if (queryTask) { source.writeCoursePlanSelection(queryTask); return queryTask; }
+      const lesson = readJson(source.storage_keys.selected_context) || readJson(source.storage_keys.selected_context_legacy);
+      if (!lesson) return null;
+      return source.findCoursePlanItem({ course_plan_item_id: lesson.course_plan_item_id, lesson_key: lesson.lesson_key });
+    }
+
+    function queryFor(task){
+      return new URLSearchParams({
+        course_plan_item_id: task.course_plan_item_id,
+        lesson_key: task.lesson_key
+      }).toString();
+    }
+
+    function setGuard(){
+      document.getElementById('classroomGuard').classList.remove('hide');
+      document.getElementById('classroomContent').classList.add('hide');
+    }
+
+    function draftHref(task, entry){
+      return `draft.html?entry=${entry}&${queryFor(task)}`;
+    }
+
+    function render(){
+      const task = taskFromContext();
+      if (!task) { setGuard(); return; }
+      const runtime = source.buildCoursePlanRuntimeItem(task);
+      const brief = source.buildBrief(task);
+      const recommendation = brief.cards.find(item => item.card_type === 'task_recommendation');
+      const draftState = source.getPrepDraftState(task);
+      const latest = source.describeLatestPrepRun(task);
+      const classroomRun = source.findClassroomRun({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key });
+      const assignment = source.listAssignmentInstances({ course_plan_item_id: task.course_plan_item_id })[0] || null;
+      const submissions = assignment ? source.listSubmissionSlots({ assignment_instance_id: assignment.assignment_instance_id }) : [];
+      const submittedCount = submissions.filter(item => item.submit_status === '已交').length;
+
+      document.getElementById('backPickerBtn').href = `picker.html?week=${task.week_no}&course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
+      document.getElementById('briefBtn').href = `brief.html?${queryFor(task)}`;
+      document.getElementById('legacySubmitBtn').href = legacyHref('student_submit_kiosk.html');
+      document.getElementById('classroomBanner').innerHTML = `
+        <div class="execution-flow">
+          <a class="execution-step-card is-done" href="planner.html"><span>01</span><strong>学期安排</strong><em>${task.week_label} · ${task.date_range}</em></a>
+          <a class="execution-step-card is-done" href="picker.html?week=${task.week_no}"><span>02</span><strong>选课</strong><em>${task.class_name} · ${task.day_label}${task.period}</em></a>
+          <a class="execution-step-card is-current" href="classroom.html?${queryFor(task)}"><span>03</span><strong>上课</strong><em>${runtime.status_note || runtime.status}</em></a>
+          <a class="execution-step-card" href="${assignment ? `assignments.html?assignment_instance_id=${assignment.assignment_instance_id}` : `assignments.html?course_plan_item_id=${task.course_plan_item_id}`}"><span>04</span><strong>收作业</strong><em>${assignment ? `${submittedCount}/${submissions.length} 已交` : '本课无作业实例'}</em></a>
+          <a class="execution-step-card" href="${assignment ? `evaluation.html?assignment_instance_id=${assignment.assignment_instance_id}` : 'evaluation.html'}"><span>05</span><strong>评价</strong><em>作品进入后再评价</em></a>
+        </div>
+      `;
+      document.getElementById('classroomIdentity').innerHTML = `
+        <div class="identity-item"><small>当前课</small><strong>${task.topic_name}</strong></div>
+        <div class="identity-item"><small>班级 / 节次</small><strong>${task.class_name} · ${task.day_label}${task.period}</strong></div>
+        <div class="identity-item"><small>单元</small><strong>${task.unit_name}</strong></div>
+        <div class="identity-item"><small>风险提醒</small><strong>${task.risk_tag || '—'}</strong></div>
+      `;
+      const checklist = {
+        brief: !!classroomRun?.checklist?.brief || true,
+        prep: !!classroomRun?.checklist?.prep || !!latest.draft,
+        materials: !!classroomRun?.checklist?.materials,
+        assignment: !!classroomRun?.checklist?.assignment || !task.assignment_required,
+        record: !!classroomRun?.checklist?.record
+      };
+      const rows = [
+        ['brief','课前方向已确认', recommendation?.summary || '先看课前简报'],
+        ['prep','运行稿可用', latest.summary || '可以先从快速版起一份运行稿'],
+        ['materials','材料 / 设备已准备', task.lesson_type || '按课型准备材料'],
+        ['assignment','作业口径已确认', task.assignment_required ? (assignment?.assignment_requirement || '待生成作业实例') : '本课不发布新作业'],
+        ['record','课堂记录已开启', '课中记录当前由 Coze 智能体承接']
+      ];
+      document.getElementById('classroomChecklist').innerHTML = rows.map(([key,title,detail]) => `
+        <label class="list-item">
+          <div class="list-item-head">
+            <div><strong>${title}</strong><div class="detail-text tiny">${detail}</div></div>
+            <input type="checkbox" data-check="${key}" ${checklist[key] ? 'checked' : ''}>
+          </div>
+        </label>
+      `).join('');
+      document.getElementById('classNote').value = classroomRun?.class_note || task.note || '';
+      document.getElementById('completionNote').value = classroomRun?.completion_note || '';
+      document.getElementById('prepSupport').innerHTML = `
+        <div class="list-item"><strong>${latest.savedDraftLabel || '未保存运行稿'}</strong><div class="detail-text tiny">${latest.summary}</div></div>
+        <div class="list-item"><strong>先抓</strong><div class="detail-text tiny">${recommendation?.bullets?.[0] || '先确认这节课的最小抓手。'}</div></div>
+        <div class="list-item"><strong>先防</strong><div class="detail-text tiny">${recommendation?.bullets?.[1] || '先防课堂节奏发散。'}</div></div>
+      `;
+      document.getElementById('prepActions').innerHTML = `
+        <a class="btn" href="brief.html?${queryFor(task)}">课前简报</a>
+        <a class="btn" href="${draftHref(task,'rapid')}">快速运行稿</a>
+        <a class="btn" href="refine.html?${queryFor(task)}">${draftState.refineDraft ? '继续精修' : '精修'}</a>
+      `;
+      document.getElementById('assignmentSupport').innerHTML = assignment ? `
+        <div class="list-item"><strong>${assignment.assignment_type}作业</strong><div class="detail-text tiny">${assignment.assignment_requirement}</div></div>
+        <div class="list-item"><strong>提交</strong><div class="detail-text tiny">${submittedCount}/${submissions.length} 已交 · ${assignment.release_status}</div></div>
+      ` : '<div class="empty">这节课当前没有作业实例。</div>';
+      document.getElementById('assignmentActions').innerHTML = `
+        <a class="btn" href="${assignment ? `assignments.html?assignment_instance_id=${assignment.assignment_instance_id}` : `assignments.html?course_plan_item_id=${task.course_plan_item_id}`}">收作业</a>
+        <a class="btn" href="${legacyHref('student_submit_kiosk.html')}" target="_blank" rel="noopener">课堂提交机</a>
+        <a class="btn" href="${assignment ? `evaluation.html?assignment_instance_id=${assignment.assignment_instance_id}` : 'evaluation.html'}">评价</a>
+      `;
+      document.getElementById('recordActions').innerHTML = `
+        <a class="btn primary" href="class-record.html?${queryFor(task)}">进入课堂记录</a>
+        <a class="btn" href="${legacyHref('bot_chat.html')}" target="_blank" rel="noopener">Coze 智能体</a>
+      `;
+      document.getElementById('saveClassroomBtn').onclick = () => {
+        const nextChecklist = {};
+        CHECK_KEYS.forEach(key => {
+          nextChecklist[key] = !!document.querySelector(`[data-check="${key}"]`)?.checked;
+        });
+        const saved = source.saveClassroomRun(task, {
+          status:'课堂执行中',
+          checklist: nextChecklist,
+          class_note: document.getElementById('classNote').value,
+          completion_note: document.getElementById('completionNote').value,
+          assignment_note: assignment ? `${submittedCount}/${submissions.length} 已交` : '本课无作业实例',
+          linked_draft_id: latest.draft?.draft_id || '',
+          linked_draft_mode: latest.draft?.draft_mode || ''
+        });
+        document.getElementById('completionNote').value = saved.completion_note || '';
+        render();
+      };
+    }
+
+    render();
+  </script>
+</body>
+</html>

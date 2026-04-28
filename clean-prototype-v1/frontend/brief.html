@@ -5,37 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>课前简报</title>
   <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
 </head>
 <body>
   <div class="shell">
-    <main class="page">
+    <main class="page design-saas brief-page">
       <div class="page-head">
         <div class="page-title">
           <small id="briefTag">课前定向</small>
           <h1>课前简报</h1>
         </div>
         <div class="head-actions">
-          <a class="btn" id="backPickerBtn" href="picker.html">返回选课</a>
+          <a class="btn" id="backPickerBtn" href="picker.html">返回正式选课</a>
         </div>
       </div>
 
-      <section id="briefGuard" class="empty hide">请先选课</section>
+      <section id="briefGuard" class="empty hide">请先从正式选课锁定一节课</section>
 
       <div id="briefContent" class="section">
-        <section class="card hero">
+        <section class="card status-card hero">
           <div class="hero-meta" id="briefHeroMeta"></div>
         </section>
 
         <section class="identity-strip" id="briefIdentity"></section>
 
         <section class="grid-3">
-          <article class="card" id="cardFocus"></article>
-          <article class="card" id="cardRisk"></article>
-          <article class="card" id="cardSupport"></article>
+          <article class="card panel-card" id="cardFocus"></article>
+          <article class="card panel-card" id="cardRisk"></article>
+          <article class="card panel-card" id="cardSupport"></article>
         </section>
 
-        <section class="card">
-          <h2>现在就做这一步</h2>
+        <section class="card status-card">
+          <h2>下一步怎么做</h2>
           <div class="list" id="decisionSummary"></div>
           <div class="inline-actions" id="nextActions" style="margin-top:12px"></div>
         </section>
@@ -43,6 +44,7 @@
     </main>
   </div>
 
+  <script src="feishu-real-data-v1.js"></script>
   <script src="prep_truth_source_v1.js"></script>
   <script src="clean-shell.js"></script>
   <script>
@@ -59,14 +61,14 @@
     }
 
     function taskFromContext(){
-      const task = source.resolveLessonContextFromQuery();
-      if (task) {
-        source.writeLessonSelection(task);
-        return task;
+      const coursePlanItem = source.resolveCoursePlanContextFromQuery();
+      if (coursePlanItem) {
+        source.writeCoursePlanSelection(coursePlanItem);
+        return coursePlanItem;
       }
       const lesson = readJson(source.storage_keys.selected_context) || readJson(source.storage_keys.selected_context_legacy);
       if (!lesson) return null;
-      return source.findLessonTask({
+      return source.findCoursePlanItem({
         course_plan_item_id: lesson.course_plan_item_id,
         lesson_key: lesson.lesson_key
       });
@@ -96,25 +98,27 @@
       if (!task) {
         document.getElementById('briefGuard').classList.remove('hide');
         document.getElementById('briefContent').classList.add('hide');
-        document.getElementById('briefGuard').textContent = '请先从正式选课进入';
+        document.getElementById('briefGuard').textContent = '请先从正式选课锁定一节课';
         return;
       }
       const brief = source.buildBrief(task);
       const draftState = source.getPrepDraftState(task);
-      const latest = source.describeLatestDraft(task);
+      const latest = source.describeLatestPrepRun(task);
       document.getElementById('backPickerBtn').href = pickerHref(task);
       document.getElementById('briefTag').textContent = params.get('flow') === 'fast' ? '简短定向' : '课前定向';
       document.getElementById('briefHeroMeta').innerHTML = `
+        <span class="badge green">这节课先看 3 件事</span>
         <span class="badge green">${task.topic_name}</span>
         <span class="pill">${task.week_label} · ${task.date_range}</span>
         <span class="pill">${task.class_name} · ${task.day_label}${task.period}</span>
         <span class="pill">${latest.savedDraftLabel || '未开始'}</span>
       `;
       document.getElementById('briefIdentity').innerHTML = `
-        <div class="identity-item"><small>当前课时</small><strong>${task.topic_name}</strong></div>
-        <div class="identity-item"><small>本班</small><strong>${task.class_name}</strong></div>
-        <div class="identity-item"><small>当前状态</small><strong>${task.status}</strong></div>
-        <div class="identity-item"><small>上次完成情况</small><strong>${task.completion_summary}</strong></div>
+        <div class="identity-item"><small>课时身份</small><strong>${task.week_label}｜${task.class_name}</strong></div>
+        <div class="identity-item"><small>时间位置</small><strong>${task.day_label}${task.period}</strong></div>
+        <div class="identity-item"><small>课题</small><strong>${task.topic_name}</strong></div>
+        <div class="identity-item"><small>当前阶段</small><strong>课前简报</strong></div>
+        <div class="identity-item"><small>草稿状态</small><strong>${latest.savedDraftLabel || '未保存'}</strong></div>
       `;
       const recommendation = brief.cards.find(item => item.card_type === 'task_recommendation');
       document.getElementById('cardFocus').innerHTML = `<h2>先抓什么</h2><div>${recommendation.bullets[0]}</div>`;
@@ -133,8 +137,8 @@
       const minimalLabel = draftState.minimalDraft ? '继续极简版' : '进入极简版';
       const refineLabel = draftState.refineDraft ? '继续精修页' : '进入精修页';
       document.getElementById('decisionSummary').innerHTML = `
-        <div class="list-item"><strong>当前判断</strong><div class="muted tiny">${task.unit_name} · ${task.lesson_type} · ${task.assignment_required ? '有作业链' : '无作业链'}</div></div>
-        <div class="list-item"><strong>本班提醒</strong><div class="muted tiny">${task.risk_tag} · ${task.assignment_summary}</div></div>
+        <div class="list-item"><strong>建议动作</strong><div class="muted tiny">先进入快速版，把这一节课立成一份可继续修改的运行稿。</div></div>
+        <div class="list-item"><strong>依据</strong><div class="muted tiny">${task.unit_name} · ${task.lesson_type} · ${task.risk_tag}</div></div>
       `;
       next.innerHTML = `
         <a class="btn primary" href="${primaryHref}">${primaryLabel}</a>

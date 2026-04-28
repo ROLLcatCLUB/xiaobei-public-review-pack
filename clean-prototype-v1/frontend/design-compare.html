@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>旧稿对比</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas design-compare-page">
+      <div class="page-head">
+        <div class="page-title">
+          <div class="saas-title-line">
+            <h1 id="compareTitle">旧稿对比</h1>
+            <span class="saas-title-meta" id="compareMeta"></span>
+          </div>
+          <p id="compareIntro">先对比当前设计稿与旧稿，再决定是否提交更新确认。</p>
+        </div>
+        <div class="head-actions">
+          <a class="btn" id="backCompareBtn" href="design-center.html">返回编辑页</a>
+          <button class="btn" type="button" id="keepDraftBtn">保留为设计稿</button>
+          <button class="btn" type="button" id="saveAsNewContentBtn">另存为新母稿</button>
+          <button class="btn primary" type="button" id="confirmUpdateBtn">提交更新确认</button>
+        </div>
+      </div>
+
+      <section class="identity-strip" id="compareIdentity"></section>
+
+      <section class="compare-summary-bar">
+        <div class="compare-summary-item">
+          <small>当前状态</small>
+          <strong id="compareStateText">待判断</strong>
+        </div>
+        <div class="compare-summary-item">
+          <small>建议动作</small>
+          <strong id="compareDecisionText">先逐项查看旧稿差异</strong>
+        </div>
+      </section>
+
+      <section class="compare-grid">
+        <article class="card editor-card">
+          <h2>当前设计稿</h2>
+          <div class="compare-column" id="draftColumn"></div>
+        </article>
+        <article class="card panel-card">
+          <h2>旧稿</h2>
+          <div class="compare-column" id="sourceColumn"></div>
+        </article>
+      </section>
+
+      <section class="card editor-card compare-process-card" id="compareProcessCard" hidden>
+        <div class="compare-process-head">
+          <h2>教学过程对比</h2>
+          <p class="section-note">这里重点看教学过程相对旧稿有没有被新增、展开或重写，不直接覆盖母稿。</p>
+        </div>
+        <div class="compare-process-grid">
+          <div>
+            <h3>当前设计稿过程</h3>
+            <div id="draftProcessBoard" class="compare-process-board"></div>
+          </div>
+          <div>
+            <h3>旧稿过程</h3>
+            <div id="sourceProcessBoard" class="compare-process-board"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="content-library-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'design_compare', title:'旧稿对比', assistant:'design_compare' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const contentLibraryDesign = window.XIAOBEI_CONTENT_LIBRARY_REAL_DATA_V1?.design || null;
+    const params = new URLSearchParams(window.location.search);
+
+    function escapeHtml(value){
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function normalizeValue(value){
+      if (Array.isArray(value)) {
+        return value.filter(Boolean).join('\n');
+      }
+      if (value === null || value === undefined) return '';
+      if (typeof value === 'object') return JSON.stringify(value, null, 2);
+      return String(value).trim();
+    }
+
+    function formatTextBlock(value){
+      const text = normalizeValue(value);
+      if (!text) return '<span class="compare-empty">当前为空</span>';
+      return text.split(/\r?\n/).filter(Boolean).map(line => `<div>${escapeHtml(line)}</div>`).join('');
+    }
+
+    function diffState(left, right){
+      return normalizeValue(left) === normalizeValue(right) ? 'same' : 'diff';
+    }
+
+    function renderCompareFields(targetId, fields, draft, sourceValue){
+      document.getElementById(targetId).innerHTML = fields.map(item => `
+        <div class="compare-field compare-${diffState(draft[item.key], sourceValue[item.key])}">
+          <small>${item.label}</small>
+          <div class="compare-value">${formatTextBlock(draft[item.key])}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderSourceFields(targetId, fields, draft, sourceValue){
+      document.getElementById(targetId).innerHTML = fields.map(item => `
+        <div class="compare-field compare-${diffState(draft[item.key], sourceValue[item.key])}">
+          <small>${item.label}</small>
+          <div class="compare-value">${formatTextBlock(sourceValue[item.key])}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderProcessBoard(targetId, steps){
+      document.getElementById(targetId).innerHTML = (steps || []).map((step, index) => `
+        <article class="compare-process-item">
+          <div class="compare-process-item-head">
+            <strong>环节 ${index + 1} · ${escapeHtml(step.step_name || '未命名环节')}</strong>
+            <span class="pill grey">${escapeHtml(step.duration || '未写时长')}</span>
+          </div>
+          <div class="compare-process-meta">
+            <span class="saas-meta-chip">${escapeHtml(step.step_type || '未写类型')}</span>
+            <span class="saas-meta-chip">${escapeHtml(step.source_type || '未写来源')}</span>
+          </div>
+          <div class="compare-process-block"><small>环节目标</small>${formatTextBlock(step.step_goal)}</div>
+          <div class="compare-process-block"><small>教师活动</small>${formatTextBlock(step.teacher_action)}</div>
+          <div class="compare-process-block"><small>学生活动</small>${formatTextBlock(step.student_task)}</div>
+          <div class="compare-process-block"><small>材料 / 技术支持</small>${formatTextBlock([step.material, step.ppt].filter(Boolean))}</div>
+          <div class="compare-process-block"><small>成功标准</small>${formatTextBlock(step.success_standard)}</div>
+          <div class="compare-process-block"><small>引导问题</small>${formatTextBlock(step.guiding_questions)}</div>
+          <div class="compare-process-block"><small>输出成果</small>${formatTextBlock(step.output_result)}</div>
+          <div class="compare-process-block"><small>评价提示</small>${formatTextBlock(step.feedback_hint)}</div>
+          <div class="compare-process-block"><small>AI / 信息化应用</small>${formatTextBlock(step.ai_support)}</div>
+        </article>
+      `).join('') || '<div class="compare-empty">当前没有教学过程内容。</div>';
+    }
+
+    async function saveUnitDecision(unit, mode){
+      return source.persistUnitDesignVersion({
+        ...unit,
+        design_review_status: mode === 'confirm' ? '待确认更新母稿' : '保留为设计稿',
+        update_mode: mode === 'new' ? '另存为新母稿' : (mode === 'confirm' ? '更新现有母稿' : '保留设计稿'),
+        compare_summary: `${new Date().toISOString()} · ${mode}`
+      });
+    }
+
+    async function saveLessonDecision(lesson, mode){
+      return source.persistLessonDesignVersion({
+        ...lesson,
+        design_review_status: mode === 'confirm' ? '待确认更新母稿' : '保留为设计稿',
+        update_mode: mode === 'new' ? '另存为新母稿' : (mode === 'confirm' ? '更新现有母稿' : '保留设计稿'),
+        compare_summary: `${new Date().toISOString()} · ${mode}`
+      });
+    }
+
+    function findContentLibraryUnit(unit){
+      const list = contentLibraryDesign?.unitPackages || [];
+      return list.find(item =>
+        item.record_id === unit.record_id ||
+        item.content_unit_id === unit.content_unit_id ||
+        item.unit_id === unit.unit_id
+      ) || null;
+    }
+
+    function findContentLibraryLesson(lesson){
+      const list = contentLibraryDesign?.lessonDesigns || [];
+      return list.find(item =>
+        item.record_id === lesson.record_id ||
+        item.content_lesson_id === lesson.content_lesson_id ||
+        item.lesson_design_id === lesson.lesson_design_id
+      ) || null;
+    }
+
+    function emptyUnitVersion(unit){
+      return {
+        unit_name: '',
+        grade_scope: unit?.grade_scope || '',
+        design_type: '',
+        total_lessons: '',
+        core_task: '',
+        core_literacy_goals: [],
+        cross_discipline: '',
+        support_strategy: '',
+        resource_list: [],
+        assignment_overview: [],
+        lesson_map: [],
+        design_version_no: '',
+        saved_at: ''
+      };
+    }
+
+    function emptyLessonVersion(lesson){
+      return {
+        topic_name: '',
+        grade_scope: lesson?.grade_scope || '',
+        lesson_type: '',
+        theme: '',
+        unit_bridge: '',
+        lesson_goals: [],
+        focus_difficulty: '',
+        teacher_prepare: '',
+        student_prepare: '',
+        assignment_requirement: '',
+        key_points: '',
+        dimension_summary: '',
+        process_steps: [],
+        resource_notes: '',
+        design_version_no: '',
+        saved_at: ''
+      };
+    }
+
+    async function renderUnitCompare(){
+      const unitId = params.get('unit_id');
+      const draft = source.findUnitPackage({ unit_id: unitId });
+      if (!draft) return;
+      const sourceUnit = findContentLibraryUnit(draft) || emptyUnitVersion(draft);
+
+      document.getElementById('compareTitle').textContent = '大单元旧稿对比';
+      document.getElementById('compareMeta').textContent = `${draft.unit_name} · ${draft.grade_scope}`;
+      document.getElementById('compareIdentity').innerHTML = `
+        <div class="identity-item"><small>当前对象</small><strong>${draft.unit_name}</strong></div>
+        <div class="identity-item"><small>年级</small><strong>${draft.grade_scope}</strong></div>
+        <div class="identity-item"><small>内容状态</small><strong>${draft.content_state || draft.status || '草稿'}</strong></div>
+        <div class="identity-item"><small>旧稿来源</small><strong>${sourceUnit.unit_name ? '教学内容库母稿' : '当前还没有可对比旧稿'}</strong></div>
+      `;
+      document.getElementById('backCompareBtn').href = `unit-design.html?unit_id=${draft.unit_id}`;
+      document.getElementById('compareStateText').textContent = draft.design_review_status || '尚未提交更新确认';
+      document.getElementById('compareDecisionText').textContent = sourceUnit.unit_name ? '先看这次修改相对旧稿的变化，再决定是否进入母稿更新流。' : '当前还没有旧稿，可先保存设计稿形成第一版。';
+
+      const fields = [
+        { label: '单元名称', key: 'unit_name' },
+        { label: '年级', key: 'grade_scope' },
+        { label: '单元类型', key: 'design_type' },
+        { label: '总课时', key: 'total_lessons' },
+        { label: '核心表现性任务', key: 'core_task' },
+        { label: '核心素养目标', key: 'core_literacy_goals' },
+        { label: '跨学科融合点', key: 'cross_discipline' },
+        { label: '分层支持策略', key: 'support_strategy' },
+        { label: '单元资源总表', key: 'resource_list' },
+        { label: '单元作业总览', key: 'assignment_overview' }
+      ];
+      renderCompareFields('draftColumn', fields, draft, sourceUnit);
+      renderSourceFields('sourceColumn', fields, draft, sourceUnit);
+
+      document.getElementById('compareProcessCard').hidden = true;
+      document.getElementById('keepDraftBtn').onclick = async () => { await saveUnitDecision(draft, 'keep'); renderUnitCompare(); };
+      document.getElementById('saveAsNewContentBtn').onclick = async () => { await saveUnitDecision(draft, 'new'); renderUnitCompare(); };
+      document.getElementById('confirmUpdateBtn').onclick = async () => { await saveUnitDecision(draft, 'confirm'); renderUnitCompare(); };
+    }
+
+    async function renderLessonCompare(){
+      const lessonDesignId = params.get('lesson_design_id');
+      const draft = source.findLessonDesign({ lesson_design_id: lessonDesignId });
+      if (!draft) return;
+      const sourceLesson = findContentLibraryLesson(draft) || emptyLessonVersion(draft);
+
+      document.getElementById('compareTitle').textContent = '课时旧稿对比';
+      document.getElementById('compareMeta').textContent = `${draft.topic_name} · ${draft.grade_scope} · ${draft.lesson_no}`;
+      document.getElementById('compareIdentity').innerHTML = `
+        <div class="identity-item"><small>课时名称</small><strong>${draft.topic_name}</strong></div>
+        <div class="identity-item"><small>所属单元</small><strong>${draft.unit_name}</strong></div>
+        <div class="identity-item"><small>课型</small><strong>${draft.lesson_type || '课时内容'}</strong></div>
+        <div class="identity-item"><small>旧稿来源</small><strong>${sourceLesson.topic_name ? '教学内容库母稿' : '当前还没有可对比旧稿'}</strong></div>
+      `;
+      document.getElementById('backCompareBtn').href = `lesson-design.html?lesson_design_id=${draft.lesson_design_id}`;
+      document.getElementById('compareStateText').textContent = draft.design_review_status || '尚未提交更新确认';
+      document.getElementById('compareDecisionText').textContent = sourceLesson.topic_name ? '先看这次修改相对旧稿的变化，再决定是否进入母稿更新流。' : '当前还没有旧稿，可先保存设计稿形成第一版。';
+
+      const fields = [
+        { label: '课时名称', key: 'topic_name' },
+        { label: '课型', key: 'lesson_type' },
+        { label: '主题', key: 'theme' },
+        { label: '课时定位', key: 'unit_bridge' },
+        { label: '课时目标', key: 'lesson_goals' },
+        { label: '重点与难点', key: 'focus_difficulty' },
+        { label: '教师准备', key: 'teacher_prepare' },
+        { label: '学生准备', key: 'student_prepare' },
+        { label: '作业要求', key: 'assignment_requirement' },
+        { label: '评价要点', key: 'key_points' },
+        { label: '评价维度摘要', key: 'dimension_summary' },
+        { label: '资源与修订说明', key: 'resource_notes' }
+      ];
+      renderCompareFields('draftColumn', fields, draft, sourceLesson);
+      renderSourceFields('sourceColumn', fields, draft, sourceLesson);
+
+      document.getElementById('compareProcessCard').hidden = false;
+      renderProcessBoard('draftProcessBoard', draft.process_steps || []);
+      renderProcessBoard('sourceProcessBoard', sourceLesson.process_steps || []);
+
+      document.getElementById('keepDraftBtn').onclick = async () => { await saveLessonDecision(draft, 'keep'); renderLessonCompare(); };
+      document.getElementById('saveAsNewContentBtn').onclick = async () => { await saveLessonDecision(draft, 'new'); renderLessonCompare(); };
+      document.getElementById('confirmUpdateBtn').onclick = async () => { await saveLessonDecision(draft, 'confirm'); renderLessonCompare(); };
+    }
+
+    async function render(){
+      const type = params.get('type') || (params.get('lesson_design_id') ? 'lesson' : 'unit');
+      if (type === 'lesson') {
+        await renderLessonCompare();
+      } else {
+        await renderUnitCompare();
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

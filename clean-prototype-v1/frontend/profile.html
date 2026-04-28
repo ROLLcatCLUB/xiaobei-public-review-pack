@@ -5,14 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>教学档案</title>
   <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
 </head>
 <body>
   <div class="shell">
-    <main class="page">
+    <main class="page design-saas profile-page">
       <div class="page-head">
         <div class="page-title">
-          <small>基础信息</small>
-          <h1>教学档案</h1>
+          <div class="saas-title-line">
+            <h1>教学档案</h1>
+            <span class="saas-title-meta" id="profileMeta"></span>
+          </div>
+          <p>老师信息、任教范围、课表来源和使用偏好都放在这里。</p>
         </div>
         <div class="head-actions">
           <button class="btn primary" type="button" id="saveProfileBtn">保存档案</button>
@@ -20,7 +24,7 @@
       </div>
 
       <section class="grid-2">
-        <article class="card">
+        <article class="card editor-card">
           <h2>老师信息</h2>
           <div class="grid-2">
             <div class="field"><label>老师姓名</label><input id="teacherName"></div>
@@ -31,7 +35,7 @@
           </div>
         </article>
 
-        <article class="card">
+        <article class="card editor-card">
           <h2>偏好</h2>
           <div class="grid-2">
             <div class="field"><label>排课偏好</label><select id="scheduleStyle"><option>保守排</option><option>正常排</option><option>紧凑排</option></select></div>
@@ -51,7 +55,7 @@
             <button class="btn" type="button" id="addScheduleBtn">新增一行</button>
           </div>
         </div>
-        <div class="muted tiny" style="margin-bottom:10px">当前来源：<span id="scheduleSourceText"></span></div>
+        <div class="guide-text" style="margin-bottom:10px">当前来源：<span id="scheduleSourceText"></span></div>
         <table class="table">
           <thead><tr><th>年级</th><th>班级数</th><th>每周节数</th><th>上课日</th><th>备注</th><th></th></tr></thead>
           <tbody id="scheduleBody"></tbody>
@@ -65,6 +69,7 @@
     CLEAN_PROTO.mount({ page:'profile', title:'教学档案', assistant:'profile' });
     const KEY = 'xiaobei_teacher_profile_v1';
     const profile = Object.assign(CLEAN_PROTO.ensureProfile(), CLEAN_PROTO.readJson(KEY));
+    document.getElementById('profileMeta').textContent = `${profile.teacherName || '徐涛老师'} · ${profile.teachingGrades || '三年级、四年级'}美术`;
     const FEISHU_ROWS = [
       {grade:'三年级',classCount:'5',weeklyLessons:'2',weekdays:'周四、周五',note:'飞书同步 · 年级课表'},
       {grade:'四年级',classCount:'5',weeklyLessons:'2',weekdays:'周二、周三',note:'飞书同步 · 年级课表'}

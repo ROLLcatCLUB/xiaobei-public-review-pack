@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>评价</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas evaluation-page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>教学执行中心</small>
+          <h1>评价</h1>
+          <p>评价发生在学生作品进入之后；这里先按作业实例承接提交作品和维度快照。</p>
+        </div>
+        <div class="head-actions">
+          <a class="btn" id="backAssignmentsBtn" href="assignments.html">返回收作业</a>
+          <a class="btn" id="legacyWorkBtn" href="#" target="_blank" rel="noopener">作品管理</a>
+          <a class="btn primary" id="legacyReviewBtn" href="#" target="_blank" rel="noopener">小评工作台</a>
+        </div>
+      </div>
+
+      <section class="identity-strip" id="evaluationStats"></section>
+
+      <section class="card panel-card" style="margin-top:16px">
+        <div class="page-head" style="margin:0 0 12px">
+          <div class="page-title" style="gap:2px">
+            <small>移动端评价数据</small>
+            <h1 style="font-size:24px">小评队列与作品池</h1>
+            <p>先把服务器里的待评作品读进电脑端；评价标准仍以本课作业维度为准，后续再做一键回填和正式保存。</p>
+          </div>
+          <div class="head-actions">
+            <a class="btn" id="legacyWorkTopBtn" href="#" target="_blank" rel="noopener">作品管理</a>
+            <a class="btn primary" id="legacyReviewTopBtn" href="#" target="_blank" rel="noopener">小评工作台</a>
+          </div>
+        </div>
+        <div class="list" id="serverEvaluationBridge">
+          <div class="empty">正在准备读取服务器评价队列。</div>
+        </div>
+      </section>
+
+      <section class="split" style="margin-top:16px">
+        <article class="card panel-card">
+          <h2>待评价作品</h2>
+          <div class="list" id="submissionList"></div>
+        </article>
+
+        <aside class="section">
+          <article class="card status-card">
+            <h2>评价口径</h2>
+            <div class="list" id="rubricPane"></div>
+          </article>
+          <article class="card editor-card">
+            <h2>教师评价草稿</h2>
+            <div class="field">
+              <label>综合评语</label>
+              <textarea id="feedbackDraft" placeholder="后续这里会接小评，根据作品和维度生成可修改评语。"></textarea>
+            </div>
+            <div class="inline-actions" style="margin-top:12px">
+              <button class="btn primary" type="button" id="saveFeedbackBtn">保存评价草稿</button>
+            </div>
+          </article>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="server-execution-bridge.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'evaluation', title:'评价', assistant:'evaluation' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const serverBridge = window.XIAOBEI_SERVER_EXECUTION_BRIDGE_V1;
+    const params = new URLSearchParams(window.location.search);
+    const EVAL_DRAFT_KEY = 'xiaobei_evaluation_draft_store_v1';
+    const state = {
+      assignmentId: params.get('assignment_instance_id') || '',
+      activeSubmissionId: params.get('submission_slot_id') || ''
+    };
+
+    function legacyHref(path){
+      return serverBridge ? serverBridge.legacyHref(path) : (window.location.protocol === 'file:' ? `https://47.102.219.247/${path}` : `/${path}`);
+    }
+
+    function escapeHtml(value){
+      return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[char]));
+    }
+
+    function readStore(){
+      try { const value = JSON.parse(localStorage.getItem(EVAL_DRAFT_KEY) || '{}'); return value && typeof value === 'object' ? value : {}; } catch (error) { return {}; }
+    }
+
+    function writeStore(value){
+      localStorage.setItem(EVAL_DRAFT_KEY, JSON.stringify(value || {}));
+    }
+
+    function assignments(){
+      return source.listAssignmentInstances();
+    }
+
+    function activeAssignment(){
+      const rows = assignments();
+      return rows.find(item => item.assignment_instance_id === state.assignmentId) || rows[0] || null;
+    }
+
+    function taskForAssignment(assignment){
+      return assignment ? source.findCoursePlanItem({ course_plan_item_id: assignment.course_plan_item_id }) : null;
+    }
+
+    function submissionsFor(assignment){
+      return assignment ? source.listSubmissionSlots({ assignment_instance_id: assignment.assignment_instance_id }) : [];
+    }
+
+    function activeSubmission(slots){
+      return slots.find(item => item.submission_slot_id === state.activeSubmissionId) || slots[0] || null;
+    }
+
+    function defaultDimensions(task){
+      const topic = task?.topic_name || '当前作品';
+      return [
+        ['主题表达', `${topic} 是否扣住本课主题。`],
+        ['画面组织', '构图、主次和整体关系是否清楚。'],
+        ['技法表现', '材料、线条、色彩或制作方法是否到位。'],
+        ['创意与完成度', '想法是否有个人表达，作品是否完成。']
+      ];
+    }
+
+    function queueCountLabel(counts){
+      const safe = counts || {};
+      return [
+        ['pending','待评'],
+        ['approved','已通过'],
+        ['rejected','退回'],
+        ['retry','重试'],
+        ['superseded','已替换']
+      ].map(([key,label]) => `<span class="pill">${label} ${escapeHtml(safe[key] || 0)}</span>`).join('');
+    }
+
+    async function renderServerEvaluationBridge(){
+      const host = document.getElementById('serverEvaluationBridge');
+      if (!host) return;
+      document.getElementById('legacyWorkTopBtn').href = legacyHref('work_manage.html');
+      document.getElementById('legacyReviewTopBtn').href = legacyHref('xiaoping_review.html');
+      if (!serverBridge) {
+        host.innerHTML = '<div class="empty">服务器评价桥接脚本未加载，仍可先打开作品管理和小评工作台。</div>';
+        return;
+      }
+      host.innerHTML = '<div class="empty">正在读取小评队列和作品池...</div>';
+      const [queueResult, worksResult] = await Promise.allSettled([
+        serverBridge.listXiaopingQueue('pending'),
+        serverBridge.listWorks()
+      ]);
+      const queueData = queueResult.status === 'fulfilled' ? queueResult.value : {};
+      const worksData = worksResult.status === 'fulfilled' ? worksResult.value : {};
+      const items = Array.isArray(queueData.items) ? queueData.items : [];
+      const works = Array.isArray(worksData.files) ? worksData.files : [];
+      if (!items.length && !works.length) {
+        const errors = [queueResult, worksResult]
+          .filter(item => item.status === 'rejected')
+          .map(item => item.reason?.message || '读取失败')
+          .join('；');
+        host.innerHTML = `
+          <div class="list-item">
+            <strong>本地预览暂未读到评价数据</strong>
+            <div class="guide-text">${errors ? escapeHtml(errors) : '可能是本地 file 预览跨域限制。部署到服务器同源后，会直接读取 /api/xiaoping/queue。'}</div>
+            <div class="inline-actions" style="margin-top:10px">
+              <a class="btn" href="${legacyHref('work_manage.html')}" target="_blank" rel="noopener">打开作品管理</a>
+              <a class="btn primary" href="${legacyHref('xiaoping_review.html')}" target="_blank" rel="noopener">打开小评工作台</a>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      const queueCards = items.slice(0, 5).map(item => {
+        const imageUrl = item.image_url ? serverBridge.legacyHref(item.image_url) : '';
+        return `
+          <div class="list-item">
+            <div class="list-item-head">
+              <div>
+                <strong>${escapeHtml(item.student_name || '学生作品')}</strong>
+                <div class="detail-text tiny">${escapeHtml(item.class_name || '')} · ${escapeHtml(item.topic_seq || '')} ${escapeHtml(item.topic_name || '')}</div>
+              </div>
+              <span class="status amber">${escapeHtml(item.approval_status || 'pending')}</span>
+            </div>
+            <div class="inline-actions" style="margin-top:8px">
+              <span class="pill">${escapeHtml(item.created_at ? new Date(item.created_at).toLocaleString('zh-CN',{hour12:false}) : '待处理')}</span>
+              ${imageUrl ? `<a class="btn" href="${imageUrl}" target="_blank" rel="noopener">看作品</a>` : ''}
+              <a class="btn primary" href="${legacyHref('xiaoping_review.html')}" target="_blank" rel="noopener">去小评</a>
+            </div>
+          </div>
+        `;
+      }).join('');
+      const worksPreview = works.slice(0, 4).map(item => `
+        <a class="list-item" href="${item.absoluteUrl}" target="_blank" rel="noopener">
+          <div class="list-item-head">
+            <div>
+              <strong>${escapeHtml(item.studentName || item.name || '作品')}</strong>
+              <div class="detail-text tiny">${escapeHtml(item.className || '')} · ${escapeHtml(item.topicName || '')}</div>
+            </div>
+            <span class="status ${item.reviewStatus === '未评' ? 'amber' : 'green'}">${escapeHtml(item.reviewStatus || '作品')}</span>
+          </div>
+        </a>
+      `).join('');
+      host.innerHTML = `
+        <div class="identity-strip" style="margin-bottom:12px">
+          <div class="identity-item"><small>小评状态</small><strong>${escapeHtml(queueData.status || 'active')}</strong></div>
+          <div class="identity-item"><small>待评队列</small><strong>${items.length} 件</strong></div>
+          <div class="identity-item"><small>作品池</small><strong>${works.length} 件</strong></div>
+          <div class="identity-item"><small>读取方式</small><strong>${window.location.protocol === 'file:' ? '跨域预览' : '同源 API'}</strong></div>
+        </div>
+        <div class="inline-actions" style="margin-bottom:12px">${queueCountLabel(queueData.counts)}</div>
+        <div class="grid-2">
+          <div>
+            <h2 style="font-size:18px;margin:0 0 10px">待进入小评</h2>
+            ${queueCards || '<div class="empty">当前没有待评队列。</div>'}
+          </div>
+          <div>
+            <h2 style="font-size:18px;margin:0 0 10px">作品池预览</h2>
+            ${worksPreview || '<div class="empty">作品池暂时为空。</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function render(){
+      const assignment = activeAssignment();
+      const task = taskForAssignment(assignment);
+      const slots = submissionsFor(assignment);
+      const active = activeSubmission(slots);
+      state.assignmentId = assignment?.assignment_instance_id || '';
+      state.activeSubmissionId = active?.submission_slot_id || '';
+      const submitted = slots.filter(item => item.submit_status === '已交').length;
+      document.getElementById('backAssignmentsBtn').href = assignment ? `assignments.html?assignment_instance_id=${assignment.assignment_instance_id}` : 'assignments.html';
+      document.getElementById('legacyWorkBtn').href = legacyHref('work_manage.html');
+      document.getElementById('legacyReviewBtn').href = legacyHref('xiaoping_review.html');
+      document.getElementById('legacyWorkTopBtn').href = legacyHref('work_manage.html');
+      document.getElementById('legacyReviewTopBtn').href = legacyHref('xiaoping_review.html');
+      document.getElementById('evaluationStats').innerHTML = `
+        <div class="identity-item"><small>作业</small><strong>${task?.topic_name || '—'}</strong></div>
+        <div class="identity-item"><small>班级</small><strong>${assignment?.class_name || '—'}</strong></div>
+        <div class="identity-item"><small>提交</small><strong>${submitted}/${slots.length}</strong></div>
+        <div class="identity-item"><small>当前作品</small><strong>${active?.student_name || '—'}</strong></div>
+      `;
+      if (!assignment) {
+        document.getElementById('submissionList').innerHTML = '<div class="empty">暂无作业实例。</div>';
+        document.getElementById('rubricPane').innerHTML = '';
+        return;
+      }
+      document.getElementById('submissionList').innerHTML = slots.map(slot => `
+        <div class="list-item ${slot.submission_slot_id === state.activeSubmissionId ? 'active' : ''}" data-submission="${slot.submission_slot_id}">
+          <div class="list-item-head">
+            <div>
+              <strong>${slot.student_name}</strong>
+              <div class="detail-text tiny">${slot.submit_status === '已交' ? '可进入评价' : '等待提交后再评价'}</div>
+            </div>
+            <span class="status ${slot.submit_status === '已交' ? 'green' : 'rose'}">${slot.submit_status}</span>
+          </div>
+        </div>
+      `).join('');
+      document.querySelectorAll('[data-submission]').forEach(node => {
+        node.onclick = () => {
+          state.activeSubmissionId = node.dataset.submission;
+          render();
+        };
+      });
+      const dimensions = Array.isArray(assignment.dimension_json_snapshot) && assignment.dimension_json_snapshot.length
+        ? assignment.dimension_json_snapshot.map(item => [item.name || item.dimension || '评价维度', item.desc || item.description || ''])
+        : defaultDimensions(task);
+      document.getElementById('rubricPane').innerHTML = `
+        <div class="list-item"><strong>${assignment.assignment_type}作业</strong><div class="guide-text">${assignment.assignment_requirement}</div></div>
+        ${dimensions.map(([name, desc]) => `<div class="list-item"><strong>${name}</strong><div class="detail-text tiny">${desc}</div></div>`).join('')}
+      `;
+      const store = readStore();
+      const key = active?.submission_slot_id || 'draft';
+      document.getElementById('feedbackDraft').value = store[key] || active?.teacher_feedback || '';
+      document.getElementById('saveFeedbackBtn').onclick = () => {
+        const next = readStore();
+        next[key] = document.getElementById('feedbackDraft').value;
+        writeStore(next);
+      };
+    }
+
+    render();
+    renderServerEvaluationBridge();
+  </script>
+</body>
+</html>
