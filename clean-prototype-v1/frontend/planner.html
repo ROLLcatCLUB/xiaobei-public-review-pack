@@ -3,26 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI 学期排课向导</title>
+  <title>AI 学期安排生成</title>
   <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
 </head>
 <body>
   <div class="shell">
-    <main class="page">
+    <main class="page design-saas planner-page">
       <div class="page-head">
         <div class="page-title">
-          <small>supporting page</small>
-          <h1>AI 学期排课向导</h1>
+          <div class="saas-title-line">
+            <h1>AI 学期安排生成</h1>
+            <span class="saas-title-meta" id="plannerProfileMeta"></span>
+          </div>
+          <p>先从教师课表、教材目录和节假日生成学期周历，再回到安排页确认和排课。</p>
         </div>
         <div class="head-actions">
-          <a class="btn" href="calendar.html">返回学期安排</a>
+          <a class="btn" href="calendar.html">返回安排与排课</a>
           <button class="btn" type="button" id="saveDraftBtn">保存为草案</button>
-          <button class="btn primary" type="button" id="generateBtn">生成学期周历草案</button>
+          <button class="btn primary" type="button" id="generateBtn">生成学期安排草案</button>
         </div>
       </div>
 
       <section class="grid-2">
-        <article class="card">
+        <article class="card editor-card">
           <h2>基础信息</h2>
           <div class="grid-2">
             <div class="field">
@@ -63,7 +67,7 @@
           </div>
         </article>
 
-        <article class="card">
+        <article class="card editor-card">
           <div class="page-head" style="margin:0 0 12px">
             <div class="page-title" style="gap:2px">
               <small>教师课表</small>
@@ -73,7 +77,7 @@
               <a class="btn" href="profile.html">去教学档案调整</a>
             </div>
           </div>
-          <div class="muted tiny" style="margin-bottom:10px">当前来源：<span id="scheduleSourceText"></span></div>
+          <div class="guide-text" style="margin-bottom:10px">当前来源：<span id="scheduleSourceText"></span></div>
           <table class="table">
             <thead><tr><th>年级</th><th>班级数</th><th>每周课时</th><th>上课日</th><th>备注</th></tr></thead>
             <tbody id="scheduleRows"></tbody>
@@ -82,14 +86,14 @@
       </section>
 
       <section class="grid-2" style="margin-top:16px">
-        <article class="card">
+        <article class="card editor-card">
           <div class="page-head" style="margin:0 0 12px">
             <div class="page-title" style="gap:2px">
               <small>教材目录 / 课题清单</small>
               <h1 style="font-size:24px">课题卡片</h1>
             </div>
             <div class="head-actions">
-              <input id="topicFileInput" type="file" accept=".txt,.md,.csv" hidden>
+              <input id="topicFileInput" type="file" accept=".txt,.md,.csv,.png,.jpg,.jpeg,.webp" hidden>
               <button class="btn" type="button" id="uploadTopicBtn">上传教材目录</button>
               <button class="btn" type="button" id="parseTopicBtn">从文本整理</button>
               <button class="btn" type="button" id="addTopicBtn">新增课题卡</button>
@@ -99,11 +103,11 @@
             <label>教材目录 / 课题文本</label>
             <textarea id="topicSeedText" placeholder="可以直接粘贴教材目录、课题清单，或先上传 txt / md / csv。"></textarea>
           </div>
-          <div class="muted tiny" id="topicImportState" style="margin-bottom:12px">这里是明确导入入口，不需要只喂给助手。</div>
+          <div class="guide-text" id="topicImportState" style="margin-bottom:12px">这里是明确导入入口，不需要只喂给助手。</div>
           <div class="list" id="topicCards"></div>
         </article>
 
-        <article class="card">
+        <article class="card editor-card">
           <div class="page-head" style="margin:0 0 12px">
             <div class="page-title" style="gap:2px">
               <small>节假日 / 特殊安排</small>
@@ -113,7 +117,7 @@
               <button class="btn" type="button" id="addActivityBtn">新增一行</button>
             </div>
           </div>
-          <div class="muted tiny" style="margin-bottom:10px">法定节假日和常见活动先给建议，老师只做选择和补充。</div>
+          <div class="guide-text" style="margin-bottom:10px">法定节假日和常见活动先给建议，老师只做选择和补充。</div>
           <div class="head-actions" id="holidayTags" style="margin-bottom:12px"></div>
           <table class="table">
             <thead><tr><th>开始日期</th><th>结束日期</th><th>名称</th><th>安排类型</th><th>备注</th><th></th></tr></thead>
@@ -129,20 +133,22 @@
             <h1 style="font-size:24px">学期周历草案</h1>
           </div>
         </div>
-        <div id="plannerOutput" class="empty">点击“生成学期周历草案”后，这里会显示总纲摘要、课题安排摘要和周历表格。</div>
+        <div id="plannerOutput" class="empty">点击“生成学期安排草案”后，这里会显示总纲摘要、课题安排摘要和周历表格。</div>
       </section>
     </main>
   </div>
 
+  <script src="feishu-real-data-v1.js"></script>
   <script src="prep_truth_source_v1.js"></script>
   <script src="clean-shell.js"></script>
   <script>
-    CLEAN_PROTO.mount({ page:'planner', title:'AI 学期排课向导', assistant:'planner' });
+    CLEAN_PROTO.mount({ page:'planner', title:'AI 学期安排生成', assistant:'planner' });
     const DRAFT_KEY = 'xiaobei_semester_plan_draft_v1';
     const CURRENT_KEY = 'xiaobei_semester_plan_current_v1';
     const profile = CLEAN_PROTO.ensureProfile();
+    document.getElementById('plannerProfileMeta').textContent = `${profile.teacherName || '徐涛老师'} · ${profile.teachingGrades || '三年级、四年级'}美术`;
     const prepSource = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
-    const knownTopicNames = new Set((prepSource ? prepSource.listLessonTasks() : []).map(item => item.topic_name));
+    const knownTopicNames = new Set((prepSource ? prepSource.listCoursePlanItems() : []).map(item => item.topic_name));
     const IMPACT_OPTIONS = ['减容量', '插入活动课', '占课顺延', '考试周', '其他'];
     let holidayList = [
       {label:'清明', selected:true},
@@ -151,7 +157,13 @@
       {label:'运动会', selected:false},
       {label:'期末周', selected:true}
     ];
-    let topics = [
+    const seededTopicCards = prepSource ? prepSource.listUnitPackages().map(unit => ({
+      name: unit.unit_name,
+      hours: String(unit.total_lessons || 1),
+      type: unit.design_type || '教材',
+      required: '是'
+    })) : [];
+    let topics = seededTopicCards.length ? seededTopicCards : [
       {name:'创艺节·足球梦', hours:'4', type:'活动', required:'是'},
       {name:'第四单元 青绿中国色', hours:'4', type:'教材', required:'是'}
     ];
@@ -251,7 +263,7 @@
           <div class="list-item-head">
             <div>
               <strong>${row.name || '未命名课题'}</strong>
-              <div class="muted tiny">${row.type} · ${row.hours} 课时 · ${row.required === '是' ? '必上' : '可机动'}</div>
+              <div class="detail-text tiny">${row.type} · ${row.hours} 课时 · ${row.required === '是' ? '必上' : '可机动'}</div>
             </div>
             <span class="status ${knownTopicNames.has(row.name) ? 'green' : 'slate'}">${knownTopicNames.has(row.name) ? '已有备课链' : '待接备课链'}</span>
           </div>
@@ -282,6 +294,87 @@
       if (nextRequired === null) return;
       topics[index] = { name: nextName, hours: nextHours, type: nextType, required: nextRequired };
       renderTopics();
+    }
+
+    function normalizeTopicKey(name){
+      return String(name || '')
+        .replace(/\s+/g, '')
+        .replace(/[，,。；;：:、|｜\-—_]/g, '')
+        .toLowerCase();
+    }
+
+    function findDuplicateTopics(){
+      const seen = new Map();
+      const duplicates = [];
+      topics.forEach((topic, index) => {
+        const key = normalizeTopicKey(topic.name);
+        if (!key) return;
+        if (seen.has(key)) {
+          duplicates.push({
+            index,
+            keepIndex: seen.get(key),
+            name: topic.name || '未命名课题'
+          });
+        } else {
+          seen.set(key, index);
+        }
+      });
+      return duplicates;
+    }
+
+    function dedupeTopics(){
+      const duplicates = findDuplicateTopics();
+      if (!duplicates.length) return { removed: [], before: topics.length, after: topics.length };
+      const removeIndexes = new Set(duplicates.map(item => item.index));
+      const before = topics.length;
+      topics = topics.filter((_, index) => !removeIndexes.has(index));
+      renderTopics();
+      return {
+        removed: duplicates,
+        before,
+        after: topics.length
+      };
+    }
+
+    function addTopicCard(action = {}){
+      const topic = {
+        name: String(action.topicName || '').trim() || '新课题',
+        hours: String(action.hours || '').trim() || '2',
+        type: String(action.topicType || '').trim() || '教材',
+        required: String(action.required || '').trim() || '是'
+      };
+      topics.push(topic);
+      renderTopics();
+      return topic;
+    }
+
+    function isUnitTitleTopic(topic){
+      const name = String(topic?.name || '').trim();
+      if (!name) return false;
+      if (/第[一二三四五六七八九十0-9]+单元/.test(name)) return true;
+      if (/单元/.test(name) && !/课时|第[一二三四五六七八九十0-9]+课|课题|练习|活动/.test(name)) return true;
+      return false;
+    }
+
+    function keepUnitTitleTopics(){
+      const before = topics.length;
+      const kept = topics.filter(isUnitTitleTopic);
+      const removed = topics.filter(item => !isUnitTitleTopic(item));
+      if (!kept.length) {
+        return { before, after: before, kept: [], removed: [], changed:false };
+      }
+      topics = kept.map(item => Object.assign({}, item, {
+        type: item.type || '教材',
+        required: item.required || '是'
+      }));
+      renderTopics();
+      return {
+        before,
+        after: topics.length,
+        kept: topics.map(item => item.name),
+        removed: removed.map(item => item.name),
+        changed: removed.length > 0
+      };
     }
 
     function renderHolidayTags(){
@@ -325,19 +418,31 @@
     }
 
     function importTopicsFromText(seed){
-      const rows = seed
+      const candidates = seed
         .split(/\r?\n/)
         .map(line => line.trim())
         .filter(Boolean)
+        .filter(line => !/^#{1,6}\s/.test(line))
+        .filter(line => !/^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?$/.test(line))
         .map(line => {
           const parts = line.split(/[，,、|]/).map(item => item.trim()).filter(Boolean);
+          const name = (parts[0] || line).replace(/^\d+[\.、]\s*/, '').replace(/^[-*]\s*/, '').trim();
           return {
-            name: parts[0] || line,
-            hours: parts[1] || '2',
+            name,
+            hours: parts[1] || '',
             type: parts[2] || '教材',
-            required: parts[3] || '是'
+            required: parts[3] || '是',
+            raw: line
           };
-        });
+        })
+        .filter(row => row.name && !/(课题名称|单元名称|课时数|是否必上|类型|内容解析|备课建议)/.test(row.name));
+      const structured = candidates.filter(row => /(\d+\s*课时|\d+\s*节)/.test(`${row.name} ${row.hours}`));
+      const rows = (structured.length ? structured : candidates).map(row => ({
+        name: row.name,
+        hours: (String(row.hours || row.raw || '').match(/(\d+)\s*(?:课时|节)/) || [])[1] || row.hours || '2',
+        type: /活动|项目|复习/.test(row.type || row.raw) ? (String(row.type || row.raw).match(/活动|项目|复习/) || ['教材'])[0] : (row.type || '教材'),
+        required: /否|选上|机动/.test(row.required || row.raw) ? '否' : '是'
+      }));
       if (rows.length) {
         topics = rows;
         renderTopics();
@@ -348,8 +453,11 @@
     function buildDraftPayload(){
       const weeks = buildWeeks();
       const selectedHolidays = holidayList.filter(item => item.selected).map(item => item.label).join('、') || '无';
+      const semesterPlanId = latestDraft?.semester_plan_id || `semester-plan-${Date.now()}`;
       return {
+        object_type: 'semester_plan',
         source: 'planner',
+        semester_plan_id: semesterPlanId,
         updatedAt: new Date().toISOString(),
         summary: {
           grade: document.getElementById('grade').value,
@@ -361,6 +469,9 @@
         topics: topics.map(item => Object.assign({}, item)),
         activities: activities.map(item => Object.assign({}, item)),
         weeks: weeks.map((row, index) => ({
+          object_type: 'semester_week_plan',
+          semester_week_plan_id: `${semesterPlanId}-week-${index + 1}`,
+          semester_plan_id: semesterPlanId,
           week_no: index + 1,
           week_label: row.weekLabel,
           date_range: row.dateRange,
@@ -373,24 +484,97 @@
       };
     }
 
-    function renderOutput(){
-      latestDraft = buildDraftPayload();
+    function plannerApiCandidates(){
+      const explicit = window.XIAOBEI_LOCAL_API_BASE ? String(window.XIAOBEI_LOCAL_API_BASE).replace(/\/$/, '') : '';
+      const { protocol, hostname, origin } = window.location;
+      const candidates = [];
+      if (explicit) candidates.push(explicit);
+      if (protocol === 'file:' || hostname === '127.0.0.1' || hostname === 'localhost') {
+        candidates.push('http://127.0.0.1:18082', 'http://127.0.0.1:8082');
+      } else if (protocol === 'http:' || protocol === 'https:') {
+        candidates.push(origin, `${origin}/api`);
+      }
+      return [...new Set(candidates.map(base => base.endsWith('/api') ? base.slice(0, -4) : base))];
+    }
+
+    function buildPlannerRequest(){
+      return {
+        basics:{
+          grade: document.getElementById('grade').value,
+          subject: document.getElementById('subject').value,
+          startDate: document.getElementById('startDate').value,
+          endDate: document.getElementById('endDate').value,
+          pace: document.getElementById('pace').value,
+          reserveHours: document.getElementById('reserveHours').value
+        },
+        teacher:{
+          teacherName: profile.teacherName || '徐涛老师',
+          teachingGrades: profile.teachingGrades || profile.preferredGrade || '',
+          scheduleSource: profile.scheduleSource || ''
+        },
+        scheduleRows: profile.gradeScheduleRows || [],
+        topics: topics.map(item => Object.assign({}, item)),
+        activities: activities.map(item => Object.assign({}, item)),
+        selectedHolidays: holidayList.filter(item => item.selected).map(item => item.label)
+      };
+    }
+
+    async function requestAiPlannerDraft(){
+      const payload = buildPlannerRequest();
+      for (const base of plannerApiCandidates()) {
+        try {
+          const response = await fetch(`${base}/api/xiaobei/semester_planner/generate`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          });
+          const body = await response.json().catch(() => null);
+          if (response.ok && body?.success && body?.draft?.weeks?.length) {
+            return body.draft;
+          }
+        } catch (error) {}
+      }
+      return null;
+    }
+
+    async function renderOutput(){
+      const output = document.getElementById('plannerOutput');
+      output.classList.remove('empty');
+      output.innerHTML = `
+        <div class="card">
+          <strong>正在生成学期安排草案</strong>
+          <div class="guide-text">小备正在读取课表、课题清单和特殊安排；如果本地 AI 服务不可用，会自动生成规则底稿。</div>
+        </div>
+      `;
+      const remoteDraft = await requestAiPlannerDraft();
+      renderDraftOutput(remoteDraft || buildDraftPayload());
+    }
+
+    function renderDraftOutput(draft){
+      latestDraft = draft || buildDraftPayload();
       const weeks = latestDraft.weeks;
-      const selectedHolidays = latestDraft.summary.selectedHolidays;
+      const summary = latestDraft.summary || {};
+      const draftTopics = Array.isArray(latestDraft.topics) && latestDraft.topics.length ? latestDraft.topics : topics;
+      const draftActivities = Array.isArray(latestDraft.activities) ? latestDraft.activities : activities;
+      const selectedHolidays = summary.selectedHolidays || '无';
+      const providerMeta = latestDraft.provider_meta || {};
+      const generationLabel = latestDraft.generation_status === 'model_generated'
+        ? `AI 生成 · ${providerMeta.model || 'model'}`
+        : '规则底稿 · 可直接确认';
       document.getElementById('plannerOutput').classList.remove('empty');
       document.getElementById('plannerOutput').innerHTML = `
         <div class="grid-3" style="margin-bottom:12px">
           <div class="card">
             <h3>学期总纲</h3>
-            <div class="muted tiny">${latestDraft.summary.grade}${latestDraft.summary.subject} · ${latestDraft.summary.pace} · 预留 ${latestDraft.summary.reserveHours} 节</div>
+            <div class="detail-text tiny">${summary.grade || ''}${summary.subject || ''} · ${summary.pace || ''} · 预留 ${summary.reserveHours || 0} 节</div>
           </div>
           <div class="card">
             <h3>课题安排</h3>
-            <div class="muted tiny">${topics.map(item => `${item.name}（${item.hours}课时）`).join('、')}</div>
+            <div class="detail-text tiny">${draftTopics.map(item => `${item.name}（${item.hours}课时）`).join('、')}</div>
           </div>
           <div class="card">
-            <h3>节假日与特殊安排</h3>
-            <div class="muted tiny">${selectedHolidays}${activities.length ? `；补充 ${activities.length} 项` : ''}</div>
+            <h3>生成方式</h3>
+            <div class="detail-text tiny">${generationLabel}；${selectedHolidays}${draftActivities.length ? `；补充 ${draftActivities.length} 项` : ''}</div>
           </div>
         </div>
         <table class="table">
@@ -410,8 +594,8 @@
         </table>
         <div class="inline-actions" style="margin-top:12px">
           <button class="btn primary" type="button" id="saveDraftInlineBtn">保存为 AI 草案</button>
-          <button class="btn" type="button" id="applyDraftInlineBtn">写入学期教学安排</button>
-          <a class="btn" href="calendar.html">返回学期安排继续调整</a>
+          <button class="btn" type="button" id="applyDraftInlineBtn">写入当前安排</button>
+          <a class="btn" href="calendar.html">返回安排页继续排课</a>
         </div>
       `;
       document.getElementById('saveDraftInlineBtn').onclick = saveDraftOnly;
@@ -420,7 +604,7 @@
 
     function ensureDraft(){
       if (!latestDraft) {
-        renderOutput();
+        latestDraft = buildDraftPayload();
       }
       return latestDraft;
     }
@@ -431,7 +615,7 @@
       document.getElementById('plannerOutput').insertAdjacentHTML('afterbegin', `
         <div class="card" style="margin-bottom:12px">
           <strong>已保存为 AI 草案</strong>
-          <div class="muted tiny">现在不会直接覆盖当前学期安排，你可以返回学期安排页决定是否写入。</div>
+          <div class="guide-text">现在不会直接覆盖当前学期安排，你可以返回安排页决定是否写入。</div>
         </div>
       `);
     }
@@ -440,6 +624,8 @@
       const draft = ensureDraft();
       saveJson(DRAFT_KEY, draft);
       saveJson(CURRENT_KEY, {
+        object_type: 'semester_plan',
+        semester_plan_id: draft.semester_plan_id,
         source: 'planner',
         updatedAt: new Date().toISOString(),
         weeks: draft.weeks.map(item => Object.assign({}, item))
@@ -465,17 +651,74 @@
     }
 
     document.getElementById('uploadTopicBtn').onclick = () => document.getElementById('topicFileInput').click();
-    document.getElementById('topicFileInput').onchange = event => {
+    async function fileToBase64(file){
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      for (let index = 0; index < bytes.length; index += 1) {
+        binary += String.fromCharCode(bytes[index]);
+      }
+      return btoa(binary);
+    }
+
+    function topicTextFromParsedFiles(files){
+      return (files || [])
+        .map(file => file.vision_text || file.ocr_text || file.text_preview || file.excerpt || '')
+        .map(text => String(text || '').trim())
+        .filter(Boolean)
+        .join('\n');
+    }
+
+    async function parseTopicUploadFile(file){
+      const isImage = /^image\//.test(file.type || '') || /\.(png|jpe?g|webp)$/i.test(file.name || '');
+      if (!isImage) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = () => reject(new Error('文件读取失败'));
+          reader.readAsText(file);
+        });
+      }
+      const dataBase64 = await fileToBase64(file);
+      for (const base of plannerApiCandidates()) {
+        try {
+          const response = await fetch(`${base}/api/xiaobei/assistant/ingest_files`, {
+            method:'POST',
+            headers:{ 'Content-Type':'application/json' },
+            body: JSON.stringify({
+              files:[{
+                name:file.name,
+                size:file.size,
+                type:file.type || 'image/*',
+                data_base64:dataBase64
+              }]
+            })
+          });
+          const body = await response.json().catch(() => null);
+          if (response.ok && body?.success) {
+            return topicTextFromParsedFiles(body.files || []);
+          }
+        } catch (error) {}
+      }
+      throw new Error('图片解析服务未连接');
+    }
+
+    document.getElementById('topicFileInput').onchange = async event => {
       const [file] = event.target.files || [];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        const text = String(reader.result || '');
+      try {
+        document.getElementById('topicImportState').textContent = '正在读取教材目录...';
+        const text = await parseTopicUploadFile(file);
         document.getElementById('topicSeedText').value = text;
         const count = importTopicsFromText(text);
-        document.getElementById('topicImportState').textContent = `已从文件读取 ${count} 条课题。`;
-      };
-      reader.readAsText(file);
+        document.getElementById('topicImportState').textContent = /^image\//.test(file.type || '')
+          ? `已从图片识别并整理 ${count} 条课题。`
+          : `已从文件读取 ${count} 条课题。`;
+      } catch (error) {
+        document.getElementById('topicImportState').textContent = `读取失败：${error?.message || '未知错误'}`;
+      } finally {
+        event.target.value = '';
+      }
     };
     document.getElementById('parseTopicBtn').onclick = () => {
       const count = importTopicsFromText(document.getElementById('topicSeedText').value || '');
@@ -493,13 +736,242 @@
     document.getElementById('generateBtn').onclick = renderOutput;
     document.getElementById('saveDraftBtn').onclick = saveDraftOnly;
 
+    CLEAN_PROTO.registerAssistantBridge({
+      getWorkbench(workMode){
+        const request = buildPlannerRequest();
+        const topicCount = request.topics.length;
+        const activityCount = request.activities.length;
+        return {
+          title:'小备 AI 学期安排工作台',
+          focus: workMode === 'fast'
+            ? '先快速生成一份学期周历草案，老师再确认是否写入当前安排。'
+            : '先讨论排课口径、教材目录和特殊安排，再生成更稳的学期周历。',
+          summary:`${request.teacher.teacherName || '徐涛老师'} · ${request.basics.grade}${request.basics.subject} · ${topicCount} 个课题 · ${activityCount} 项特殊安排`,
+          context:[
+            { label:'当前年级', value:request.basics.grade },
+            { label:'学期范围', value:`${request.basics.startDate} 至 ${request.basics.endDate}` },
+            { label:'排课偏好', value:request.basics.pace },
+            { label:'课题卡片', value:`${topicCount} 个` }
+          ],
+          actions:[
+            {
+              key:'planner_generate',
+              title:'生成学期草案',
+              helper:'读取当前课表、课题卡片和特殊安排，生成周历草案。',
+              output:'我会先生成草案，不会直接覆盖当前安排。',
+              scope:'semester_planner',
+              risk:'draft',
+              policy:'execution_card',
+              confirm:'none',
+              reads:['teacher_schedule','topic_cards','activities','planner_basics'],
+              writes:['semester_plan_draft']
+            },
+            {
+              key:'planner_parse_topics',
+              title:'整理教材目录',
+              helper:'把课题卡片区的目录文本，或老师明确指定的 AI 上传资料，拆成课题卡片。',
+              output:'整理后你可以继续人工微调课时数和类型。',
+              scope:'topic_cards',
+              risk:'draft_batch',
+              policy:'execution_card',
+              confirm:'none',
+              reads:['topic_seed_text','assistant_uploads'],
+              writes:['topic_cards']
+            },
+            {
+              key:'planner_dedupe_topics',
+              title:'课题卡片查重',
+              helper:'检查课题卡片区里的重复课题，确认后保留第一条并删除多余卡片。',
+              output:'为避免误删，我会先提示重复项，老师确认后再删除。',
+              scope:'topic_cards',
+              risk:'draft_remove',
+              policy:'execution_card',
+              confirm:'contextual',
+              reads:['topic_cards'],
+              writes:['topic_cards']
+            },
+            {
+              key:'planner_filter_unit_topics',
+              title:'保留大单元卡片',
+              helper:'把课题卡片区筛成大单元标题，删除各单元下的具体课时课题。',
+              output:'适合教材目录识别后，只想保留单元层级来生成学期框架。',
+              scope:'topic_cards',
+              risk:'draft_remove',
+              policy:'confirm_card',
+              confirm:'required',
+              reads:['topic_cards'],
+              writes:['topic_cards']
+            },
+            {
+              key:'planner_add_topic',
+              title:'新增课题卡片',
+              helper:'在课题卡片区新增一张课题卡，后续可继续编辑课时数和类型。',
+              output:'新增后仍只停留在草案区，不会直接写入学期安排。',
+              scope:'topic_cards',
+              risk:'draft',
+              policy:'micro_edit',
+              confirm:'none',
+              reads:['chat_instruction'],
+              writes:['topic_cards']
+            },
+            {
+              key:'planner_save_draft',
+              title:'保存为草案',
+              helper:'把当前生成结果保存成 AI 草案。',
+              output:'保存后仍不会覆盖当前安排。',
+              scope:'semester_planner',
+              risk:'draft_save',
+              policy:'micro_edit',
+              confirm:'none',
+              reads:['semester_plan_draft'],
+              writes:['local_draft']
+            },
+            {
+              key:'planner_apply_current',
+              title:'写入当前安排',
+              helper:'老师确认后，把草案写入当前学期安排页。',
+              output:'写入后会跳转到安排与排课页面。',
+              scope:'semester_calendar',
+              risk:'formal_write',
+              policy:'confirm_card',
+              confirm:'required',
+              reads:['semester_plan_draft'],
+              writes:['current_semester_calendar']
+            }
+          ]
+        };
+      },
+      getAssistantSnapshot(){
+        return {
+          page_mode:'semester_planner',
+          entity_type:'semester_plan',
+          planner_request:buildPlannerRequest(),
+          topic_cards: topics.map((item, index) => ({
+            index,
+            name:item.name || '',
+            hours:item.hours || '',
+            type:item.type || '',
+            required:item.required || ''
+          })),
+          duplicate_topics: findDuplicateTopics(),
+          latest_draft:latestDraft ? {
+            semester_plan_id:latestDraft.semester_plan_id,
+            week_count:Array.isArray(latestDraft.weeks) ? latestDraft.weeks.length : 0,
+            generation_status:latestDraft.generation_status || '',
+            source:latestDraft.source || ''
+          } : null
+        };
+      },
+      getUndoSnapshot(){
+        return {
+          topics: topics.map(item => Object.assign({}, item)),
+          activities: activities.map(item => Object.assign({}, item)),
+          latestDraft: latestDraft ? JSON.parse(JSON.stringify(latestDraft)) : null,
+          topicSeedText: document.getElementById('topicSeedText').value || '',
+          topicImportState: document.getElementById('topicImportState').textContent || ''
+        };
+      },
+      restoreAssistantSnapshot(snapshot){
+        if (!snapshot) return { text:'没有可恢复的快照。' };
+        topics = Array.isArray(snapshot.topics) ? snapshot.topics.map(item => Object.assign({}, item)) : topics;
+        activities = Array.isArray(snapshot.activities) ? snapshot.activities.map(item => Object.assign({}, item)) : activities;
+        latestDraft = snapshot.latestDraft ? JSON.parse(JSON.stringify(snapshot.latestDraft)) : latestDraft;
+        if (typeof snapshot.topicSeedText === 'string') {
+          document.getElementById('topicSeedText').value = snapshot.topicSeedText;
+        }
+        renderTopics();
+        renderActivities();
+        if (latestDraft) renderDraftOutput(latestDraft);
+        document.getElementById('topicImportState').textContent = snapshot.topicImportState || '已撤销上一步操作。';
+        return { text:'已撤销上一步页面操作。' };
+      },
+      previewAction(actionKey){
+        if (actionKey === 'planner_generate') {
+          return [
+            { title:'正常排草案', summary:'按当前排课偏好生成周历，保留机动课时。', actionPatch:{ variant:'normal' }, applyLabel:'按正常排生成' },
+            { title:'保守排草案', summary:'减少特殊周压力，更多保留机动与顺延空间。', actionPatch:{ variant:'safe' }, applyLabel:'按保守排生成' },
+            { title:'紧凑排草案', summary:'优先把必上内容前置，适合时间较紧时预览。', actionPatch:{ variant:'compact' }, applyLabel:'按紧凑排生成' }
+          ];
+        }
+        return [];
+      },
+      applyAction(actionKey, action = {}){
+        if (actionKey === 'planner_generate') {
+          const pace = document.getElementById('pace');
+          if (action.variant === 'safe') pace.value = '保守排';
+          if (action.variant === 'compact') pace.value = '紧凑排';
+          if (action.variant === 'normal') pace.value = '正常排';
+          renderOutput();
+          return { text:'我已经开始生成学期安排草案。生成完成后你可以先保存为草案，确认后再写入当前安排。' };
+        }
+        if (actionKey === 'planner_parse_topics') {
+          let sourceText = document.getElementById('topicSeedText').value || '';
+          if (action.source === 'assistant_uploads') {
+            sourceText = topicTextFromParsedFiles(action.uploads || []);
+            if (sourceText) document.getElementById('topicSeedText').value = sourceText;
+          }
+          const count = importTopicsFromText(sourceText);
+          document.getElementById('topicImportState').textContent = count ? `已整理 ${count} 条课题。` : '没有可整理的课题，请先粘贴或上传目录。';
+          return { text: count ? `已把教材目录整理成 ${count} 个课题卡片。` : '我还没有读到可整理的目录内容，你可以先粘贴教材目录或上传文件。' };
+        }
+        if (actionKey === 'planner_dedupe_topics') {
+          const duplicates = findDuplicateTopics();
+          if (!duplicates.length) {
+            document.getElementById('topicImportState').textContent = '课题卡片区没有发现重复课题。';
+            return { text:'我查了一遍课题卡片区，没有发现重复课题。' };
+          }
+          const names = duplicates.map(item => item.name).join('、');
+          if (!action.confirmed) {
+            document.getElementById('topicImportState').textContent = `发现 ${duplicates.length} 个重复课题，等待确认删除。`;
+            return { text:`我查到 ${duplicates.length} 个重复课题：${names}。为避免误删，我还没有删除。你回复“确认删除重复卡片”，我再保留第一条并删除多余卡片。` };
+          }
+          const result = dedupeTopics();
+          document.getElementById('topicImportState').textContent = `已删除 ${result.removed.length} 个重复课题，保留 ${result.after} 张课题卡片。`;
+          return { text:`已处理课题卡片查重：删除 ${result.removed.length} 个重复课题，保留第一条；现在还有 ${result.after} 张课题卡片。` };
+        }
+        if (actionKey === 'planner_filter_unit_topics') {
+          const result = keepUnitTitleTopics();
+          if (!result.kept.length) {
+            document.getElementById('topicImportState').textContent = '没有识别到可保留的大单元标题。';
+            return { text:'我没有识别到明显的大单元标题，所以没有修改课题卡片。' };
+          }
+          document.getElementById('topicImportState').textContent = `已保留 ${result.after} 张大单元卡片，移除 ${result.removed.length} 张课时课题卡。`;
+          return {
+            text:`已筛选课题卡片：保留 ${result.after} 张大单元卡片，移除 ${result.removed.length} 张具体课时课题。\n保留：${result.kept.join('、') || '无'}`
+          };
+        }
+        if (actionKey === 'planner_add_topic') {
+          const topic = addTopicCard(action);
+          document.getElementById('topicImportState').textContent = `已新增课题卡：${topic.name}`;
+          return { text:`已在课题卡片区新增“${topic.name}”。你可以继续让我补课时数、类型，或者点卡片上的“编辑”微调。` };
+        }
+        if (actionKey === 'planner_save_draft') {
+          saveDraftOnly();
+          return { text:'已保存为 AI 草案，当前安排还没有被覆盖。' };
+        }
+        if (actionKey === 'planner_apply_current') {
+          applyDraftToCalendar();
+          return { text:'已写入当前安排，正在进入安排与排课页。' };
+        }
+        return { text:'这个动作我还没有接上执行逻辑。' };
+      },
+      onFilesAdded(files){
+        const count = Array.isArray(files) ? files.length : 0;
+        const parsedText = topicTextFromParsedFiles(files);
+        if (parsedText) {
+          return { text:`我已收到 ${count} 个资料文件，并读到了可用文字。它们现在只作为 AI 对话资料，不会自动进入课题卡片区；如果你要导入，请说“用刚上传的资料整理课题卡片”。` };
+        }
+        return { text:`我已收到 ${count} 个资料文件。它们现在只作为 AI 对话资料，不会自动修改页面。` };
+      }
+    });
+
     renderSchedule();
     hydrateFromExistingDraft();
     renderTopics();
     renderHolidayTags();
     renderActivities();
     if (latestDraft) {
-      renderOutput();
+      renderDraftOutput(latestDraft);
     }
   </script>
 </body>

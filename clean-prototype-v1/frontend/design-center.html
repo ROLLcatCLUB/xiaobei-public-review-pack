@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教学设计中心</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas design-center-page">
+      <section class="entry-brand-hero design-center-hero">
+        <div class="entry-brand-copy">
+          <small>智绘教育 · 教学设计中心</small>
+          <div class="design-hero-title-row">
+            <h1>教学设计中心</h1>
+            <span class="saas-title-meta" id="designProfileMeta"></span>
+          </div>
+          <p>先从教学内容库中查看和整理大单元、课时内容，再决定哪些内容进入本轮设计与执行。</p>
+        </div>
+        <div class="design-hero-side">
+          <div class="entry-brand-tags">
+            <span>内容库</span>
+            <span>设计稿</span>
+            <span>挂接</span>
+          </div>
+          <div class="head-actions design-hero-actions">
+            <a class="btn" id="unitActionBtn" href="unit-design.html">新建单元设计</a>
+            <a class="btn" id="lessonActionBtn" href="lesson-design.html">新建课时内容</a>
+            <a class="btn primary" href="design-attach.html">查看挂接安排</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="saas-stat-row">
+        <article class="saas-stat-card">
+          <div class="saas-stat-icon purple" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v16H7.5A2.5 2.5 0 0 0 5 21.5v-16Z"></path>
+              <path d="M7.5 3A2.5 2.5 0 0 0 5 5.5"></path>
+              <path d="M9 7h6"></path>
+              <path d="M9 11h7"></path>
+            </svg>
+          </div>
+          <div class="saas-stat-body">
+            <div class="saas-stat-number" id="unitCountText">0</div>
+            <div class="saas-stat-label">大单元</div>
+            <div class="saas-stat-sublabel">内容母稿 / 可复用源</div>
+          </div>
+        </article>
+        <article class="saas-stat-card">
+          <div class="saas-stat-icon teal" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9Z"></path>
+              <path d="M14 4v5h5"></path>
+              <path d="M9 13h6"></path>
+              <path d="M9 17h4"></path>
+            </svg>
+          </div>
+          <div class="saas-stat-body">
+            <div class="saas-stat-number" id="lessonCountText">0</div>
+            <div class="saas-stat-label">课时内容</div>
+            <div class="saas-stat-sublabel">内容母稿 / 过程展开</div>
+          </div>
+        </article>
+        <article class="saas-stat-card">
+          <div class="saas-stat-icon orange" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 18H5a2 2 0 0 1-1.7-3l1.2-2A8 8 0 0 0 5.5 9V8a6.5 6.5 0 1 1 13 0v1a8 8 0 0 0 1 4l1.2 2A2 2 0 0 1 19 18h-4"></path>
+              <path d="M9.5 18a2.5 2.5 0 0 0 5 0"></path>
+            </svg>
+          </div>
+          <div class="saas-stat-body">
+            <div class="saas-stat-number" id="pendingAttachText">0</div>
+            <div class="saas-stat-label">待挂接</div>
+            <div class="saas-stat-sublabel">尚未进入执行层</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="saas-content-row">
+        <article class="saas-panel">
+          <div class="saas-panel-head">
+            <div class="saas-panel-head-left">
+              <small>内容母稿</small>
+              <div class="saas-panel-title-row">
+                <h2>大单元</h2>
+                <select class="saas-grade-filter" id="gradeFilter"></select>
+              </div>
+            </div>
+            <a class="btn" href="unit-design.html">新建大单元</a>
+          </div>
+          <div class="saas-panel-body" id="unitList"></div>
+        </article>
+
+        <article class="saas-panel">
+          <div class="saas-panel-head">
+            <div class="saas-panel-head-left">
+              <small id="lessonPanelHint">当前展开</small>
+              <h2 id="lessonPanelTitle">课时内容</h2>
+              <div class="saas-panel-note" id="lessonPanelNote"></div>
+            </div>
+            <a class="btn" id="lessonPanelAction" href="lesson-design.html">新建课时内容</a>
+          </div>
+          <div class="saas-panel-body" id="lessonList"></div>
+        </article>
+      </section>
+
+      <section class="saas-recent-panel">
+        <div class="saas-panel-head">
+          <div class="saas-panel-head-left">
+            <small>最近改动</small>
+            <h2>设计草稿</h2>
+          </div>
+          <a class="btn" href="design-drafts.html">查看全部</a>
+        </div>
+        <div id="recentDesignList"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="content-library-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'design_center', title:'教学设计中心', assistant:'design_center' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const profile = window.CLEAN_PROTO.ensureProfile();
+    const params = new URLSearchParams(window.location.search);
+    let activeUnitId = params.get('unit_id') || '';
+    let activeGrade = params.get('grade') || '全部';
+
+    function isAttached(value){
+      const text = String(value || '').trim();
+      return !!text && !text.includes('待挂接') && !text.includes('尚未挂接');
+    }
+
+    function syncQuery(unitId, grade){
+      const url = new URL(window.location.href);
+      if (unitId) {
+        url.searchParams.set('unit_id', unitId);
+      } else {
+        url.searchParams.delete('unit_id');
+      }
+      if (grade && grade !== '全部') {
+        url.searchParams.set('grade', grade);
+      } else {
+        url.searchParams.delete('grade');
+      }
+      window.history.replaceState({}, '', url.toString());
+    }
+
+    function gradeOptionsFromUnits(units){
+      return ['全部', ...new Set(units.map(item => item.grade_scope).filter(Boolean))];
+    }
+
+    function renderGradeFilter(options){
+      const select = document.getElementById('gradeFilter');
+      select.innerHTML = options.map(option => `
+        <option value="${option}" ${option === activeGrade ? 'selected' : ''}>${option}</option>
+      `).join('');
+      select.onchange = event => {
+        activeGrade = event.target.value || '全部';
+        activeUnitId = '';
+        syncQuery('', activeGrade);
+        render();
+      };
+    }
+
+    function iconSvg(name){
+      const icons = {
+        unit:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v16H7.5A2.5 2.5 0 0 0 5 21.5v-16Z"></path><path d="M9 7h6"></path><path d="M9 11h7"></path></svg>`,
+        lesson:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9Z"></path><path d="M14 4v5h5"></path><path d="M9 13h6"></path><path d="M9 17h4"></path></svg>`,
+        spark:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8L12 3Z"></path><path d="m18.5 15 1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1 1-2.5Z"></path></svg>`
+      };
+      return icons[name] || icons.unit;
+    }
+
+    function syncPillClass(item){
+      if (item?.version_sync_status === 'saved') return 'green';
+      if (item?.version_sync_status === 'local_only') return 'amber';
+      return 'grey';
+    }
+
+    function render(){
+      const allUnits = source.listUnitPackages();
+      const allLessons = source.listLessonDesigns();
+      const gradeOptions = gradeOptionsFromUnits(allUnits);
+      if (!gradeOptions.includes(activeGrade)) {
+        activeGrade = '全部';
+      }
+      renderGradeFilter(gradeOptions);
+      const units = activeGrade === '全部'
+        ? allUnits
+        : allUnits.filter(item => item.grade_scope === activeGrade);
+      const lessons = activeGrade === '全部'
+        ? allLessons
+        : allLessons.filter(item => item.grade_scope === activeGrade);
+      const recent = source.listRecentDesignDrafts(4);
+      const pendingAttach = lessons.filter(item => !isAttached(item.linked_execution)).length;
+      const unitDraftCount = units.filter(item => source.hasUnitDesignDraft(item)).length;
+      const lessonDraftCount = lessons.filter(item => source.hasLessonDesignDraft(item)).length;
+      const activeUnit = units.find(item => item.unit_id === activeUnitId) || units[0] || null;
+      if (activeUnit) {
+        activeUnitId = activeUnit.unit_id;
+      }
+      const unitLessons = activeUnit ? lessons.filter(item => item.unit_id === activeUnit.unit_id) : lessons;
+      const summarizeUploads = uploads => (Array.isArray(uploads) ? uploads.filter(item => item?.name).slice(-2).map(item => item.name).join('、') : '');
+      CLEAN_PROTO.updateDesignContextNav({ grade: activeUnit ? activeUnit.grade_scope : (activeGrade === '全部' ? profile.preferredGrade : activeGrade), unitId: activeUnitId });
+
+      document.getElementById('unitCountText').textContent = units.length;
+      document.getElementById('lessonCountText').textContent = lessons.length;
+      document.getElementById('pendingAttachText').textContent = pendingAttach;
+      document.getElementById('designProfileMeta').textContent = `${profile.teacherName} · ${profile.teachingGrades}${profile.subject} · 当前 ${unitDraftCount + lessonDraftCount} 个设计稿`;
+      CLEAN_PROTO.registerAssistantBridge({
+        getWorkbench: (mode, options = {}) => {
+          const uploadSummary = summarizeUploads(options.uploads);
+          if (mode === 'fast') {
+            return {
+              title:'速备主笔',
+              focus:'先快速起一版单元与课时底稿，再进入具体改写。',
+              summary: activeUnit ? `${activeUnit.unit_name} · ${unitLessons.length} 节课时内容可直接进入速备。${uploadSummary ? ` 当前已参考：${uploadSummary}。` : ''}` : '先在左侧选一个大单元，再开始速备。',
+              context: [
+                { label:'当前年级', value: activeUnit?.grade_scope || activeGrade || '未锁定' },
+                { label:'当前大单元', value: activeUnit?.unit_name || '未锁定' },
+                { label:'课时数量', value: `${unitLessons.length} 节` },
+                { label:'模式用途', value: '快速起稿' },
+                ...(uploadSummary ? [{ label:'已参考资料', value: uploadSummary }] : [])
+              ],
+              actions:[
+                {
+                  key:'fast_generate_unit',
+                  title:'一键生成单元底稿',
+                  helper:'基于当前大单元母稿，先拉起单元目标、资源和作评骨架。',
+                  output:'我会先把当前大单元送进单元设计页，默认进入速备起稿状态。'
+                },
+                {
+                  key:'fast_generate_lessons',
+                  title:'一键生成课时底稿',
+                  helper:'直接进入当前大单元下的第一节课时内容，快速拉起 7 段式底稿。',
+                  output:'我会带你进入当前单元的第一节课，并补齐基础 7 段教学过程。'
+                },
+                {
+                  key:'fast_ready_scan',
+                  title:'检查挂接准备度',
+                  helper:'先看当前内容有没有形成执行前必需的骨架。',
+                  output:'我会带你先看挂接安排页，确认哪些内容已经具备进入执行层的条件。'
+                }
+              ]
+            };
+          }
+          const workbench = source.buildDesignCenterAiWorkbench(units, lessons, activeUnit, unitLessons);
+          if (uploadSummary) {
+            workbench.summary = `${workbench.summary} 当前已参考：${uploadSummary}。`;
+            workbench.context = [...(workbench.context || []), { label:'已参考资料', value: uploadSummary }];
+          }
+          return workbench;
+        },
+        getAssistantSnapshot(){
+          return {
+            entity_type:'design_center',
+            active_grade: activeGrade,
+            active_unit_id: activeUnit?.unit_id || '',
+            active_unit_name: activeUnit?.unit_name || '',
+            unit_count: units.length,
+            lesson_count: unitLessons.length,
+            pending_attach_count: pendingAttach,
+            active_unit_summary: activeUnit?.core_task_summary || activeUnit?.core_task || '',
+            active_unit_goal_count: activeUnit?.goal_count || 0,
+            active_unit_process_count: activeUnit?.process_step_count || 0,
+            active_unit_assignment_count: activeUnit?.assignment_definition_count || 0,
+            active_unit_resource_count: activeUnit?.resource_count || 0,
+            lesson_titles: unitLessons.map(item => item.topic_name).slice(0, 6)
+          };
+        },
+        applyAction(actionKey, action, mode){
+          if (actionKey === 'fast_generate_unit') {
+            if (!activeUnit) return { type:'message', text:'先在左侧选一个大单元，再开始速备。' };
+            return { type:'navigate', url:`unit-design.html?unit_id=${activeUnit.unit_id}&ai_mode=fast` };
+          }
+          if (actionKey === 'fast_generate_lessons') {
+            if (!unitLessons[0]) return { type:'message', text:'当前大单元下还没有课时内容，请先新建课时内容。' };
+            return { type:'navigate', url:`lesson-design.html?lesson_design_id=${unitLessons[0].lesson_design_id}&ai_mode=fast` };
+          }
+          if (actionKey === 'fast_ready_scan') {
+            return { type:'navigate', url: activeUnit ? `design-attach.html?unit_id=${activeUnit.unit_id}` : 'design-attach.html' };
+          }
+          if (actionKey === 'gap_scan' && activeUnit) {
+            return { type:'navigate', url:`unit-design.html?unit_id=${activeUnit.unit_id}` };
+          }
+          if (actionKey === 'next_unit' && unitLessons[0]) {
+            return { type:'navigate', url:`lesson-design.html?lesson_design_id=${unitLessons[0].lesson_design_id}` };
+          }
+          if (actionKey === 'ready_check') {
+            return { type:'navigate', url: activeUnit ? `design-attach.html?unit_id=${activeUnit.unit_id}` : 'design-attach.html' };
+          }
+          return { type:'message', text: mode === 'fast' ? '先从当前大单元起一版底稿。' : '先从当前单元和课时内容开始整理。' };
+        },
+        onFilesAdded(files, mode){
+          const uploadSummary = summarizeUploads(files);
+          return {
+            text: mode === 'fast'
+              ? `已读取 ${files.length} 份资料${uploadSummary ? `（${uploadSummary}）` : ''}，可在速备时一起参考这些教材和说明。`
+              : `已读取 ${files.length} 份资料${uploadSummary ? `（${uploadSummary}）` : ''}，后面精备时可以继续针对这些资料逐段补写。`
+          };
+        }
+      });
+
+      if (activeUnit) {
+        document.getElementById('unitActionBtn').href = `unit-design.html?unit_id=${activeUnit.unit_id}`;
+      }
+      if (unitLessons[0]) {
+        document.getElementById('lessonActionBtn').href = `lesson-design.html?lesson_design_id=${unitLessons[0].lesson_design_id}`;
+      } else if (lessons[0]) {
+        document.getElementById('lessonActionBtn').href = `lesson-design.html?lesson_design_id=${lessons[0].lesson_design_id}`;
+      }
+      document.getElementById('lessonPanelTitle').textContent = activeUnit ? `${activeUnit.unit_name} 的课时内容` : '课时内容';
+      document.getElementById('lessonPanelHint').textContent = activeUnit ? '当前展开' : '内容层';
+      document.getElementById('lessonPanelNote').textContent = activeUnit
+        ? `${activeUnit.grade_scope} · ${activeUnit.design_type || '常规单元'} · ${activeUnit.lesson_content_count || activeUnit.total_lessons} 节课时内容。`
+        : '先在左侧选择一个大单元。';
+      document.getElementById('lessonPanelAction').href = unitLessons[0]
+        ? `lesson-design.html?lesson_design_id=${unitLessons[0].lesson_design_id}`
+        : 'lesson-design.html';
+
+      const barColors = ['purple','teal','orange','rose'];
+      document.getElementById('unitList').innerHTML = units.length ? units.map((unit, index) => `
+        <div class="saas-list-item saas-list-item-selectable ${activeUnit && unit.unit_id === activeUnit.unit_id ? 'active-unit' : ''}" data-unit-id="${unit.unit_id}">
+          <div class="saas-item-color-bar ${barColors[index % barColors.length]}"></div>
+          <div class="saas-item-body">
+            <div class="saas-item-title">${unit.unit_name}</div>
+            <div class="saas-item-meta">${unit.grade_scope} · ${unit.design_type || '常规单元'} · ${unit.lesson_content_count || unit.total_lessons} 节课时内容</div>
+            <div class="saas-item-desc">${unit.core_task_summary || unit.core_task}</div>
+            <div class="saas-inline-meta">
+              <span class="saas-meta-chip">${unit.goal_count || 0} 条单元目标</span>
+              <span class="saas-meta-chip">${unit.process_step_count || 0} 段教学过程</span>
+              <span class="saas-meta-chip">${unit.assignment_definition_count || 0} 条作评定义</span>
+              <span class="saas-meta-chip">${unit.resource_count || 0} 条资源</span>
+            </div>
+            <div class="saas-item-foot">
+              <span class="saas-pill grey">${unit.linked_execution}</span>
+              <span class="saas-pill ${source.hasUnitDesignDraft(unit) ? 'teal' : 'grey'}">${source.getDesignSourceLabel(unit)}</span>
+              <span class="saas-pill ${syncPillClass(unit)}">${source.getDesignSyncSummary(unit)}</span>
+              <span class="saas-pill green">${unit.content_state || unit.status}</span>
+              <a class="saas-item-btn filled" href="unit-design.html?unit_id=${unit.unit_id}">编辑大单元</a>
+            </div>
+          </div>
+        </div>
+      `).join('') : `<div class="saas-empty"><div class="saas-empty-icon" aria-hidden="true">${iconSvg('unit')}</div>暂无大单元</div>`;
+
+      document.getElementById('lessonList').innerHTML = unitLessons.length ? unitLessons.map(lesson => `
+        <div class="saas-list-item">
+          <div class="saas-item-color-bar ${isAttached(lesson.linked_execution) ? 'teal' : 'orange'}"></div>
+          <div class="saas-item-body">
+            <div class="saas-item-title">${lesson.topic_name}</div>
+            <div class="saas-item-meta">${lesson.unit_name} · ${lesson.lesson_no} · ${lesson.lesson_type || '课时内容'} · ${lesson.process_step_count || 0} 段过程</div>
+            <div class="saas-item-desc">${lesson.goal_preview || lesson.theme}</div>
+            <div class="saas-inline-meta">
+              <span class="saas-meta-chip">${lesson.assignment_definition_count || 0} 条作评定义</span>
+              <span class="saas-meta-chip">${lesson.resource_count || 0} 条资源</span>
+              <span class="saas-meta-chip">${lesson.content_state || '草稿'}</span>
+            </div>
+            <div class="saas-item-foot">
+              <span class="saas-pill grey">${lesson.linked_execution}</span>
+              <span class="saas-pill ${source.hasLessonDesignDraft(lesson) ? 'teal' : 'grey'}">${source.getDesignSourceLabel(lesson)}</span>
+              <span class="saas-pill ${syncPillClass(lesson)}">${source.getDesignSyncSummary(lesson)}</span>
+              <span class="saas-pill ${lesson.assignment_title ? 'green' : 'amber'}">${lesson.assignment_label || lesson.assignment_code}</span>
+              <a class="saas-item-btn filled" href="lesson-design.html?lesson_design_id=${lesson.lesson_design_id}">编辑课时</a>
+            </div>
+          </div>
+        </div>
+      `).join('') : `<div class="saas-empty"><div class="saas-empty-icon" aria-hidden="true">${iconSvg('lesson')}</div>当前大单元下还没有课时设计稿</div>`;
+
+      if (!recent.length) {
+        document.getElementById('recentDesignList').innerHTML = `<div class="saas-empty"><div class="saas-empty-icon" aria-hidden="true">${iconSvg('spark')}</div>当前还没有最近改动的设计稿。</div>`;
+      } else {
+        document.getElementById('recentDesignList').innerHTML = recent.map(item => `
+          <div class="saas-draft-item">
+            <div class="saas-draft-icon ${item.design_type === 'unit' ? 'unit' : 'lesson'}" aria-hidden="true">${item.design_type === 'unit' ? iconSvg('unit') : iconSvg('lesson')}</div>
+            <div class="saas-draft-body">
+              <div class="saas-draft-title">${item.title}</div>
+              <div class="saas-draft-type">${item.design_type === 'unit' ? '单元设计稿' : '课时设计稿'} · ${source.getDesignSyncSummary(item.payload || {})}</div>
+            </div>
+            <div class="saas-draft-time">${item.saved_at ? new Date(item.saved_at).toLocaleString('zh-CN',{hour12:false,month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</div>
+          </div>
+        `).join('');
+      }
+
+      document.querySelectorAll('[data-unit-id]').forEach(node => {
+        node.addEventListener('click', event => {
+          if (event.target.closest('a')) return;
+          activeUnitId = node.getAttribute('data-unit-id') || '';
+          syncQuery(activeUnitId, activeGrade);
+          render();
+        });
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>

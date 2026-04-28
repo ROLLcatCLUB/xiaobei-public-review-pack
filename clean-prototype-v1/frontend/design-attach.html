@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>挂接安排</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas design-attach-page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>设计完成后再挂</small>
+          <h1>挂接安排</h1>
+          <p>这里只处理设计稿进入执行层的挂接，不直接改内容库母稿。先看当前课时是不是已经形成设计稿，再决定是否进入学期安排。</p>
+        </div>
+        <div class="head-actions">
+          <a class="btn" href="design-center.html">返回设计总览</a>
+          <a class="btn primary" href="calendar.html">去学期安排</a>
+        </div>
+      </div>
+
+      <section class="saas-content-row">
+        <article class="saas-panel">
+          <div class="saas-panel-head">
+            <div class="saas-panel-head-left">
+              <small>待处理</small>
+              <h2>待挂接的课时内容</h2>
+            </div>
+          </div>
+          <div class="saas-panel-body" id="pendingAttachList"></div>
+        </article>
+        <article class="saas-panel">
+          <div class="saas-panel-head">
+            <div class="saas-panel-head-left">
+              <small>已完成</small>
+              <h2>已挂接到安排</h2>
+            </div>
+          </div>
+          <div class="saas-panel-body" id="attachedList"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="content-library-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'design_attach', title:'挂接安排', assistant:'design_attach' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+
+    function iconSvg(name){
+      const icons = {
+        bell:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18H5a2 2 0 0 1-1.7-3l1.2-2A8 8 0 0 0 5.5 9V8a6.5 6.5 0 1 1 13 0v1a8 8 0 0 0 1 4l1.2 2A2 2 0 0 1 19 18h-4"></path><path d="M9.5 18a2.5 2.5 0 0 0 5 0"></path></svg>`,
+        check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"></path></svg>`
+      };
+      return icons[name] || icons.bell;
+    }
+
+    function isAttached(value){
+      const text = String(value || '').trim();
+      return !!text && !text.includes('待挂接') && !text.includes('尚未挂接');
+    }
+
+    function render(){
+      const lessons = source.listLessonDesigns();
+      const pending = lessons.filter(item => !isAttached(item.linked_execution));
+      const attached = lessons.filter(item => isAttached(item.linked_execution));
+
+      document.getElementById('pendingAttachList').innerHTML = pending.length ? pending.map(item => `
+        <div class="saas-list-item">
+          <div class="saas-item-color-bar orange"></div>
+          <div class="saas-item-body">
+            <div class="saas-item-title">${item.topic_name}</div>
+            <div class="saas-item-meta">${item.unit_name} · ${item.lesson_no}</div>
+            <div class="saas-item-desc">${item.theme}</div>
+            <div class="saas-inline-meta">
+              <span class="saas-meta-chip">${source.getDesignSourceLabel(item)}</span>
+              <span class="saas-meta-chip">${source.getDesignSyncSummary(item)}</span>
+              <span class="saas-meta-chip">${item.assignment_definition_count || 0} 条作评定义</span>
+              <span class="saas-meta-chip">${item.resource_count || 0} 条资源</span>
+            </div>
+            <div class="saas-item-foot">
+              <span class="saas-pill amber">待挂接</span>
+              <span class="saas-pill ${item.version_sync_status === 'saved' ? 'green' : (item.version_sync_status === 'local_only' ? 'amber' : 'grey')}">${source.getDesignSyncSummary(item)}</span>
+              <a class="saas-item-btn" href="lesson-design.html?lesson_design_id=${item.lesson_design_id}">回课时设计</a>
+              <a class="saas-item-btn" href="calendar.html?attach_lesson=${item.lesson_design_id}">去安排页挂接</a>
+            </div>
+          </div>
+        </div>
+      `).join('') : `<div class="saas-empty"><div class="saas-empty-icon" aria-hidden="true">${iconSvg('bell')}</div>当前没有待挂接的课时内容。</div>`;
+
+      document.getElementById('attachedList').innerHTML = attached.length ? attached.map(item => `
+        <div class="saas-list-item">
+          <div class="saas-item-color-bar teal"></div>
+          <div class="saas-item-body">
+            <div class="saas-item-title">${item.topic_name}</div>
+            <div class="saas-item-meta">${item.unit_name} · ${item.lesson_no}</div>
+            <div class="saas-inline-meta">
+              <span class="saas-meta-chip">${source.getDesignSourceLabel(item)}</span>
+              <span class="saas-meta-chip">${source.getDesignSyncSummary(item)}</span>
+              <span class="saas-meta-chip">${item.assignment_definition_count || 0} 条作评定义</span>
+            </div>
+            <div class="saas-item-foot">
+              <span class="saas-pill green">${item.linked_execution}</span>
+              <span class="saas-pill ${item.version_sync_status === 'saved' ? 'green' : (item.version_sync_status === 'local_only' ? 'amber' : 'grey')}">${source.getDesignSyncSummary(item)}</span>
+              <a class="saas-item-btn" href="calendar.html">查看安排</a>
+            </div>
+          </div>
+        </div>
+      `).join('') : `<div class="saas-empty"><div class="saas-empty-icon" aria-hidden="true">${iconSvg('check')}</div>当前还没有已挂接的课时内容。</div>`;
+    }
+
+    render();
+  </script>
+</body>
+</html>

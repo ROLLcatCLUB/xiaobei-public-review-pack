@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>单元设计</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas unit-design-page">
+      <div class="page-head">
+        <div class="page-title">
+          <div class="saas-title-line">
+            <h1>大单元</h1>
+            <span class="saas-title-meta" id="unitProfileMeta"></span>
+          </div>
+        </div>
+        <div class="head-actions">
+          <a class="btn" href="design-center.html">返回设计中心</a>
+          <a class="btn" id="compareUnitBtn" href="design-compare.html">对比旧稿</a>
+          <button class="btn primary" type="button" id="saveUnitBtn">保存设计稿</button>
+        </div>
+      </div>
+
+      <section class="split unit-design-layout" style="margin-top:16px">
+        <article class="section unit-edit-column">
+          <article class="card editor-card unit-edit-card">
+            <h2>01 单元方向</h2>
+            <div class="identity-strip unit-meta-strip" id="unitMetaFields"></div>
+            <p class="section-note">先把这个单元真正想让学生完成什么、怎么推进、怎么支撑写清楚。</p>
+            <div class="field linked-field" data-field-key="coreTask">
+              <label>核心表现性任务</label>
+              <div class="field-link-tools">
+                <span class="link-summary" id="linkSummaryCoreTask"></span>
+                <button class="link-toggle" type="button" data-toggle-target="linkPickerCoreTask">调整关联</button>
+              </div>
+              <div class="link-picker" id="linkPickerCoreTask" hidden><div class="link-pills" id="linkPillsCoreTask"></div></div>
+              <textarea id="unitCoreTask"></textarea>
+            </div>
+            <div class="field linked-field" data-field-key="cross" style="margin-top:12px">
+              <label>跨学科融合点</label>
+              <div class="field-link-tools">
+                <span class="link-summary" id="linkSummaryCross"></span>
+                <button class="link-toggle" type="button" data-toggle-target="linkPickerCross">调整关联</button>
+              </div>
+              <div class="link-picker" id="linkPickerCross" hidden><div class="link-pills" id="linkPillsCross"></div></div>
+              <textarea id="unitCross"></textarea>
+            </div>
+            <div class="field linked-field" data-field-key="support" style="margin-top:12px">
+              <label>分层支持策略</label>
+              <div class="field-link-tools">
+                <span class="link-summary" id="linkSummarySupport"></span>
+                <button class="link-toggle" type="button" data-toggle-target="linkPickerSupport">调整关联</button>
+              </div>
+              <div class="link-picker" id="linkPickerSupport" hidden><div class="link-pills" id="linkPillsSupport"></div></div>
+              <textarea id="unitSupport"></textarea>
+            </div>
+          </article>
+
+          <article class="card editor-card unit-edit-card">
+            <h2>02 单元目标与资源</h2>
+            <p class="section-note">这里先立单元目标、资源和作评总表，后面课时内容、过程展开和执行挂接都会从这里承接。</p>
+            <div class="field linked-field" data-field-key="goals">
+              <label>核心素养目标（每行一条）</label>
+              <div class="field-link-tools">
+                <span class="link-summary" id="linkSummaryGoals"></span>
+                <button class="link-toggle" type="button" data-toggle-target="linkPickerGoals">调整关联</button>
+              </div>
+              <div class="link-picker" id="linkPickerGoals" hidden><div class="link-pills" id="linkPillsGoals"></div></div>
+              <textarea id="unitGoals"></textarea>
+            </div>
+            <div class="field linked-field" data-field-key="resources" style="margin-top:12px">
+              <label>单元资源清单（每行一条）</label>
+              <div class="field-link-tools">
+                <span class="link-summary" id="linkSummaryResources"></span>
+                <button class="link-toggle" type="button" data-toggle-target="linkPickerResources">调整关联</button>
+              </div>
+              <div class="link-picker" id="linkPickerResources" hidden><div class="link-pills" id="linkPillsResources"></div></div>
+              <textarea id="unitResources"></textarea>
+            </div>
+            <div class="field linked-field" data-field-key="assignments" style="margin-top:12px">
+              <label>单元作业与评价总览（每行一条）</label>
+              <div class="field-link-tools">
+                <span class="link-summary" id="linkSummaryAssignments"></span>
+                <button class="link-toggle" type="button" data-toggle-target="linkPickerAssignments">调整关联</button>
+              </div>
+              <div class="link-picker" id="linkPickerAssignments" hidden><div class="link-pills" id="linkPillsAssignments"></div></div>
+              <textarea id="unitAssignments"></textarea>
+            </div>
+          </article>
+        </article>
+
+        <aside class="section unit-side-column">
+          <article class="card panel-card unit-info-card">
+            <h2>课时地图</h2>
+            <p class="section-note">左侧在写大单元母稿，右侧作为课时内容目录与过程落点对照，不在这里展开完整过程。</p>
+            <div class="list" id="lessonMapList"></div>
+          </article>
+        </aside>
+      </section>
+
+      <section class="unit-action-bar" id="unitActionBar">
+        <div class="unit-action-progress" id="unitActionProgress"></div>
+        <div class="unit-action-main">
+          <strong id="unitActionTitle">保存当前设计稿</strong>
+          <div class="detail-text tiny" id="unitActionSubtitle"></div>
+          <div class="unit-action-meta tiny" id="unitActionMeta"></div>
+        </div>
+        <div class="unit-action-buttons">
+          <button class="btn" type="button" id="stickySaveUnitBtn">保存当前设计稿</button>
+          <a class="btn primary" href="#" id="stickyNextAction">去设计课时</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="content-library-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'unit_design', title:'单元设计', assistant:'unit_design' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const params = new URLSearchParams(window.location.search);
+    const profile = CLEAN_PROTO.ensureProfile();
+    document.getElementById('unitProfileMeta').textContent = `${profile.teacherName || '徐涛老师'} · ${profile.teachingGrades || '三年级、四年级'}美术`;
+    let currentUnit = null;
+    let highlightedLessons = [];
+
+    function splitLines(value){
+      return String(value || '').split(/\r?\n/).map(item => item.trim()).filter(Boolean);
+    }
+
+    function findCurrentUnit(){
+      const unitId = params.get('unit_id');
+      return source.findUnitPackage({ unit_id: unitId }) || source.listUnitPackages()[0];
+    }
+
+    function lessonDesignIdFor(unit, index){
+      const existingMap = Array.isArray(unit?.lesson_map) ? unit.lesson_map[index - 1] : null;
+      if (existingMap?.lesson_design_id) return existingMap.lesson_design_id;
+      const byLessonNo = (unit?.lesson_map || []).find(item => item.lesson_no === lessonNoLabel(index));
+      if (byLessonNo?.lesson_design_id) return byLessonNo.lesson_design_id;
+      return `${unit.unit_id}-lesson-${index}`;
+    }
+
+    function lessonNoLabel(index){
+      return `课时${index}`;
+    }
+
+    function humanStatusLabel(status){
+      if (!status) return '正在整理';
+      if (status.includes('祖层')) return '单元稿已保存';
+      return status;
+    }
+
+    function isExecutionAttached(value){
+      const text = String(value || '').trim();
+      return !!text && !text.includes('待挂接') && !text.includes('尚未挂接');
+    }
+
+    function defaultLessonIndexesFor(fieldKey, unit){
+      const total = Math.max(1, Number(unit.total_lessons) || 1);
+      const last = total;
+      const middle = total >= 3 ? Math.ceil(total / 2) : Math.min(2, total);
+      const map = {
+        coreTask: Array.from({ length: total }, (_, idx) => idx + 1),
+        cross: Array.from(new Set([1, middle, last])).filter(item => item <= total),
+        support: Array.from(new Set([middle, last])).filter(item => item <= total),
+        goals: Array.from({ length: total }, (_, idx) => idx + 1),
+        resources: Array.from(new Set([1, last])).filter(item => item <= total),
+        assignments: [last]
+      };
+      return map[fieldKey] || [];
+    }
+
+    function ensureFieldLinks(unit){
+      if (!unit.field_links || typeof unit.field_links !== 'object') {
+        unit.field_links = {};
+      }
+      ['coreTask', 'cross', 'support', 'goals', 'resources', 'assignments'].forEach(fieldKey => {
+        const existing = Array.isArray(unit.field_links[fieldKey]) ? unit.field_links[fieldKey] : defaultLessonIndexesFor(fieldKey, unit);
+        unit.field_links[fieldKey] = existing
+          .map(item => Number(item))
+          .filter(item => Number.isFinite(item) && item >= 1 && item <= unit.total_lessons)
+          .sort((a, b) => a - b);
+      });
+    }
+
+    function lessonIndexesFor(fieldKey, unit){
+      ensureFieldLinks(unit);
+      return unit.field_links[fieldKey] || [];
+    }
+
+    function lessonSummaryLabel(indexes){
+      if (!indexes || !indexes.length) return '未设置覆盖课时';
+      const sorted = [...indexes].sort((a, b) => a - b);
+      if (sorted.length === 1) return `覆盖课时：${lessonNoLabel(sorted[0])}`;
+      const continuous = sorted.every((item, idx) => idx === 0 || item - sorted[idx - 1] === 1);
+      if (continuous) return `覆盖课时：${lessonNoLabel(sorted[0])} - ${lessonNoLabel(sorted[sorted.length - 1])}`;
+      return `覆盖课时：${sorted.map(item => lessonNoLabel(item)).join('、')}`;
+    }
+
+    function buildLessonLinkPills(fieldKey, unit){
+      const selected = lessonIndexesFor(fieldKey, unit);
+      return Array.from({ length: unit.total_lessons }, (_, idx) => idx + 1).map(index => `
+        <button class="saas-pill link-pill ${selected.includes(index) ? 'teal is-active' : 'grey'}" type="button" data-field-key="${fieldKey}" data-lesson-index="${index}">
+          课时${index}
+        </button>
+      `).join('');
+    }
+
+    function setHighlightedLessons(indexes){
+      highlightedLessons = Array.isArray(indexes) ? indexes : [];
+      document.querySelectorAll('#lessonMapList .lesson-map-item').forEach(card => {
+        const index = Number(card.dataset.lessonIndex || 0);
+        card.classList.toggle('is-linked-highlight', highlightedLessons.includes(index));
+      });
+    }
+
+    function bindLinkedFields(unit){
+      document.querySelectorAll('.linked-field').forEach(field => {
+        const indexes = lessonIndexesFor(field.dataset.fieldKey, unit);
+        field.addEventListener('mouseenter', () => setHighlightedLessons(indexes));
+        field.addEventListener('mouseleave', () => setHighlightedLessons([]));
+        const input = field.querySelector('textarea, input, select');
+        if (input){
+          input.addEventListener('focus', () => setHighlightedLessons(indexes));
+          input.addEventListener('blur', () => setHighlightedLessons([]));
+        }
+      });
+      document.querySelectorAll('.link-toggle[data-toggle-target]').forEach(button => {
+        button.onclick = () => {
+          const targetId = button.dataset.toggleTarget;
+          const target = document.getElementById(targetId);
+          if (!target) return;
+          const willOpen = target.hidden;
+          document.querySelectorAll('.link-picker').forEach(panel => {
+            if (panel !== target) panel.hidden = true;
+          });
+          target.hidden = !willOpen;
+          button.textContent = willOpen ? '收起关联' : '调整关联';
+        };
+      });
+      document.querySelectorAll('.link-pill[data-lesson-index]').forEach(button => {
+        button.onclick = () => {
+          const fieldKey = button.dataset.fieldKey;
+          const lessonIndex = Number(button.dataset.lessonIndex);
+          const current = new Set(lessonIndexesFor(fieldKey, unit));
+          if (current.has(lessonIndex)) {
+            current.delete(lessonIndex);
+          } else {
+            current.add(lessonIndex);
+          }
+          const next = Array.from(current).sort((a, b) => a - b);
+          currentUnit.field_links[fieldKey] = next.length ? next : [lessonIndex];
+          applyLinkPillStates(currentUnit);
+          setHighlightedLessons(currentUnit.field_links[fieldKey]);
+          renderLinkSummaries(currentUnit);
+        };
+      });
+    }
+
+    function renderLinkSummaries(unit){
+      const map = {
+        coreTask: 'linkSummaryCoreTask',
+        cross: 'linkSummaryCross',
+        support: 'linkSummarySupport',
+        goals: 'linkSummaryGoals',
+        resources: 'linkSummaryResources',
+        assignments: 'linkSummaryAssignments'
+      };
+      Object.entries(map).forEach(([fieldKey, id]) => {
+        const node = document.getElementById(id);
+        if (node) node.textContent = lessonSummaryLabel(lessonIndexesFor(fieldKey, unit));
+      });
+    }
+
+    function applyLinkPillStates(unit){
+      document.querySelectorAll('.link-pill[data-lesson-index]').forEach(button => {
+        const fieldKey = button.dataset.fieldKey;
+        const lessonIndex = Number(button.dataset.lessonIndex);
+        const active = lessonIndexesFor(fieldKey, unit).includes(lessonIndex);
+        button.classList.toggle('teal', active);
+        button.classList.toggle('grey', !active);
+        button.classList.toggle('is-active', active);
+      });
+    }
+
+    function bindTextSync(){
+      document.getElementById('unitCoreTask').oninput = e => { currentUnit.core_task = e.target.value; };
+      document.getElementById('unitCross').oninput = e => { currentUnit.cross_discipline = e.target.value; };
+      document.getElementById('unitSupport').oninput = e => { currentUnit.support_strategy = e.target.value; };
+      document.getElementById('unitGoals').oninput = e => { currentUnit.core_literacy_goals = splitLines(e.target.value); };
+      document.getElementById('unitResources').oninput = e => { currentUnit.resource_list = splitLines(e.target.value); };
+      document.getElementById('unitAssignments').oninput = e => { currentUnit.assignment_overview = splitLines(e.target.value); };
+    }
+
+    function flashField(node){
+      const field = node && node.closest ? node.closest('.field, .identity-item, .linked-field') : null;
+      if (!field) return;
+      field.classList.add('assistant-fill-flash');
+      window.setTimeout(() => field.classList.remove('assistant-fill-flash'), 1400);
+    }
+
+    function appendMissingLines(textareaId, lines){
+      const node = document.getElementById(textareaId);
+      if (!node) return false;
+      const existing = splitLines(node.value);
+      const merged = [...existing];
+      lines.forEach(line => {
+        if (line && !merged.includes(line)) merged.push(line);
+      });
+      if (merged.join('\n') === existing.join('\n')) return false;
+      node.value = merged.join('\n');
+      node.dispatchEvent(new Event('input', { bubbles:true }));
+      flashField(node);
+      return true;
+    }
+
+    function applyGeneratedUnitPayload(generated, scope = {}){
+      if (!generated || typeof generated !== 'object') return false;
+      const normalizedField = String(scope.targetField || '').trim();
+      const allowField = expected => !normalizedField || normalizedField === expected;
+      const coreChanged = allowField('core_task') && Array.isArray(generated.core_task_lines) ? appendMissingLines('unitCoreTask', generated.core_task_lines) : false;
+      const crossChanged = allowField('cross_discipline') && Array.isArray(generated.cross_lines) ? appendMissingLines('unitCross', generated.cross_lines) : false;
+      const supportChanged = allowField('support_strategy') && Array.isArray(generated.support_lines) ? appendMissingLines('unitSupport', generated.support_lines) : false;
+      const goalChanged = allowField('core_literacy_goals') && Array.isArray(generated.goal_lines) ? appendMissingLines('unitGoals', generated.goal_lines) : false;
+      const resourceChanged = allowField('resource_list') && Array.isArray(generated.resource_lines) ? appendMissingLines('unitResources', generated.resource_lines) : false;
+      const assignmentChanged = allowField('assignment_overview') && Array.isArray(generated.assignment_lines) ? appendMissingLines('unitAssignments', generated.assignment_lines) : false;
+      return coreChanged || crossChanged || supportChanged || goalChanged || resourceChanged || assignmentChanged;
+    }
+
+    function buildLessonMapEntry(unit, index){
+      const lessonDesignId = lessonDesignIdFor(unit, index);
+      const existingDesign = source.findLessonDesign({ lesson_design_id: lessonDesignId });
+      const existingMap = (unit.lesson_map || [])[index - 1]
+        || (unit.lesson_map || []).find(item => item.lesson_design_id === lessonDesignId || item.lesson_no === lessonNoLabel(index));
+      return {
+        lesson_design_id: lessonDesignId,
+        lesson_no: existingMap?.lesson_no || existingDesign?.lesson_no || lessonNoLabel(index),
+        title: existingMap?.title || existingDesign?.topic_name || `待定课时 ${index}`,
+        focus: existingMap?.focus || existingDesign?.theme || '请先补充这一课时的主题与任务。',
+        assignment_code: existingMap?.assignment_code || existingDesign?.assignment_code || `${index}.0`,
+        assignment_definition_count: existingDesign?.assignment_definition_count || 0,
+        process_step_count: existingDesign?.process_step_count || 0,
+        resource_count: existingDesign?.resource_count || 0,
+        lesson_type: existingDesign?.lesson_type || '',
+        goal_preview: existingDesign?.goal_preview || '',
+        timeline_hint: existingMap?.timeline_hint || existingDesign?.linked_execution || '待挂接'
+      };
+    }
+
+    function reconcileLessonMap(unit){
+      const total = Math.max(1, Number(unit.total_lessons) || 1);
+      unit.total_lessons = total;
+      unit.lesson_map = Array.from({ length: total }, (_, idx) => buildLessonMapEntry(unit, idx + 1));
+      return unit.lesson_map;
+    }
+
+    function renderMetaFields(unit){
+      document.getElementById('unitMetaFields').innerHTML = `
+        <div class="identity-item unit-identity-item">
+          <small>单元名称</small>
+          <div class="field"><input id="unitNameInput" value="${unit.unit_name || ''}"></div>
+        </div>
+        <div class="identity-item unit-identity-item">
+          <small>年级</small>
+          <div class="field">
+            <select id="unitGradeInput">
+              ${['一年级','二年级','三年级','四年级','五年级','六年级'].map(item => `<option value="${item}" ${item === unit.grade_scope ? 'selected' : ''}>${item}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="identity-item unit-identity-item">
+          <small>单元类型</small>
+          <div class="field"><input id="unitTypeInput" value="${unit.design_type || '常规单元'}"></div>
+        </div>
+        <div class="identity-item unit-identity-item">
+          <small>总课时</small>
+          <div class="field"><input id="unitLessonCountInput" type="number" min="1" max="12" value="${unit.total_lessons || 1}"></div>
+        </div>
+      `;
+      document.getElementById('unitNameInput').oninput = e => {
+        currentUnit.unit_name = e.target.value.trim() || '未命名单元';
+        renderLessonMap();
+        renderStatus();
+        renderNextActions();
+      };
+      document.getElementById('unitGradeInput').onchange = e => {
+        currentUnit.grade_scope = e.target.value;
+        renderLessonMap();
+        renderStatus();
+      };
+      document.getElementById('unitTypeInput').oninput = e => {
+        currentUnit.design_type = e.target.value.trim() || '常规单元';
+        renderStatus();
+      };
+      document.getElementById('unitLessonCountInput').oninput = e => {
+        currentUnit.total_lessons = Math.max(1, Number(e.target.value) || 1);
+        reconcileLessonMap(currentUnit);
+        renderLessonMap();
+        renderStatus();
+        renderNextActions();
+      };
+    }
+
+    function renderLessonMap(){
+      const unit = currentUnit;
+      document.getElementById('unitCoreTask').value = unit.core_task || '';
+      document.getElementById('unitCross').value = unit.cross_discipline || '';
+      document.getElementById('unitSupport').value = unit.support_strategy || '';
+      document.getElementById('unitGoals').value = (unit.core_literacy_goals || []).join('\n');
+      document.getElementById('unitResources').value = (unit.resource_list || []).join('\n');
+      document.getElementById('unitAssignments').value = (unit.assignment_overview || []).join('\n');
+      document.getElementById('linkPillsCoreTask').innerHTML = buildLessonLinkPills('coreTask', unit);
+      document.getElementById('linkPillsCross').innerHTML = buildLessonLinkPills('cross', unit);
+      document.getElementById('linkPillsSupport').innerHTML = buildLessonLinkPills('support', unit);
+      document.getElementById('linkPillsGoals').innerHTML = buildLessonLinkPills('goals', unit);
+      document.getElementById('linkPillsResources').innerHTML = buildLessonLinkPills('resources', unit);
+      document.getElementById('linkPillsAssignments').innerHTML = buildLessonLinkPills('assignments', unit);
+      document.getElementById('lessonMapList').innerHTML = (unit.lesson_map || []).map(item => `
+        <div class="list-item lesson-map-item compact" data-lesson-index="${Number(String(item.lesson_no || '').replace(/\D/g, '')) || 0}">
+          <div class="list-item-head">
+            <div>
+              <strong>${item.lesson_no} · ${item.title}</strong>
+              <div class="detail-text tiny lesson-map-hint">${item.timeline_hint}</div>
+              <div class="detail-text tiny lesson-map-hint">${item.lesson_type || '课时内容'} · ${item.process_step_count || 0} 段过程 · ${item.resource_count || 0} 条资源</div>
+            </div>
+          </div>
+          <div class="detail-text tiny lesson-map-desc">${item.focus || item.goal_preview || '请先补充这一课时的主题与目标。'}</div>
+          <div class="inline-actions lesson-map-actions">
+            <span class="pill ${item.saved_at || item.version_sync_status ? 'teal' : 'grey'}">${source.getDesignSourceLabel(item)}</span>
+            <span class="pill ${item.version_sync_status === 'saved' ? 'green' : (item.version_sync_status === 'local_only' ? 'amber' : 'grey')}">${source.getDesignSyncSummary(item)}</span>
+            <span class="pill">${item.assignment_code}</span>
+            <span class="pill">${item.assignment_definition_count || 0} 条作评</span>
+            <a class="btn" href="lesson-design.html?lesson_design_id=${item.lesson_design_id}">编辑课时</a>
+          </div>
+        </div>
+      `).join('');
+      bindLinkedFields(unit);
+      bindTextSync();
+      applyLinkPillStates(unit);
+      renderLinkSummaries(unit);
+      if (highlightedLessons.length){
+        setHighlightedLessons(highlightedLessons);
+      }
+    }
+
+    function renderStatus(){
+      const unit = currentUnit;
+      const lessonDrafts = source.listLessonDesigns({ unit_id: unit.unit_id });
+      const linkedCount = (unit.lesson_map || []).filter(item => isExecutionAttached(item.timeline_hint)).length;
+      const syncText = source.getDesignSyncSummary(unit);
+      const sourceText = source.getDesignSourceLabel(unit);
+      document.getElementById('unitActionProgress').textContent = `${linkedCount}/${unit.total_lessons} 课时已挂接`;
+      document.getElementById('unitActionMeta').textContent = `当前层：${sourceText} · 同步状态：${syncText} · 内容状态：${humanStatusLabel(unit.status)} · 单元类型：${unit.design_type || '常规单元'} · ${unit.resource_list?.length || 0} 条资源 · ${unit.assignment_overview?.length || 0} 条作评总览 · 当前有 ${lessonDrafts.length} 个课时内容`;
+    }
+
+    function findFirstIncompleteLesson(unit){
+      const lessons = source.listLessonDesigns({ unit_id: unit.unit_id });
+      for (const item of unit.lesson_map || []) {
+        const draft = lessons.find(lesson => lesson.lesson_design_id === item.lesson_design_id);
+        if (!draft || !String(draft.topic_name || '').trim() || String(draft.topic_name).includes('待定课时')) {
+          return item;
+        }
+      }
+      return null;
+    }
+
+    function renderNextActions(){
+      const unit = currentUnit;
+      const incompleteLesson = findFirstIncompleteLesson(unit);
+      const linkedCount = (unit.lesson_map || []).filter(item => isExecutionAttached(item.timeline_hint)).length;
+      const canAttach = !incompleteLesson && linkedCount < unit.total_lessons;
+      const primaryAction = incompleteLesson
+        ? {
+            label: `先补${incompleteLesson.lesson_no}`,
+            href: `lesson-design.html?lesson_design_id=${incompleteLesson.lesson_design_id}`
+          }
+        : canAttach
+          ? {
+              label: '去挂接安排',
+              href: `design-attach.html?unit_id=${unit.unit_id}`
+            }
+          : {
+              label: '继续最近课时',
+              href: `lesson-design.html?lesson_design_id=${(unit.lesson_map && unit.lesson_map[unit.lesson_map.length - 1] && unit.lesson_map[unit.lesson_map.length - 1].lesson_design_id) || ''}`
+            };
+      const nextHint = incompleteLesson
+        ? `${incompleteLesson.lesson_no} 还没补完整，先把这一课补起来。`
+        : canAttach
+          ? '课时内容已经铺开了，下一步先把这些内容挂到执行安排。'
+          : '大单元母稿和课时内容都已经立住了，可以继续回到具体课时精修。';
+      document.getElementById('unitActionTitle').textContent = incompleteLesson
+        ? (source.hasUnitDesignDraft(unit) ? `继续整理：${primaryAction.label}` : `先保存第一版：${primaryAction.label}`)
+        : canAttach
+          ? '下一步：挂接到执行安排'
+          : '下一步：继续课时设计';
+      document.getElementById('unitActionSubtitle').textContent = `${nextHint} 当前正在编辑：${source.getDesignSourceLabel(unit)}。`;
+      document.getElementById('stickyNextAction').textContent = primaryAction.label;
+      document.getElementById('stickyNextAction').href = primaryAction.href;
+    }
+
+    function syncLessonDesigns(unit){
+      (unit.lesson_map || []).forEach((item, index) => {
+        const lessonDesignId = item.lesson_design_id || lessonDesignIdFor(unit.unit_id, index + 1);
+        const existing = source.findLessonDesign({ lesson_design_id: lessonDesignId }) || {};
+        source.saveLessonDesign({
+          lesson_design_id: lessonDesignId,
+          unit_id: unit.unit_id,
+          unit_name: unit.unit_name,
+          grade_scope: unit.grade_scope,
+          lesson_no: item.lesson_no || lessonNoLabel(index + 1),
+          topic_name: existing.topic_name || item.title || `待定课时 ${index + 1}`,
+          theme: existing.theme || item.focus || '请先补这一课时的主题与设计说明。',
+          linked_execution: existing.linked_execution || item.timeline_hint || '待挂接',
+          unit_bridge: existing.unit_bridge || '',
+          lesson_goals: existing.lesson_goals || [],
+          focus_difficulty: existing.focus_difficulty || '',
+          teacher_prepare: existing.teacher_prepare || '',
+          student_prepare: existing.student_prepare || '',
+          assignment_code: existing.assignment_code || item.assignment_code || `${index + 1}.0`,
+          assignment_title: existing.assignment_title || '',
+          assignment_requirement: existing.assignment_requirement || '',
+          key_points: existing.key_points || '',
+          dimension_summary: existing.dimension_summary || '',
+          process_steps: existing.process_steps || [],
+          resource_notes: existing.resource_notes || '',
+          revision_notes: existing.revision_notes || ''
+        });
+      });
+    }
+
+    function bindSave(){
+      const performSave = async () => {
+        currentUnit.core_task = document.getElementById('unitCoreTask').value;
+        currentUnit.cross_discipline = document.getElementById('unitCross').value;
+        currentUnit.support_strategy = document.getElementById('unitSupport').value;
+        currentUnit.core_literacy_goals = splitLines(document.getElementById('unitGoals').value);
+        currentUnit.resource_list = splitLines(document.getElementById('unitResources').value);
+        currentUnit.assignment_overview = splitLines(document.getElementById('unitAssignments').value);
+        currentUnit.status = '单元稿已保存';
+        reconcileLessonMap(currentUnit);
+        syncLessonDesigns(currentUnit);
+        currentUnit = await source.persistUnitDesignVersion(currentUnit);
+        render();
+      };
+      document.getElementById('saveUnitBtn').onclick = performSave;
+      document.getElementById('stickySaveUnitBtn').onclick = performSave;
+    }
+
+    function render(){
+      currentUnit = findCurrentUnit();
+      if (!currentUnit) return;
+      reconcileLessonMap(currentUnit);
+      ensureFieldLinks(currentUnit);
+      renderMetaFields(currentUnit);
+      renderLessonMap();
+      renderStatus();
+      renderNextActions();
+      bindSave();
+      const summarizeUploads = uploads => (Array.isArray(uploads) ? uploads.filter(item => item?.name).slice(-2).map(item => item.name).join('、') : '');
+      function unitVariantBundle(variant){
+        const bundles = {
+          standard: {
+            coreTask:['完成任务：', '成果形式：', '单元推进说明：'],
+            cross:['可结合语文阅读、地方文化或自然观察。'],
+            support:['基础层：先完成观察与模仿。', '进阶层：尝试加入个人表达。'],
+            goals:['审美感知：', '艺术表现：', '创意实践：'],
+            resources:['示范图/PPT：', '学习单/任务卡：'],
+            assignments:['输出成果：', '评价关注点：']
+          },
+          literacy: {
+            coreTask:['核心任务：围绕单元主题完成连续性创作。', '成果形式：作品 + 讲述/展示。', '推进说明：从观察理解到表达呈现。'],
+            cross:['可结合语文表达、历史文化或科学观察。'],
+            support:['基础层：先看懂主题与图像线索。', '拓展层：尝试表达个人观点或审美判断。'],
+            goals:['审美感知：关注色彩/形象/构图。', '艺术表现：完成主题表达。', '创意实践：形成个人化创意。', '文化理解：理解相关文化背景。'],
+            resources:['示范图/PPT：围绕核心素养选材。', '学习单/观察卡：帮助学生提炼感受。'],
+            assignments:['输出成果：作品 + 简短表达。', '评价关注点：审美感知 / 艺术表现 / 创意实践']
+          },
+          project: {
+            coreTask:['项目任务：围绕主题完成一组连续性学习任务。', '成果形式：阶段练习 + 最终展示。', '推进说明：导入-探究-创作-展示四步推进。'],
+            cross:['可结合项目资料查找、展示表达或团队协作。'],
+            support:['基础层：完成核心作品任务。', '协作层：加入分工、展示或互评。'],
+            goals:['任务理解：明确本单元要完成什么。', '探究表达：边学边做，逐步推进。', '成果呈现：完成作品并能说明。'],
+            resources:['项目素材包：', '展示评价工具：'],
+            assignments:['阶段输出：过程作品/草图。', '最终输出：展示成果与反思。']
+          }
+        };
+        return bundles[variant] || bundles.standard;
+      }
+
+      function unitPreviewChoices(actionKey){
+        if (actionKey === 'fast_fill_unit') {
+          return [
+            { title:'标准稳妥版', summary:'先补齐单元任务、目标、资源和作评的基础骨架，适合快速起稿。', actionPatch:{ variant:'standard' } },
+            { title:'素养导向版', summary:'更强调审美感知、艺术表现、创意实践和文化理解的结构。', actionPatch:{ variant:'literacy' } },
+            { title:'项目任务版', summary:'更像连续任务推进，适合项目式或展示型单元。', actionPatch:{ variant:'project' } }
+          ];
+        }
+        if (actionKey === 'unit_goals') {
+          return [
+            { title:'三维目标版', summary:'用审美感知、艺术表现、创意实践先补一版稳妥目标。', actionPatch:{ variant:'standard' } },
+            { title:'核心素养版', summary:'补成更完整的核心素养目标结构。', actionPatch:{ variant:'literacy' } },
+            { title:'项目成果版', summary:'更强调任务推进和成果表达。', actionPatch:{ variant:'project' } }
+          ];
+        }
+        if (actionKey === 'unit_resources') {
+          return [
+            { title:'课堂材料版', summary:'先补示范图、PPT、学习单等基础资源。', actionPatch:{ variant:'standard' } },
+            { title:'素养支撑版', summary:'更强调观察卡、表达卡和文化资料。', actionPatch:{ variant:'literacy' } },
+            { title:'项目展示版', summary:'更偏项目素材包、展示工具和过程产出。', actionPatch:{ variant:'project' } }
+          ];
+        }
+        return [];
+      }
+
+      CLEAN_PROTO.registerAssistantBridge({
+        getWorkbench: (mode, options = {}) => {
+          const uploadSummary = summarizeUploads(options.uploads);
+          if (mode === 'fast') {
+            return {
+              title:'速备主笔',
+              focus:'先快速起一版大单元底稿，再去拆第一节课的课时内容。',
+              summary:`${currentUnit.unit_name} · ${currentUnit.total_lessons} 节课时 · ${currentUnit.design_type || '常规单元'}${uploadSummary ? ` · 已参考：${uploadSummary}` : ''}`,
+              context: [
+                { label:'当前年级', value: currentUnit.grade_scope || '未设置' },
+                { label:'当前大单元', value: currentUnit.unit_name || '未设置' },
+                { label:'总课时', value: `${currentUnit.total_lessons || 0} 节` },
+                { label:'模式用途', value: '快速起单元稿' },
+                ...(uploadSummary ? [{ label:'已参考资料', value: uploadSummary }] : [])
+              ],
+              actions:[
+                {
+                  key:'fast_fill_unit',
+                  title:'一键生成单元底稿',
+                  helper:'补齐核心任务、单元目标、资源总表和作评总表的基础骨架。',
+                  output:'我会先在左侧快速补起单元方向、目标、资源和作评四块底稿。'
+                },
+                {
+                  key:'fast_expand_lessons',
+                  title:'进入第一节课时速备',
+                  helper:'先从第一节课时起稿，再慢慢补后面的课时。',
+                  output:'我会带你先进入第一节课时内容，并默认补齐 7 段式教学过程骨架。'
+                },
+                {
+                  key:'fast_attach_ready',
+                  title:'检查执行前准备',
+                  helper:'先确认这个单元是否已经具备进入执行层的基础条件。',
+                  output:'我会带你去看挂接安排，确认这组内容能不能进入学期执行。'
+                }
+              ]
+            };
+          }
+          const workbench = source.buildUnitAiWorkbench(currentUnit);
+          if (uploadSummary) {
+            workbench.summary = `${workbench.summary} 当前已参考：${uploadSummary}。`;
+            workbench.context = [...(workbench.context || []), { label:'已参考资料', value: uploadSummary }];
+          }
+          return workbench;
+        },
+        getAssistantSnapshot(){
+          return {
+            entity_type:'unit',
+            unit_id: currentUnit.unit_id,
+            unit_name: currentUnit.unit_name,
+            grade_scope: currentUnit.grade_scope,
+            total_lessons: Number(currentUnit.total_lessons || currentUnit.lesson_map?.length || 0),
+            design_type: currentUnit.design_type || '',
+            status: currentUnit.status || '',
+            linked_execution: currentUnit.linked_execution || '',
+            core_task: document.getElementById('unitCoreTask').value.trim(),
+            cross_discipline: document.getElementById('unitCross').value.trim(),
+            support_strategy: document.getElementById('unitSupport').value.trim(),
+            core_literacy_goals: splitLines(document.getElementById('unitGoals').value),
+            resource_list: splitLines(document.getElementById('unitResources').value),
+            assignment_overview: splitLines(document.getElementById('unitAssignments').value),
+            lesson_map: (currentUnit.lesson_map || []).map(item => ({
+              lesson_design_id: item.lesson_design_id,
+              lesson_no: item.lesson_no,
+              title: item.title,
+              focus: item.focus
+            }))
+          };
+        },
+        previewAction(actionKey){
+          return unitPreviewChoices(actionKey);
+        },
+        applyAction(actionKey, action, mode){
+          const generated = action?.generated || null;
+          const bundle = unitVariantBundle(action?.variant);
+          const targetField = String(action?.targetField || '').trim();
+          if (actionKey === 'fast_fill_unit') {
+            const generatedChanged = applyGeneratedUnitPayload(generated, { targetField });
+            const coreChanged = appendMissingLines('unitCoreTask', bundle.coreTask);
+            const crossChanged = appendMissingLines('unitCross', bundle.cross);
+            const supportChanged = appendMissingLines('unitSupport', bundle.support);
+            const goalChanged = appendMissingLines('unitGoals', bundle.goals);
+            const resourceChanged = appendMissingLines('unitResources', bundle.resources);
+            const assignmentChanged = appendMissingLines('unitAssignments', bundle.assignments);
+            return { type:'message', text: generatedChanged || coreChanged || crossChanged || supportChanged || goalChanged || resourceChanged || assignmentChanged ? `已按“${action?.choiceTitle || '当前'}”把大单元底稿补到左侧主编辑区。` : '当前大单元底稿已经具备这套骨架。' };
+          }
+          if (actionKey === 'fast_expand_lessons') {
+            const firstLesson = (currentUnit.lesson_map || [])[0];
+            return firstLesson
+              ? { type:'navigate', url:`lesson-design.html?lesson_design_id=${firstLesson.lesson_design_id}&ai_mode=fast` }
+              : { type:'message', text:'当前还没有课时地图可进入，先补总课时。' };
+          }
+          if (actionKey === 'fast_attach_ready') {
+            return { type:'navigate', url:`design-attach.html?unit_id=${currentUnit.unit_id}` };
+          }
+          if (actionKey === 'unit_goals') {
+            const generatedChanged = applyGeneratedUnitPayload(generated, { targetField: targetField || 'core_literacy_goals' });
+            const changed = appendMissingLines('unitGoals', bundle.goals);
+            return { type:'message', text: generatedChanged || changed ? `已按“${action?.choiceTitle || '当前'}”补了单元目标。` : '单元目标骨架已经在左侧了。' };
+          }
+          if (actionKey === 'unit_map') {
+            const firstLesson = (currentUnit.lesson_map || [])[0];
+            return firstLesson
+              ? { type:'navigate', url:`lesson-design.html?lesson_design_id=${firstLesson.lesson_design_id}` }
+              : { type:'message', text:'当前还没有课时地图可进入，先补总课时。' };
+          }
+          if (actionKey === 'unit_resources') {
+            const generatedChanged = applyGeneratedUnitPayload(generated, { targetField });
+            const onlyResources = targetField === 'resource_list';
+            const onlyAssignments = targetField === 'assignment_overview';
+            const crossChanged = (!onlyResources && !onlyAssignments) ? appendMissingLines('unitCross', bundle.cross) : false;
+            const supportChanged = (!onlyResources && !onlyAssignments) ? appendMissingLines('unitSupport', bundle.support) : false;
+            const resourceChanged = !onlyAssignments ? appendMissingLines('unitResources', bundle.resources) : false;
+            const assignmentChanged = !onlyResources ? appendMissingLines('unitAssignments', bundle.assignments) : false;
+            const scopeLabel = onlyResources ? '资源总表' : (onlyAssignments ? '作评总表' : '资源与作评骨架');
+            return { type:'message', text: generatedChanged || crossChanged || supportChanged || resourceChanged || assignmentChanged ? `已按“${action?.choiceTitle || '当前'}”补了${scopeLabel}。` : `${scopeLabel}已经在左侧了。` };
+          }
+          if (actionKey === 'unit_attach') {
+            return { type:'navigate', url:`design-attach.html?unit_id=${currentUnit.unit_id}` };
+          }
+          return { type:'message', text: mode === 'fast' ? '我先帮你起一版单元底稿。' : '当前动作还没有对应的页面回填。' };
+        },
+        onFilesAdded(files, mode){
+          const uploadSummary = summarizeUploads(files);
+          return {
+            text: mode === 'fast'
+              ? `已收到 ${files.length} 份资料${uploadSummary ? `（${uploadSummary}）` : ''}，后面速备时会优先参考这些教材和说明。`
+              : `已收到 ${files.length} 份资料${uploadSummary ? `（${uploadSummary}）` : ''}，后面精备时可以继续针对这些资料逐段补单元内容。`
+          };
+        }
+      });
+      CLEAN_PROTO.updateDesignContextNav({ grade: currentUnit.grade_scope, unitId: currentUnit.unit_id });
+      document.getElementById('compareUnitBtn').href = `design-compare.html?type=unit&unit_id=${currentUnit.unit_id}`;
+    }
+
+    render();
+  </script>
+</body>
+</html>

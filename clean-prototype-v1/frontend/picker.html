@@ -3,16 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>正式选课</title>
+  <title>选课</title>
   <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
 </head>
 <body>
   <div class="shell">
-    <main class="page">
+    <main class="page design-saas picker-page">
       <div class="page-head">
         <div class="page-title">
-          <small id="modeTag">标准路径</small>
-          <h1>正式选课</h1>
+          <small id="modeTag">按学期安排进入</small>
+          <h1>选课</h1>
+          <p>从学期安排里锁定今天要上的周次、班级、节次和课题，再进入上课执行台。</p>
         </div>
         <div class="head-actions">
           <a class="btn" id="backCalendarBtn" href="calendar.html">返回学期安排</a>
@@ -24,7 +26,7 @@
       </section>
 
       <section class="split" style="margin-top:16px">
-        <article class="card">
+        <article class="card panel-card">
           <div class="grid-2">
             <div class="field"><label>周次</label><select id="weekFilter"></select></div>
             <div class="field"><label>单元</label><select id="unitFilter"></select></div>
@@ -34,18 +36,19 @@
           <div class="list" id="taskList" style="margin-top:14px"></div>
         </article>
 
-        <aside class="card">
-          <h2>当前选中</h2>
-          <div id="selectedPane" class="empty">先选一节课</div>
+        <aside class="card status-card">
+          <h2>选中的课</h2>
+          <div id="selectedPane" class="empty">先锁定一节课</div>
         </aside>
       </section>
     </main>
   </div>
 
+  <script src="feishu-real-data-v1.js"></script>
   <script src="prep_truth_source_v1.js"></script>
   <script src="clean-shell.js"></script>
   <script>
-    CLEAN_PROTO.mount({ page:'picker', title:'正式选课', assistant:'picker' });
+    CLEAN_PROTO.mount({ page:'picker', title:'选课', assistant:'picker' });
     const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
     const PROFILE_KEY = 'xiaobei_teacher_profile_v1';
     const params = new URLSearchParams(window.location.search);
@@ -61,7 +64,7 @@
     };
 
     function options(key){
-      return [...new Set(source.listLessonTasks().map(item => item[key]))];
+      return [...new Set(source.listCoursePlanItems().map(item => item[key]))];
     }
 
     function fillSelect(id, values, selected){
@@ -72,7 +75,7 @@
     }
 
     function filtered(){
-      return source.listLessonTasks().map(item => source.buildRuntimeLessonTask(item)).filter(item => {
+      return source.listCoursePlanItems().map(item => source.buildCoursePlanRuntimeItem(item)).filter(item => {
         if (state.week !== 'all' && String(item.week_no) !== String(state.week)) return false;
         if (state.unit !== 'all' && item.unit_name !== state.unit) return false;
         if (state.className !== 'all' && item.class_name !== state.className) return false;
@@ -92,7 +95,7 @@
       return 'rose';
     }
 
-    function briefHref(task){
+    function classroomHref(task){
       const query = new URLSearchParams({
         week: state.week,
         unit: state.unit,
@@ -102,14 +105,14 @@
         lesson_key: task.lesson_key
       });
       if (flow === 'fast') query.set('flow','fast');
-      return `brief.html?${query.toString()}`;
+      return `classroom.html?${query.toString()}`;
     }
 
     function renderHero(){
       document.getElementById('modeTag').textContent = flow === 'fast' ? '快速路径' : '标准路径';
       document.getElementById('heroMeta').innerHTML = flow === 'fast'
-        ? `<span class="badge amber">今天快速备一节</span><span class="pill">先锁班级、课题、课时</span><span class="pill">默认带出常教班级</span>`
-        : `<span class="badge green">正式选课</span><span class="pill">只锁定当前课时</span><span class="pill">主按钮固定进入课前简报</span>`;
+        ? `<span class="badge amber">快速备课路径</span><span class="pill">先锁班级、课题、课时</span><span class="pill">默认带出常教班级</span>`
+        : `<span class="badge green">课次已排入学期安排</span><span class="pill">先锁定当前课时</span><span class="pill">再进入上课执行</span>`;
     }
 
     function renderFilters(){
@@ -126,7 +129,7 @@
     function renderList(tasks){
       const list = document.getElementById('taskList');
       if (!tasks.length) {
-        list.innerHTML = '<div class="empty">当前没有可选课时项</div>';
+        list.innerHTML = '<div class="empty">当前没有已排课次</div>';
         document.getElementById('selectedPane').innerHTML = '<div class="empty">先调整筛选</div>';
         return;
       }
@@ -137,7 +140,7 @@
           <div class="list-item-head">
             <div>
               <strong>${task.topic_name}</strong>
-              <div class="muted tiny">${task.week_label} · ${task.class_name} · ${task.day_label}${task.period}</div>
+              <div class="detail-text tiny">${task.week_label} · ${task.class_name} · ${task.day_label}${task.period}</div>
             </div>
             <span class="status ${statusClass(task)}">${task.status}</span>
           </div>
@@ -156,26 +159,26 @@
     }
 
     function renderSelected(task){
-      const desc = source.describeLatestDraft(task);
+      const desc = source.describeLatestPrepRun(task);
       document.getElementById('selectedPane').innerHTML = `
         <div class="identity-strip">
           <div class="identity-item"><small>当前课时</small><strong>${task.topic_name}</strong></div>
           <div class="identity-item"><small>班级 / 节次</small><strong>${task.class_name} · ${task.day_label}${task.period}</strong></div>
           <div class="identity-item"><small>作业链</small><strong>${task.assignment_required ? '是' : '否'}</strong></div>
-          <div class="identity-item"><small>草稿状态</small><strong>${desc.savedDraftLabel || '未开始'}</strong></div>
+          <div class="identity-item"><small>运行稿状态</small><strong>${desc.savedDraftLabel || '未开始'}</strong></div>
         </div>
         <div class="list" style="margin-top:14px">
-          <div class="list-item"><strong>当前状态</strong><div class="muted tiny">${task.status}</div></div>
-          <div class="list-item"><strong>上次完成情况</strong><div class="muted tiny">${task.completion_summary} · ${task.assignment_summary}</div></div>
-          <div class="list-item"><strong>当前风险</strong><div class="muted tiny">${task.risk_tag} · ${task.note}</div></div>
+          <div class="list-item"><strong>当前状态</strong><div class="detail-text tiny">${task.status}</div></div>
+          <div class="list-item"><strong>上次完成情况</strong><div class="detail-text tiny">${task.completion_summary} · ${task.assignment_summary}</div></div>
+          <div class="list-item"><strong>当前风险</strong><div class="guide-text">${task.risk_tag} · ${task.note}</div></div>
         </div>
-        <div class="inline-actions" style="margin-top:14px">
-          <button class="btn primary" type="button" id="goBriefBtn">${desc.draft ? '继续进入课前简报' : (flow === 'fast' ? '进入简短定向' : '进入课前简报')}</button>
+          <div class="inline-actions" style="margin-top:14px">
+          <button class="btn primary" type="button" id="goBriefBtn">${desc.draft ? '进入上课执行台' : '锁定并进入上课'}</button>
         </div>
       `;
       document.getElementById('goBriefBtn').onclick = () => {
-        source.writeLessonSelection(task);
-        window.location.href = briefHref(task);
+        source.writeCoursePlanSelection(task);
+        window.location.href = classroomHref(task);
       };
     }
 

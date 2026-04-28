@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课时设计</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas lesson-design-page">
+      <div class="page-head">
+        <div class="page-title">
+          <div class="saas-title-line">
+            <h1>课时设计</h1>
+            <span class="saas-title-meta" id="lessonProfileMeta"></span>
+          </div>
+          <p>先把课时内容母稿补完整，再决定何时挂到执行线。</p>
+        </div>
+        <div class="head-actions">
+          <a class="btn" id="backUnitBtn" href="design-center.html">返回单元设计</a>
+          <a class="btn" id="compareLessonBtn" href="design-compare.html">对比旧稿</a>
+          <button class="btn primary" type="button" id="saveLessonBtn">保存设计稿</button>
+        </div>
+      </div>
+
+      <section class="identity-strip" id="lessonIdentity"></section>
+
+      <section class="split" style="margin-top:16px">
+        <article class="section">
+          <article class="card editor-card">
+            <h2>课时定位</h2>
+            <div class="field">
+              <label>本课主题</label>
+              <textarea id="lessonTheme"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>单元承接说明</label>
+              <textarea id="lessonBridge"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>课时目标（每行一条）</label>
+              <textarea id="lessonGoals"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>重点与难点</label>
+              <textarea id="lessonFocus"></textarea>
+            </div>
+          </article>
+
+          <article class="card editor-card">
+            <h2>教学准备</h2>
+            <p class="section-note">这一块只放上课前需要准备的内容，不混入作业序号和学生提交信息。</p>
+            <div class="field">
+              <label>教师准备</label>
+              <textarea id="teacherPrepare"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>学生准备</label>
+              <textarea id="studentPrepare"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>资源与修订说明</label>
+              <textarea id="resourceNotes"></textarea>
+            </div>
+          </article>
+
+          <article class="card editor-card">
+            <h2>作业设计</h2>
+            <p class="section-note">这里定义内容层的作业与评价方案；作业序号、班级提交和学生评价留到教学执行中心生成。</p>
+            <div class="field">
+              <label>作业类型</label>
+              <select id="assignmentType">
+                <option value="绘画">绘画</option>
+                <option value="手工">手工</option>
+                <option value="综合">综合</option>
+                <option value="欣赏表达">欣赏表达</option>
+                <option value="无作业">无作业</option>
+              </select>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>作业要求</label>
+              <textarea id="assignmentRequirement"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <div class="evaluation-dimensions-head">
+                <label>作品评价维度</label>
+                <button class="btn soft evaluation-add-btn" type="button" id="addEvaluationDimensionBtn">＋ 添加维度</button>
+              </div>
+              <div class="evaluation-dimensions-grid" id="evaluationDimensionsEditor"></div>
+              <textarea id="assignmentDimensions" hidden></textarea>
+              <p class="section-note">默认显示 4 个维度，最多可展开 8 个备用维度。具体等级标准后续在小评里解析。</p>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>维度摘要</label>
+              <textarea id="dimensionSummary"></textarea>
+            </div>
+          </article>
+
+          <article class="card editor-card">
+            <h2>教学过程展开</h2>
+            <p class="section-note">每个环节单独展开教学目标、教师活动、学生活动、资源技术、输出与评价，保留接近真实教案的体量。</p>
+            <div id="processBoard" class="process-board"></div>
+          </article>
+        </article>
+
+        <aside class="section">
+          <article class="card panel-card">
+            <h2>单元信息</h2>
+            <div class="list" id="lessonUnitInfo"></div>
+          </article>
+          <article class="card status-card">
+            <h2>当前状态</h2>
+            <div class="list" id="lessonStatus"></div>
+          </article>
+          <article class="card panel-card">
+            <h2>下一步</h2>
+            <div class="inline-actions" id="lessonNextActions"></div>
+          </article>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="content-library-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'lesson_design', title:'课时设计', assistant:'lesson_design' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const contentLibraryDesign = window.XIAOBEI_CONTENT_LIBRARY_REAL_DATA_V1?.design || null;
+    const params = new URLSearchParams(window.location.search);
+    const profile = CLEAN_PROTO.ensureProfile();
+    const DEFAULT_EVALUATION_DIMENSIONS = 4;
+    const MAX_EVALUATION_DIMENSIONS = 8;
+    let visibleEvaluationDimensionCount = DEFAULT_EVALUATION_DIMENSIONS;
+    document.getElementById('lessonProfileMeta').textContent = `${profile.teacherName || '徐涛老师'} · ${profile.teachingGrades || '三年级、四年级'}美术`;
+
+    function splitLines(value){
+      return String(value || '').split(/\r?\n/).map(item => item.trim()).filter(Boolean);
+    }
+
+    function dimensionLinesFromText(value){
+      const text = Array.isArray(value) ? value.join('\n') : String(value || '');
+      return text
+        .split(/\r?\n|\/|、|，|,|；|;/)
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    function inferAssignmentType(lesson){
+      const text = `${lesson?.assignment_title || ''} ${lesson?.assignment_requirement || ''} ${lesson?.topic_name || ''}`;
+      if (/(手工|制作|立体|剪贴|拼贴|折纸|纸工|泥塑|模型)/.test(text)) return '手工';
+      if (/(欣赏|讲述|表达|评价|说明|感受)/.test(text) && !/(绘|画|创作|色彩|构图)/.test(text)) return '欣赏表达';
+      if (/(绘画|画|色彩|山水|速写|构图|创作|小稿|草图)/.test(text)) return '绘画';
+      if (/无作业|未设/.test(text)) return '无作业';
+      return '综合';
+    }
+
+    function escapeHtml(value){
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function findCurrentLesson(){
+      const lessonDesignId = params.get('lesson_design_id');
+      return source.findLessonDesign({ lesson_design_id: lessonDesignId }) || source.listLessonDesigns()[0];
+    }
+
+    function findContentLibraryLesson(lessonDesignId){
+      const list = contentLibraryDesign?.lessonDesigns || [];
+      return list.find(item => item.lesson_design_id === lessonDesignId) || null;
+    }
+
+    function mergeProcessSteps(currentSteps, baseSteps){
+      const current = Array.isArray(currentSteps) ? currentSteps : [];
+      const base = Array.isArray(baseSteps) ? baseSteps : [];
+      const max = Math.max(current.length, base.length);
+      return Array.from({ length: max }, (_, index) => ({
+        ...(base[index] || {}),
+        ...(current[index] || {})
+      }));
+    }
+
+    function renderProcessRows(steps){
+      document.getElementById('processBoard').innerHTML = (steps || []).map((step, index) => `
+        <article class="process-card" data-step-index="${index}">
+          <div class="process-card-head">
+            <div class="process-card-index">环节 ${index + 1}</div>
+            <div class="process-card-head-fields">
+              <div class="field compact">
+                <label>环节名称</label>
+                <input data-field="step_name" value="${escapeHtml(step.step_name || '')}">
+              </div>
+              <div class="field compact">
+                <label>环节类型</label>
+                <input data-field="step_type" value="${escapeHtml(step.step_type || '')}">
+              </div>
+              <div class="field compact">
+                <label>建议时长</label>
+                <input data-field="duration" value="${escapeHtml(step.duration || '')}">
+              </div>
+              <div class="field compact">
+                <label>环节来源</label>
+                <input data-field="source_type" value="${escapeHtml(step.source_type || '')}">
+              </div>
+            </div>
+          </div>
+
+          <div class="process-grid">
+            <div class="field">
+              <label>环节目标</label>
+              <textarea data-field="step_goal">${escapeHtml(step.step_goal || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>成功标准</label>
+              <textarea data-field="success_standard">${escapeHtml(step.success_standard || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>教师活动</label>
+              <textarea data-field="teacher_action">${escapeHtml(step.teacher_action || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>学生活动</label>
+              <textarea data-field="student_task">${escapeHtml(step.student_task || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>材料需求</label>
+              <textarea data-field="material">${escapeHtml(step.material || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>PPT / 技术支持</label>
+              <textarea data-field="ppt">${escapeHtml(step.ppt || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>引导问题</label>
+              <textarea data-field="guiding_questions">${escapeHtml(step.guiding_questions || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>输出成果</label>
+              <textarea data-field="output_result">${escapeHtml(step.output_result || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>评价提示</label>
+              <textarea data-field="feedback_hint">${escapeHtml(step.feedback_hint || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>AI / 信息化应用</label>
+              <textarea data-field="ai_support">${escapeHtml(step.ai_support || '')}</textarea>
+            </div>
+          </div>
+
+          <div class="process-card-foot">
+            <span class="pill grey">信息化关键环节：${step.digital_focus ? escapeHtml(step.digital_focus) : '否'}</span>
+            <input type="hidden" data-field="digital_focus" value="${escapeHtml(step.digital_focus || '')}">
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function collectProcessRows(){
+      return Array.from(document.querySelectorAll('#processBoard .process-card')).map(row => {
+        return {
+          step_name: row.querySelector('[data-field="step_name"]').value,
+          step_type: row.querySelector('[data-field="step_type"]').value,
+          duration: row.querySelector('[data-field="duration"]').value,
+          source_type: row.querySelector('[data-field="source_type"]').value,
+          step_goal: row.querySelector('[data-field="step_goal"]').value,
+          success_standard: row.querySelector('[data-field="success_standard"]').value,
+          teacher_action: row.querySelector('[data-field="teacher_action"]').value,
+          student_task: row.querySelector('[data-field="student_task"]').value,
+          material: row.querySelector('[data-field="material"]').value,
+          ppt: row.querySelector('[data-field="ppt"]').value,
+          guiding_questions: row.querySelector('[data-field="guiding_questions"]').value,
+          output_result: row.querySelector('[data-field="output_result"]').value,
+          feedback_hint: row.querySelector('[data-field="feedback_hint"]').value,
+          ai_support: row.querySelector('[data-field="ai_support"]').value,
+          digital_focus: row.querySelector('[data-field="digital_focus"]') ? row.querySelector('[data-field="digital_focus"]').value : ''
+        };
+      });
+    }
+
+    function flashField(node){
+      const field = node && node.closest ? node.closest('.field, .process-card, .identity-item') : null;
+      if (!field) return;
+      field.classList.add('assistant-fill-flash');
+      window.setTimeout(() => field.classList.remove('assistant-fill-flash'), 1400);
+    }
+
+    function evaluationDimensionInputs(){
+      return Array.from(document.querySelectorAll('[data-evaluation-dimension]'));
+    }
+
+    function collectEvaluationDimensions(){
+      return evaluationDimensionInputs().map(node => node.value.trim()).filter(Boolean);
+    }
+
+    function syncAssignmentDimensionsTextarea(){
+      const node = document.getElementById('assignmentDimensions');
+      if (node) node.value = collectEvaluationDimensions().join('\n');
+    }
+
+    function updateEvaluationDimensionVisibility(){
+      Array.from(document.querySelectorAll('.evaluation-dimension-field')).forEach((field, index) => {
+        field.hidden = index >= visibleEvaluationDimensionCount;
+        const removeButton = field.querySelector('[data-remove-evaluation-dimension]');
+        if (removeButton) removeButton.hidden = index < DEFAULT_EVALUATION_DIMENSIONS;
+      });
+      const button = document.getElementById('addEvaluationDimensionBtn');
+      if (button) {
+        button.hidden = visibleEvaluationDimensionCount >= MAX_EVALUATION_DIMENSIONS;
+        button.textContent = `＋ 添加维度 ${visibleEvaluationDimensionCount}/${MAX_EVALUATION_DIMENSIONS}`;
+      }
+    }
+
+    function revealEvaluationDimension(){
+      visibleEvaluationDimensionCount = Math.min(MAX_EVALUATION_DIMENSIONS, visibleEvaluationDimensionCount + 1);
+      updateEvaluationDimensionVisibility();
+      const nextInput = evaluationDimensionInputs()[visibleEvaluationDimensionCount - 1];
+      if (nextInput) nextInput.focus();
+    }
+
+    function removeEvaluationDimension(index){
+      if (index < DEFAULT_EVALUATION_DIMENSIONS) return;
+      const values = evaluationDimensionInputs().map(node => node.value.trim());
+      const previousVisibleCount = visibleEvaluationDimensionCount;
+      values.splice(index, 1);
+      values.push('');
+      const nextVisibleCount = Math.max(
+        DEFAULT_EVALUATION_DIMENSIONS,
+        Math.min(MAX_EVALUATION_DIMENSIONS, previousVisibleCount - 1)
+      );
+      renderEvaluationDimensionEditor(values, { visibleCount: nextVisibleCount });
+      syncAssignmentDimensionsTextarea();
+    }
+
+    function normalizeEvaluationDimensionSlots(value){
+      const slots = Array.isArray(value)
+        ? value.slice(0, MAX_EVALUATION_DIMENSIONS).map(item => String(item || '').trim())
+        : dimensionLinesFromText(value).slice(0, MAX_EVALUATION_DIMENSIONS);
+      while (slots.length < MAX_EVALUATION_DIMENSIONS) slots.push('');
+      return slots;
+    }
+
+    function renderEvaluationDimensionEditor(value, options = {}){
+      const dimensions = normalizeEvaluationDimensionSlots(value);
+      const editor = document.getElementById('evaluationDimensionsEditor');
+      if (!editor) return;
+      const placeholders = ['构图', '色彩', '创意构思', '线条表现', '细节刻画', '主题表达', '材料运用', '展示表达'];
+      const requestedVisibleCount = Number(options.visibleCount);
+      const filledCount = dimensions.filter(Boolean).length;
+      visibleEvaluationDimensionCount = Number.isFinite(requestedVisibleCount)
+        ? Math.max(DEFAULT_EVALUATION_DIMENSIONS, Math.min(MAX_EVALUATION_DIMENSIONS, requestedVisibleCount))
+        : Math.max(DEFAULT_EVALUATION_DIMENSIONS, Math.min(MAX_EVALUATION_DIMENSIONS, filledCount || DEFAULT_EVALUATION_DIMENSIONS));
+      editor.innerHTML = Array.from({ length: MAX_EVALUATION_DIMENSIONS }, (_, index) => `
+        <div class="field compact evaluation-dimension-field" ${index >= visibleEvaluationDimensionCount ? 'hidden' : ''}>
+          <div class="evaluation-dimension-row-head">
+            <label>维度 ${index + 1}</label>
+            <button class="evaluation-remove-btn" type="button" data-remove-evaluation-dimension="${index}" ${index < DEFAULT_EVALUATION_DIMENSIONS ? 'hidden' : ''}>－</button>
+          </div>
+          <input data-evaluation-dimension value="${escapeHtml(dimensions[index] || '')}" placeholder="例如：${placeholders[index]}">
+        </div>
+      `).join('');
+      evaluationDimensionInputs().forEach(input => {
+        input.addEventListener('input', syncAssignmentDimensionsTextarea);
+      });
+      const button = document.getElementById('addEvaluationDimensionBtn');
+      if (button) button.onclick = revealEvaluationDimension;
+      editor.querySelectorAll('[data-remove-evaluation-dimension]').forEach(button => {
+        button.addEventListener('click', () => removeEvaluationDimension(Number(button.dataset.removeEvaluationDimension || 0)));
+      });
+      syncAssignmentDimensionsTextarea();
+      updateEvaluationDimensionVisibility();
+    }
+
+    function appendEvaluationDimensionValues(lines){
+      const incoming = dimensionLinesFromText(lines).slice(0, MAX_EVALUATION_DIMENSIONS);
+      if (!incoming.length) return false;
+      const merged = collectEvaluationDimensions();
+      incoming.forEach(item => {
+        if (item && !merged.includes(item) && merged.length < MAX_EVALUATION_DIMENSIONS) merged.push(item);
+      });
+      if (merged.join('\n') === collectEvaluationDimensions().join('\n')) return false;
+      visibleEvaluationDimensionCount = Math.max(DEFAULT_EVALUATION_DIMENSIONS, Math.min(MAX_EVALUATION_DIMENSIONS, merged.length));
+      renderEvaluationDimensionEditor(merged);
+      flashField(document.getElementById('evaluationDimensionsEditor'));
+      return true;
+    }
+
+    function appendMissingLines(textareaId, lines){
+      const node = document.getElementById(textareaId);
+      if (!node) return false;
+      const existing = splitLines(node.value);
+      const merged = [...existing];
+      lines.forEach(line => {
+        if (line && !merged.includes(line)) merged.push(line);
+      });
+      if (merged.join('\n') === existing.join('\n')) return false;
+      node.value = merged.join('\n');
+      node.dispatchEvent(new Event('input', { bubbles:true }));
+      flashField(node);
+      return true;
+    }
+
+    function appendEvaluationLines(lines){
+      const dimensionLines = [];
+      const summaryLines = [];
+      (Array.isArray(lines) ? lines : []).forEach(line => {
+        const text = String(line || '').trim();
+        if (!text) return;
+        if (/评价维度/.test(text)) {
+          dimensionLines.push(...dimensionLinesFromText(text.replace(/^评价维度\s*[：:]/, '')));
+          return;
+        }
+        if (/评价提示|维度摘要|评价摘要/.test(text) && !/评价维度/.test(text)) {
+          summaryLines.push(text);
+        } else {
+          dimensionLines.push(text);
+        }
+      });
+      const dimensionChanged = appendEvaluationDimensionValues(dimensionLines);
+      const summaryChanged = appendMissingLines('dimensionSummary', summaryLines);
+      return dimensionChanged || summaryChanged;
+    }
+
+    function ensureBaseProcessTemplate(){
+      const baseNames = ['课前角色调查与分组','教学导入','欣赏与解析','实践与探索','手绘创作','作品展示与评价','结束与拓展'];
+      const rows = collectProcessRows();
+      const existingNames = new Set(rows.map(item => String(item.step_name || '').trim()).filter(Boolean));
+      const additions = baseNames
+        .filter(name => !existingNames.has(name))
+        .map(name => ({
+          step_name: name,
+          step_type: '',
+          duration: '',
+          source_type: '模板补全',
+          step_goal: '',
+          success_standard: '',
+          teacher_action: '',
+          student_task: '',
+          material: '',
+          ppt: '',
+          guiding_questions: '',
+          output_result: '',
+          feedback_hint: '',
+          ai_support: '',
+          digital_focus: ''
+        }));
+      if (!additions.length) return false;
+      renderProcessRows([...rows, ...additions]);
+      const lastCard = document.querySelector('#processBoard .process-card:last-child');
+      flashField(lastCard);
+      return true;
+    }
+
+    function applyGeneratedProcessRows(generatedSteps, targetStepName = ''){
+      const steps = Array.isArray(generatedSteps) ? generatedSteps : [];
+      if (!steps.length) return false;
+      ensureBaseProcessTemplate();
+      const normalizedTarget = String(targetStepName || '').trim();
+      let changed = false;
+      steps.forEach(step => {
+        const stepName = String(step.step_name || '').trim();
+        if (!stepName) return;
+        if (normalizedTarget && stepName !== normalizedTarget) return;
+        const card = Array.from(document.querySelectorAll('#processBoard .process-card')).find(node => {
+          const nameNode = node.querySelector('[data-field="step_name"]');
+          return String(nameNode?.value || '').trim() === stepName;
+        });
+        if (!card) return;
+        let cardChanged = false;
+        [
+          'step_goal',
+          'teacher_action',
+          'student_task',
+          'material',
+          'ppt',
+          'guiding_questions',
+          'output_result',
+          'feedback_hint',
+          'ai_support',
+          'success_standard'
+        ].forEach(field => {
+          const node = card.querySelector(`[data-field="${field}"]`);
+          const incoming = String(step[field] || '').trim();
+          if (node && incoming && !String(node.value || '').trim()) {
+            node.value = incoming;
+            cardChanged = true;
+            changed = true;
+          }
+        });
+        if (cardChanged) flashField(card);
+      });
+      return changed;
+    }
+
+    function applyGeneratedLessonPayload(generated, scope = {}){
+      if (!generated || typeof generated !== 'object') return false;
+      const normalizedField = String(scope.targetField || '').trim();
+      const normalizedStep = String(scope.targetStepName || '').trim();
+      const allowField = expected => !normalizedField || normalizedField === expected;
+      const goalChanged = allowField('lesson_goals') && Array.isArray(generated.lesson_goals)
+        ? appendMissingLines('lessonGoals', generated.lesson_goals)
+        : false;
+      const assignmentChanged = allowField('assignment_requirement') && Array.isArray(generated.assignment_lines)
+        ? appendMissingLines('assignmentRequirement', generated.assignment_lines)
+        : false;
+      const dimensionChanged = allowField('dimension_summary') && Array.isArray(generated.dimension_lines)
+        ? appendEvaluationLines(generated.dimension_lines)
+        : false;
+      const resourceChanged = allowField('resource_notes') && Array.isArray(generated.resource_lines)
+        ? appendMissingLines('resourceNotes', generated.resource_lines)
+        : false;
+      const processChanged = (!normalizedField || normalizedField === 'lesson_process')
+        ? applyGeneratedProcessRows(generated.process_steps, normalizedStep)
+        : false;
+      return goalChanged || assignmentChanged || dimensionChanged || resourceChanged || processChanged;
+    }
+
+    function render(){
+      const currentLesson = findCurrentLesson();
+      if (!currentLesson) return;
+      const baseLesson = findContentLibraryLesson(currentLesson.lesson_design_id);
+      const lesson = {
+        ...(baseLesson || {}),
+        ...currentLesson,
+        process_steps: mergeProcessSteps(currentLesson.process_steps, baseLesson?.process_steps)
+      };
+      const unit = source.findUnitPackage({ unit_id: lesson.unit_id });
+      CLEAN_PROTO.updateDesignContextNav({ grade: lesson.grade_scope, unitId: lesson.unit_id, lessonDesignId: lesson.lesson_design_id });
+      document.getElementById('backUnitBtn').href = unit ? `unit-design.html?unit_id=${unit.unit_id}` : 'design-center.html';
+      document.getElementById('compareLessonBtn').href = `design-compare.html?type=lesson&lesson_design_id=${lesson.lesson_design_id}`;
+      document.getElementById('lessonIdentity').innerHTML = `
+        <div class="identity-item"><small>课时名称</small><strong>${lesson.topic_name}</strong></div>
+        <div class="identity-item"><small>所属单元</small><strong>${lesson.unit_name}</strong></div>
+        <div class="identity-item"><small>年级 / 课时</small><strong>${lesson.grade_scope} · ${lesson.lesson_no}</strong></div>
+        <div class="identity-item"><small>当前层</small><strong>${source.getDesignSourceLabel(lesson)}</strong></div>
+      `;
+      document.getElementById('lessonTheme').value = lesson.theme || '';
+      document.getElementById('lessonBridge').value = lesson.unit_bridge || '';
+      document.getElementById('lessonGoals').value = (lesson.lesson_goals || []).join('\n');
+      document.getElementById('lessonFocus').value = lesson.focus_difficulty || '';
+      document.getElementById('teacherPrepare').value = lesson.teacher_prepare || '';
+      document.getElementById('studentPrepare').value = lesson.student_prepare || '';
+      document.getElementById('assignmentType').value = lesson.assignment_type || inferAssignmentType(lesson);
+      document.getElementById('assignmentRequirement').value = lesson.assignment_requirement || '';
+      renderEvaluationDimensionEditor(lesson.evaluation_dimensions || lesson.dimension_summary);
+      document.getElementById('dimensionSummary').value = lesson.key_points || '';
+      document.getElementById('resourceNotes').value = `${lesson.resource_notes || ''}\n${lesson.revision_notes || ''}`.trim();
+      renderProcessRows(lesson.process_steps);
+      document.getElementById('lessonUnitInfo').innerHTML = `
+        <div class="list-item"><strong>单元核心任务</strong><div class="guide-text">${unit ? unit.core_task : '当前无单元信息'}</div></div>
+        <div class="list-item"><strong>作业与评价</strong><div class="detail-text tiny">${lesson.assignment_title ? `${lesson.assignment_title} · ${lesson.assignment_label || lesson.assignment_code}` : (lesson.assignment_label || lesson.assignment_code)}</div></div>
+      `;
+      document.getElementById('lessonStatus').innerHTML = `
+        <div class="list-item"><strong>当前来源</strong><div class="detail-text tiny">${source.getDesignSourceLabel(lesson)}</div></div>
+        <div class="list-item"><strong>最近保存</strong><div class="detail-text tiny">${lesson.saved_at ? new Date(lesson.saved_at).toLocaleString('zh-CN', { hour12:false }) : '当前还没有本地保存记录'}</div></div>
+        <div class="list-item"><strong>版本同步</strong><div class="detail-text tiny">${source.getDesignSyncSummary(lesson)}</div></div>
+        <div class="list-item"><strong>执行挂接</strong><div class="guide-text">${lesson.linked_execution || '待挂接到执行线'}</div></div>
+      `;
+      const executionQuery = new URLSearchParams({
+        lesson_design_id: lesson.lesson_design_id,
+        topic_name: lesson.topic_name
+      }).toString();
+      document.getElementById('lessonNextActions').innerHTML = `
+        <span class="pill ${lesson.version_sync_status === 'saved' ? 'green' : (lesson.version_sync_status === 'local_only' ? 'amber' : 'grey')}">${source.getDesignSyncSummary(lesson)}</span>
+        <a class="btn primary" href="calendar.html?from=design&${executionQuery}">挂到学期安排</a>
+        <a class="btn" href="picker.html">去执行中心选课</a>
+      `;
+      const summarizeUploads = uploads => (Array.isArray(uploads) ? uploads.filter(item => item?.name).slice(-2).map(item => item.name).join('、') : '');
+      function lessonVariantBundle(variant){
+        const bundles = {
+          standard: {
+            goals:['理解目标：理解本课主题与画面线索。', '过程目标：完成观察、练习与表达。', '输出目标：形成一件完整作品。'],
+            assignment:['输出成果：完成本课作品。'],
+            dimensions:['主题表达', '画面构图', '完成度'],
+            dimensionSummary:['评价提示：关注完成度与表达是否清楚。'],
+            resources:['AI/信息化支持：用于展示与辅助理解。', '平台/资源入口：课堂资料与示范图。', '补充资料清单：示范图、作品范例。']
+          },
+          digital: {
+            goals:['理解目标：理解本课主题与数字资料中的关键线索。', '过程目标：结合平台资料完成观察、探究与创作。', '输出目标：形成作品并能借助数字工具展示。'],
+            assignment:['输出成果：完成作品并提交到平台。'],
+            dimensions:['主题表达', '信息化运用', '作品完成度'],
+            dimensionSummary:['评价提示：关注作品表达和数字工具使用是否有效。'],
+            resources:['AI/信息化支持：问卷、资源包、AI转绘或平台展示。', '平台/资源入口：班级平台 / 资源包 / 上传入口。', '补充资料清单：视频、示范图、平台任务单。']
+          },
+          showcase: {
+            goals:['理解目标：抓住主题意图与展示重点。', '过程目标：在讨论、创作与展示中逐步完善作品。', '输出目标：形成可展示、可讲述的完整作品。'],
+            assignment:['输出成果：完成展示作品并进行讲述。'],
+            dimensions:['创意表达', '展示讲述', '画面组织'],
+            dimensionSummary:['评价提示：关注作品亮点、表达逻辑与展示效果。'],
+            resources:['AI/信息化支持：展示、点评和作品放大观看。', '平台/资源入口：展示屏 / 评价记录 / 作品墙。', '补充资料清单：展示模板、点评话术、参考作品。']
+          }
+        };
+        return bundles[variant] || bundles.standard;
+      }
+
+      function lessonPreviewChoices(actionKey){
+        if (['fast_generate_lesson', 'fast_generate_process', 'fast_generate_resources', 'lesson_goals', 'lesson_process', 'lesson_digital', 'lesson_assignment'].includes(actionKey)) {
+          return [
+            { title:'常规稳妥版', summary:'先补一版结构完整、课堂可直接使用的常规底稿。', actionPatch:{ variant:'standard' } },
+            { title:'信息化加强版', summary:'更强调平台资料、数字展示和 AI/信息化支撑。', actionPatch:{ variant:'digital' } },
+            { title:'公开展示版', summary:'更强调讲述、展示、点评和成果呈现。', actionPatch:{ variant:'showcase' } }
+          ];
+        }
+        return [];
+      }
+
+      function applyProcessBlueprint(variant, targetStepName = ''){
+        ensureBaseProcessTemplate();
+        const normalizedTarget = String(targetStepName || '').trim();
+        const blueprints = {
+          standard: {
+            '课前角色调查与分组': { step_goal:'明确角色与学习分工。', teacher_action:'说明分组要求与分工方式。', student_task:'按要求进入角色与小组。', output_result:'完成分组并明确任务。', feedback_hint:'看是否都进入学习角色。 ' },
+            '教学导入': { step_goal:'激活主题经验，进入本课情境。', teacher_action:'通过图片、问题或故事导入主题。', student_task:'观察、回应并提出初步判断。', guiding_questions:'你首先注意到了什么？', output_result:'形成主题关注点。 ' },
+            '欣赏与解析': { step_goal:'看懂作品中的构图、色彩或主题表达。', teacher_action:'引导学生比较、分析典型作品。', student_task:'说出观察到的画面特点。', success_standard:'能说出至少1-2个关键特点。 ' },
+            '实践与探索': { step_goal:'尝试技法、构图或材料组合。', teacher_action:'示范关键步骤并提示常见问题。', student_task:'完成练习或局部尝试。', output_result:'形成练习结果或草图。 ' },
+            '手绘创作': { step_goal:'完成主题创作。', teacher_action:'巡回指导，提示表达重点。', student_task:'独立或合作完成作品。', success_standard:'作品能基本表达主题。 ' },
+            '作品展示与评价': { step_goal:'通过展示和评价进一步完善理解。', teacher_action:'组织展示、互评和教师点评。', student_task:'介绍作品并回应同伴建议。', feedback_hint:'先看主题表达，再看构图与表现。 ' },
+            '结束与拓展': { step_goal:'回收本课重点并引向后续延伸。', teacher_action:'总结本课并提出拓展任务。', student_task:'回顾收获，明确下一步。', output_result:'形成课后延伸方向。 ' }
+          },
+          digital: {
+            '课前角色调查与分组': { step_goal:'基于问卷或任务单完成角色分配。', teacher_action:'根据预先收集的数据分组。', student_task:'查看自己的角色与任务。', ai_support:'问卷/分组数据', output_result:'形成角色分组结果。 ' },
+            '教学导入': { step_goal:'借助数字资料快速进入情境。', teacher_action:'调取视频、图片或互动资源导入。', student_task:'边看边说出第一印象。', ppt:'视频/PPT/平台资源', guiding_questions:'资料里哪一点最打动你？ ' },
+            '欣赏与解析': { step_goal:'在数字资料支撑下理解画面与主题。', teacher_action:'放大局部、切换资料、对比分析。', student_task:'结合资料说出自己的理解。', ai_support:'图像放大 / 平台对比', success_standard:'能借助资料说出关键依据。 ' },
+            '实践与探索': { step_goal:'结合资源包尝试表达方式。', teacher_action:'提供资源包并提示探索路径。', student_task:'完成局部练习或拼贴尝试。', material:'资源包 / 练习纸', output_result:'形成探索结果。 ' },
+            '手绘创作': { step_goal:'完成作品并尝试数字展示。', teacher_action:'指导创作并提示上传或转绘方式。', student_task:'完成作品、准备展示材料。', ai_support:'上传 / AI转绘 / 数字展示', success_standard:'作品完成且可进入展示。 ' },
+            '作品展示与评价': { step_goal:'结合平台展示进行评价。', teacher_action:'组织平台上传、展示和点评。', student_task:'上传作品、互看互评。', ppt:'展示屏 / 班级平台', feedback_hint:'先看主题表达，再看数字展示是否有效。 ' },
+            '结束与拓展': { step_goal:'回顾信息化支持带来的帮助。', teacher_action:'总结资料、工具和表达的关系。', student_task:'说出最有帮助的一项工具或资料。', output_result:'形成可延续的数字资料线索。 ' }
+          },
+          showcase: {
+            '课前角色调查与分组': { step_goal:'明确展示任务与合作角色。', teacher_action:'按展示任务分组。', student_task:'确认各自负责的展示部分。', output_result:'形成展示分工。 ' },
+            '教学导入': { step_goal:'迅速建立面向展示的主题感。', teacher_action:'用故事、作品或问题导向展示主题。', student_task:'判断这节课最值得展示的亮点。', guiding_questions:'如果要展示，你最想突出哪一点？ ' },
+            '欣赏与解析': { step_goal:'提炼可展示的构图和表达亮点。', teacher_action:'引导学生寻找“可讲”的画面亮点。', student_task:'说出最能代表主题的细节。', success_standard:'能说出一个值得展示的亮点。 ' },
+            '实践与探索': { step_goal:'围绕展示效果优化草图或局部。', teacher_action:'提示哪些部分最影响观感。', student_task:'调整画面重点与展示方式。', output_result:'形成更适合展示的尝试稿。 ' },
+            '手绘创作': { step_goal:'完成有展示感的完整作品。', teacher_action:'围绕展示效果进行个别指导。', student_task:'强化重点、整理作品呈现。', success_standard:'作品有清晰亮点与展示点。 ' },
+            '作品展示与评价': { step_goal:'完成作品讲述与公开评价。', teacher_action:'组织学生展示、讲述和互评。', student_task:'介绍作品亮点并回应评价。', feedback_hint:'先听讲述，再看作品亮点和表达逻辑。 ' },
+            '结束与拓展': { step_goal:'回收本课亮点并过渡到下一次展示。', teacher_action:'总结本课的展示经验。', student_task:'记录最满意的一点和下次想改的一点。', output_result:'形成展示反思。 ' }
+          }
+        };
+        const template = blueprints[variant] || blueprints.standard;
+        let changed = false;
+        Array.from(document.querySelectorAll('#processBoard .process-card')).forEach(card => {
+          const stepName = String(card.querySelector('[data-field="step_name"]')?.value || '').trim();
+          if (normalizedTarget && stepName !== normalizedTarget) return;
+          const seed = template[stepName];
+          if (!seed) return;
+          let cardChanged = false;
+          Object.entries(seed).forEach(([field, value]) => {
+            const node = card.querySelector(`[data-field="${field}"]`);
+            if (node && !String(node.value || '').trim() && value) {
+              node.value = value;
+              changed = true;
+              cardChanged = true;
+            }
+          });
+          if (cardChanged) flashField(card);
+        });
+        return changed;
+      }
+
+      CLEAN_PROTO.registerAssistantBridge({
+        getWorkbench: (mode, options = {}) => {
+          const uploadSummary = summarizeUploads(options.uploads);
+          if (mode === 'fast') {
+            return {
+              title:'速备主笔',
+              focus:'先快速起一版课时底稿，再进入具体打磨和改写。',
+              summary:`${lesson.topic_name} · ${lesson.lesson_no} · ${lesson.lesson_type || '课时内容'} · ${lesson.process_steps?.length || 0} 段过程${uploadSummary ? ` · 已参考：${uploadSummary}` : ''}`,
+              context: [
+                { label:'当前年级', value: lesson.grade_scope || '未设置' },
+                { label:'所属单元', value: unit?.unit_name || lesson.unit_name || '未设置' },
+                { label:'当前课时', value: `${lesson.lesson_no} · ${lesson.topic_name}` },
+                { label:'模式用途', value: '快速起课时稿' },
+                ...(uploadSummary ? [{ label:'已参考资料', value: uploadSummary }] : [])
+              ],
+              actions:[
+                {
+                  key:'fast_generate_lesson',
+                  title:'一键生成课时底稿',
+                  helper:'补齐课时目标、7 段过程、作评骨架和信息化支撑提示。',
+                  output:'我会先在左侧把课时目标、教学过程、作评和资源骨架一起拉起。'
+                },
+                {
+                  key:'fast_generate_process',
+                  title:'一键生成 7 段过程',
+                  helper:'按美术课基础结构，补齐 7 段教学过程模板。',
+                  output:'我会直接把 7 段式教学过程补进当前课时设计。'
+                },
+                {
+                  key:'fast_generate_resources',
+                  title:'补资源与信息化支撑',
+                  helper:'把资源入口、平台工具和 AI 支撑提示一起补齐。',
+                  output:'我会把资源与信息化支撑的基础骨架补到当前课时里。'
+                }
+              ]
+            };
+          }
+          const workbench = source.buildLessonAiWorkbench(lesson, unit);
+          if (uploadSummary) {
+            workbench.summary = `${workbench.summary} 当前已参考：${uploadSummary}。`;
+            workbench.context = [...(workbench.context || []), { label:'已参考资料', value: uploadSummary }];
+          }
+          return workbench;
+        },
+        getAssistantSnapshot(){
+          return {
+            entity_type:'lesson',
+            lesson_design_id: lesson.lesson_design_id,
+            unit_id: lesson.unit_id,
+            unit_name: unit?.unit_name || lesson.unit_name || '',
+            grade_scope: lesson.grade_scope || '',
+            lesson_no: lesson.lesson_no || '',
+            topic_name: lesson.topic_name || '',
+            lesson_type: lesson.lesson_type || '',
+            linked_execution: lesson.linked_execution || '',
+            theme: document.getElementById('lessonTheme').value.trim(),
+            unit_bridge: document.getElementById('lessonBridge').value.trim(),
+            lesson_goals: splitLines(document.getElementById('lessonGoals').value),
+            focus_difficulty: document.getElementById('lessonFocus').value.trim(),
+            teacher_prepare: document.getElementById('teacherPrepare').value.trim(),
+            student_prepare: document.getElementById('studentPrepare').value.trim(),
+            assignment_type: document.getElementById('assignmentType').value,
+            assignment_requirement: document.getElementById('assignmentRequirement').value.trim(),
+            assignment_dimensions: collectEvaluationDimensions(),
+            dimension_summary: collectEvaluationDimensions().join('\n'),
+            evaluation_summary: document.getElementById('dimensionSummary').value.trim(),
+            evaluation_scheme: {
+              assignment_type: document.getElementById('assignmentType').value,
+              dimensions: collectEvaluationDimensions(),
+              summary: document.getElementById('dimensionSummary').value.trim()
+            },
+            resource_notes: document.getElementById('resourceNotes').value.trim(),
+            process_steps: collectProcessRows().map(step => ({
+              step_name: step.step_name,
+              step_goal: step.step_goal,
+              teacher_action: step.teacher_action,
+              student_task: step.student_task,
+              output_result: step.output_result,
+              ai_support: step.ai_support,
+              ppt: step.ppt
+            }))
+          };
+        },
+        previewAction(actionKey){
+          return lessonPreviewChoices(actionKey);
+        },
+        applyAction(actionKey, action, mode){
+          const generated = action?.generated || null;
+          const bundle = lessonVariantBundle(action?.variant);
+          const targetField = String(action?.targetField || '').trim();
+          const targetStepName = String(action?.targetStepName || '').trim();
+          if (actionKey === 'fast_generate_lesson') {
+            const generatedChanged = applyGeneratedLessonPayload(generated, { targetField, targetStepName });
+            const goalChanged = appendMissingLines('lessonGoals', bundle.goals);
+            const processChanged = ensureBaseProcessTemplate();
+            const processDetailChanged = applyProcessBlueprint(action?.variant, targetStepName);
+            const requirementChanged = appendMissingLines('assignmentRequirement', bundle.assignment);
+            const dimensionChanged = appendEvaluationDimensionValues(bundle.dimensions);
+            const dimensionSummaryChanged = appendMissingLines('dimensionSummary', bundle.dimensionSummary);
+            const digitalChanged = appendMissingLines('resourceNotes', bundle.resources);
+            return { type:'message', text: generatedChanged || goalChanged || processChanged || processDetailChanged || requirementChanged || dimensionChanged || dimensionSummaryChanged || digitalChanged ? `已按“${action?.choiceTitle || '当前'}”补了一版课时底稿。` : '当前课时已经具备这套底稿。' };
+          }
+          if (actionKey === 'fast_generate_process') {
+            const generatedChanged = applyGeneratedProcessRows(generated?.process_steps, targetStepName);
+            const changed = ensureBaseProcessTemplate();
+            const detailChanged = applyProcessBlueprint(action?.variant, targetStepName);
+            const stepLabel = targetStepName ? `“${targetStepName}”环节` : '7 段教学过程';
+            return { type:'message', text: generatedChanged || changed || detailChanged ? `已按“${action?.choiceTitle || '当前'}”补了${stepLabel}。` : `当前课时已经具备这套${stepLabel}。` };
+          }
+          if (actionKey === 'fast_generate_resources') {
+            const generatedChanged = applyGeneratedLessonPayload(generated, { targetField: targetField || 'resource_notes' });
+            const changed = appendMissingLines('resourceNotes', bundle.resources);
+            return { type:'message', text: generatedChanged || changed ? `已按“${action?.choiceTitle || '当前'}”补了资源与信息化支撑。` : '资源与信息化支撑骨架已经在页面里了。' };
+          }
+          if (actionKey === 'lesson_goals') {
+            const generatedChanged = applyGeneratedLessonPayload(generated, { targetField: targetField || 'lesson_goals' });
+            const changed = appendMissingLines('lessonGoals', bundle.goals);
+            return { type:'message', text: generatedChanged || changed ? `已按“${action?.choiceTitle || '当前'}”补了课时目标。` : '课时目标骨架已经在左侧了。' };
+          }
+          if (actionKey === 'lesson_process') {
+            const generatedChanged = applyGeneratedProcessRows(generated?.process_steps, targetStepName);
+            const changed = ensureBaseProcessTemplate();
+            const detailChanged = applyProcessBlueprint(action?.variant, targetStepName);
+            const scopeLabel = targetStepName ? `“${targetStepName}”环节` : '教学过程';
+            return { type:'message', text: generatedChanged || changed || detailChanged ? `已按“${action?.choiceTitle || '当前'}”补了${scopeLabel}。` : `${scopeLabel}已经具备这套基础结构。` };
+          }
+          if (actionKey === 'lesson_digital') {
+            const generatedChanged = applyGeneratedLessonPayload(generated, { targetField: targetField || 'resource_notes' });
+            const changed = appendMissingLines('resourceNotes', bundle.resources);
+            return { type:'message', text: generatedChanged || changed ? `已按“${action?.choiceTitle || '当前'}”补了信息化支撑。` : '信息化支撑提示已经在页面里了。' };
+          }
+          if (actionKey === 'lesson_assignment') {
+            const onlyAssignment = targetField === 'assignment_requirement';
+            const onlyDimension = targetField === 'dimension_summary';
+            const hasGeneratedAssignment = Array.isArray(generated?.assignment_lines) && generated.assignment_lines.length;
+            const hasGeneratedDimension = Array.isArray(generated?.dimension_lines) && generated.dimension_lines.length;
+            const requirementGeneratedChanged = !onlyDimension && Array.isArray(generated?.assignment_lines) ? appendMissingLines('assignmentRequirement', generated.assignment_lines) : false;
+            const dimensionGeneratedChanged = !onlyAssignment && Array.isArray(generated?.dimension_lines) ? appendEvaluationLines(generated.dimension_lines) : false;
+            const requirementChanged = !onlyDimension && !hasGeneratedAssignment ? appendMissingLines('assignmentRequirement', bundle.assignment) : false;
+            const dimensionChanged = !onlyAssignment && !hasGeneratedDimension ? appendEvaluationDimensionValues(bundle.dimensions) : false;
+            const dimensionSummaryChanged = !onlyAssignment && !hasGeneratedDimension ? appendMissingLines('dimensionSummary', bundle.dimensionSummary) : false;
+            const scopeLabel = onlyDimension ? '评价维度' : (onlyAssignment ? '作业要求' : '作业与评价');
+            return { type:'message', text: requirementGeneratedChanged || dimensionGeneratedChanged || requirementChanged || dimensionChanged || dimensionSummaryChanged ? `已按“${action?.choiceTitle || '当前'}”补了${scopeLabel}。` : `${scopeLabel}骨架已经在左侧了。` };
+          }
+          return { type:'message', text: mode === 'fast' ? '我先帮你快速起一版课时底稿。' : '当前动作还没有对应的页面回填。' };
+        },
+        onFilesAdded(files, mode){
+          const uploadSummary = summarizeUploads(files);
+          return {
+            text: mode === 'fast'
+              ? `已收到 ${files.length} 份资料${uploadSummary ? `（${uploadSummary}）` : ''}，速备时会把这些资料一起作为课时底稿上下文。`
+              : `已收到 ${files.length} 份资料${uploadSummary ? `（${uploadSummary}）` : ''}，精备时可以继续根据这些资料逐段打磨教学过程。`
+          };
+        }
+      });
+      document.getElementById('saveLessonBtn').onclick = async () => {
+        await source.persistLessonDesignVersion({
+          ...lesson,
+          theme: document.getElementById('lessonTheme').value,
+          unit_bridge: document.getElementById('lessonBridge').value,
+          lesson_goals: splitLines(document.getElementById('lessonGoals').value),
+          focus_difficulty: document.getElementById('lessonFocus').value,
+          teacher_prepare: document.getElementById('teacherPrepare').value,
+          student_prepare: document.getElementById('studentPrepare').value,
+          assignment_type: document.getElementById('assignmentType').value,
+          assignment_requirement: document.getElementById('assignmentRequirement').value,
+          evaluation_dimensions: collectEvaluationDimensions(),
+          evaluation_scheme: {
+            assignment_type: document.getElementById('assignmentType').value,
+            dimensions: collectEvaluationDimensions(),
+            summary: document.getElementById('dimensionSummary').value
+          },
+          key_points: document.getElementById('dimensionSummary').value,
+          dimension_summary: collectEvaluationDimensions().join(' / '),
+          resource_notes: document.getElementById('resourceNotes').value.split(/\r?\n/)[0] || '',
+          revision_notes: document.getElementById('resourceNotes').value.split(/\r?\n/).slice(1).join('\n'),
+          process_steps: collectProcessRows(),
+          linked_execution: lesson.linked_execution || '待挂接'
+        });
+        render();
+      };
+    }
+
+    render();
+  </script>
+</body>
+</html>

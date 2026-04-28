@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设计草稿</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas design-drafts-page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>未完稿与最近稿</small>
+          <h1>设计草稿</h1>
+          <p>这里显示的是从内容库母稿继续加工后的设计稿，能直接看出当前稿件是否只保存在本地，还是已经同步到版本表。</p>
+        </div>
+        <div class="head-actions">
+          <a class="btn" href="design-center.html">返回设计总览</a>
+          <a class="btn primary" href="lesson-design.html">继续课时设计</a>
+        </div>
+      </div>
+
+      <section class="saas-content-row">
+        <article class="saas-panel">
+          <div class="saas-panel-head">
+            <div class="saas-panel-head-left">
+              <small>大单元</small>
+              <h2>最近单元设计稿</h2>
+            </div>
+          </div>
+          <div class="saas-panel-body" id="unitDraftList"></div>
+        </article>
+        <article class="saas-panel">
+          <div class="saas-panel-head">
+            <div class="saas-panel-head-left">
+              <small>课时内容</small>
+              <h2>最近课时设计稿</h2>
+            </div>
+          </div>
+          <div class="saas-panel-body" id="lessonDraftList"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="content-library-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'design_drafts', title:'设计草稿', assistant:'design_drafts' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+
+    function iconSvg(name){
+      const icons = {
+        unit:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v16H7.5A2.5 2.5 0 0 0 5 21.5v-16Z"></path><path d="M9 7h6"></path><path d="M9 11h7"></path></svg>`,
+        lesson:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9Z"></path><path d="M14 4v5h5"></path><path d="M9 13h6"></path><path d="M9 17h4"></path></svg>`
+      };
+      return icons[name] || icons.unit;
+    }
+
+    function render(){
+      const recent = source.listRecentDesignDrafts(12);
+      const unitItems = recent.filter(item => item.design_type === 'unit');
+      const lessonItems = recent.filter(item => item.design_type === 'lesson');
+
+      document.getElementById('unitDraftList').innerHTML = unitItems.length ? unitItems.map(item => `
+        <div class="saas-draft-item">
+          <div class="saas-draft-icon unit" aria-hidden="true">${iconSvg('unit')}</div>
+          <div class="saas-draft-body">
+            <div class="saas-draft-title">${item.title}</div>
+            <div class="saas-draft-type">单元设计稿 · ${source.getDesignSyncSummary(item.payload || {})}</div>
+            <div class="saas-inline-meta">
+              <span class="saas-meta-chip">${source.getDesignSourceLabel(item.payload || {})}</span>
+              <span class="saas-meta-chip">${item.payload?.grade_scope || '未写年级'}</span>
+              <span class="saas-meta-chip">${item.payload?.design_type || '常规单元'}</span>
+            </div>
+          </div>
+          <div class="saas-item-foot">
+            <span class="saas-draft-time">${item.saved_at ? new Date(item.saved_at).toLocaleString('zh-CN',{hour12:false,month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</span>
+            <a class="saas-item-btn" href="unit-design.html?unit_id=${item.identity}">继续编辑</a>
+          </div>
+        </div>
+      `).join('') : `<div class="saas-empty"><div class="saas-empty-icon" aria-hidden="true">${iconSvg('unit')}</div>当前还没有最近保存的单元母稿。</div>`;
+
+      document.getElementById('lessonDraftList').innerHTML = lessonItems.length ? lessonItems.map(item => `
+        <div class="saas-draft-item">
+          <div class="saas-draft-icon lesson" aria-hidden="true">${iconSvg('lesson')}</div>
+          <div class="saas-draft-body">
+            <div class="saas-draft-title">${item.title}</div>
+            <div class="saas-draft-type">课时设计稿 · ${source.getDesignSyncSummary(item.payload || {})}</div>
+            <div class="saas-inline-meta">
+              <span class="saas-meta-chip">${source.getDesignSourceLabel(item.payload || {})}</span>
+              <span class="saas-meta-chip">${item.payload?.unit_name || '未绑单元'}</span>
+              <span class="saas-meta-chip">${item.payload?.lesson_no || '未写课时'}</span>
+            </div>
+          </div>
+          <div class="saas-item-foot">
+            <span class="saas-draft-time">${item.saved_at ? new Date(item.saved_at).toLocaleString('zh-CN',{hour12:false,month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</span>
+            <a class="saas-item-btn" href="lesson-design.html?lesson_design_id=${item.identity}">继续编辑</a>
+          </div>
+        </div>
+      `).join('') : `<div class="saas-empty"><div class="saas-empty-icon" aria-hidden="true">${iconSvg('lesson')}</div>当前还没有最近保存的课时设计稿。</div>`;
+    }
+
+    render();
+  </script>
+</body>
+</html>

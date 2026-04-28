@@ -3,27 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>学期教学安排</title>
+  <title>学期安排与排课</title>
   <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
 </head>
 <body>
   <div class="shell">
-    <main class="page">
+    <main class="page design-saas calendar-page">
       <div class="page-head">
         <div class="page-title">
-          <small>统筹</small>
-          <h1>学期教学安排</h1>
+          <small>教学执行中心</small>
+          <h1>学期安排</h1>
+          <p>确认本学期内容节奏、周次变化和每节课的执行位置，后续从“选课”进入真实课堂。</p>
         </div>
         <div class="head-actions">
-          <a class="btn" href="planner.html">AI 预生成学期表</a>
-          <a class="btn primary" id="goPickerBtn" href="picker.html">进入正式选课</a>
+          <a class="btn" href="planner.html">生成/重算学期安排</a>
+          <a class="btn primary" id="goPickerBtn" href="picker.html">进入选课</a>
         </div>
       </div>
 
-      <section class="card hero" id="planBanner"></section>
+      <section class="card status-card hero" id="planBanner"></section>
 
       <section class="grid-2" style="margin-top:16px">
-        <article class="card">
+        <article class="card panel-card">
           <div class="page-head" style="margin:0 0 12px">
             <div class="page-title" style="gap:2px">
               <small>周历</small>
@@ -33,11 +35,11 @@
           <div class="list" id="weekList"></div>
         </article>
 
-        <article class="card">
+        <article class="card editor-card">
           <div class="page-head" style="margin:0 0 12px">
             <div class="page-title" style="gap:2px">
               <small id="sideTag">本周</small>
-              <h1 style="font-size:24px" id="sideTitle">第8周</h1>
+              <h1 style="font-size:24px" id="sideTitle">第1周</h1>
             </div>
           </div>
           <div id="weekDetail" class="section"></div>
@@ -47,32 +49,37 @@
     </main>
   </div>
 
+  <script src="feishu-real-data-v1.js"></script>
   <script src="prep_truth_source_v1.js"></script>
   <script src="clean-shell.js"></script>
   <script>
-    CLEAN_PROTO.mount({ page:'calendar', title:'学期教学安排', assistant:'calendar' });
+    CLEAN_PROTO.mount({ page:'calendar', title:'学期安排与排课', assistant:'calendar' });
     const DRAFT_KEY = 'xiaobei_semester_plan_draft_v1';
     const CURRENT_KEY = 'xiaobei_semester_plan_current_v1';
     const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
     const params = new URLSearchParams(window.location.search);
-    const tasks = source.listLessonTasks();
+    const tasks = source.listCoursePlanItems();
+
     function defaultWeeks(){
-      return [...new Map(tasks.map(item => [item.week_no, null])).keys()].map(week => {
-      const rows = tasks.filter(item => item.week_no === week);
-      const uniqueTopics = [...new Set(rows.map(item => item.topic_name))];
-      return {
-        week_no: week,
-        week_label: rows[0].week_label,
-        date_range: rows[0].date_range,
-        grade_scope: rows[0].grade_scope,
-        lesson_count: uniqueTopics.length,
-        planned_summary: uniqueTopics.join('、'),
-        actual_summary: week === 9 ? '足球奖杯设计顺延到第10周前半' : '按原计划执行',
-        holiday_summary: week === 9 ? '五一前后' : '—',
-        note: week === 9 ? '活动周压缩了可用容量。' : '当前无额外变动。',
-        rows
-      };
-    });
+      const weekPlans = source.listSemesterWeekPlans();
+      const grouped = weekPlans.map(weekPlan => {
+        const rows = tasks.filter(item => Number(item.week_no) === Number(weekPlan.week_no));
+        return {
+          semester_plan_id: weekPlan.semester_plan_id,
+          semester_week_plan_id: weekPlan.semester_week_plan_id,
+          week_no: weekPlan.week_no,
+          week_label: weekPlan.week_label,
+          date_range: weekPlan.date_range,
+          grade_scope: weekPlan.grade_scope,
+          lesson_count: weekPlan.lesson_capacity || rows.length,
+          planned_summary: weekPlan.planned_summary,
+          actual_summary: weekPlan.actual_summary,
+          holiday_summary: weekPlan.holiday_summary,
+          note: weekPlan.note,
+          rows
+        };
+      });
+      return grouped;
     }
 
     function readJson(key){
@@ -89,8 +96,28 @@
 
     function ensureCurrentPlan(){
       const existing = readJson(CURRENT_KEY);
-      if (existing && Array.isArray(existing.weeks) && existing.weeks.length) return existing;
+      if (existing && Array.isArray(existing.weeks) && existing.weeks.length) {
+        const upgraded = {
+          ...existing,
+          weeks: existing.weeks.map(week => {
+            const rows = Array.isArray(week.rows) && week.rows.length
+              ? week.rows
+              : tasks.filter(item => Number(item.week_no) === Number(week.week_no));
+            return {
+              ...week,
+              semester_plan_id: week.semester_plan_id || existing.semester_plan_id || 'semester-2025-2-xutao-g3-art',
+              semester_week_plan_id: week.semester_week_plan_id || `${existing.semester_plan_id || 'semester-2025-2-xutao-g3-art'}-week-${week.week_no}`,
+              lesson_count: week.lesson_count || rows.length,
+              rows
+            };
+          })
+        };
+        saveJson(CURRENT_KEY, upgraded);
+        return upgraded;
+      }
       const seeded = {
+        object_type:'semester_plan',
+        semester_plan_id:'semester-2025-2-xutao-g3-art',
         source:'manual',
         updatedAt:new Date().toISOString(),
         weeks: defaultWeeks()
@@ -114,24 +141,38 @@
       const draft = state.draft;
       const current = state.current;
       banner.innerHTML = `
-        <div class="hero-meta">
-          <span class="badge green">当前安排</span>
-          <span class="badge blue">${current.source === 'planner' ? '来自 AI 草案' : '人工维护中'}</span>
-          <span class="badge amber">可随时调整</span>
+        <div class="execution-flow">
+          <a class="execution-step-card ${current ? 'is-done' : ''}" href="planner.html">
+            <span>01</span>
+            <strong>学期安排</strong>
+            <em>${current.source === 'planner' ? '来自 AI 草案' : '人工维护中'}</em>
+          </a>
+          <a class="execution-step-card is-current" href="calendar.html">
+            <span>02</span>
+            <strong>学期落位</strong>
+            <em>按周次查看并处理顺延、替换、插入</em>
+          </a>
+          <a class="execution-step-card" href="picker.html">
+            <span>03</span>
+            <strong>选课上课</strong>
+            <em>锁定一节课后进入课堂执行台</em>
+          </a>
         </div>
         <div class="page-head" style="margin:14px 0 0">
           <div class="page-title" style="gap:6px">
-            <h1 style="font-size:26px;margin:0">${draft ? '已存在一份 AI 草案，可决定是否写入当前安排' : '这里是长期维护页，不是一次性生成页'}</h1>
-            <small>${draft ? `草案更新时间：${new Date(draft.updatedAt).toLocaleString('zh-CN')}` : '需要生成新草案时，再去 AI 预生成页。'}</small>
+            <h1 style="font-size:26px;margin:0">${draft ? '已存在一份 AI 草案，可决定是否写入当前安排' : '当前安排用于承接真实教学执行'}</h1>
+            <small>${draft ? `草案更新时间：${new Date(draft.updatedAt).toLocaleString('zh-CN')}` : '生成学期安排后，再从这里把课程排到周次、班级和节次。'}</small>
           </div>
           <div class="head-actions">
-            ${draft ? '<button class="btn primary" type="button" id="applyDraftBtn">把草案写入当前安排</button><a class="btn" href="planner.html">继续修改 AI 草案</a>' : '<a class="btn" href="planner.html">去生成 AI 草案</a>'}
+            ${draft ? '<button class="btn primary" type="button" id="applyDraftBtn">写入当前安排</button><a class="btn" href="planner.html">继续修改草案</a>' : '<a class="btn" href="planner.html">去生成学期安排</a>'}
           </div>
         </div>
       `;
       if (draft) {
         document.getElementById('applyDraftBtn').onclick = () => {
           state.current = {
+            object_type:'semester_plan',
+            semester_plan_id:draft.semester_plan_id || 'semester-2025-2-xutao-g3-art',
             source:'planner',
             updatedAt:new Date().toISOString(),
             weeks: draft.weeks.map(item => Object.assign({}, item))
@@ -161,7 +202,7 @@
       document.querySelectorAll('[data-week]').forEach(node => {
         node.onclick = () => {
           activeWeek = Number(node.dataset.week);
-          renderAll();
+          renderDetail();
         };
       });
     }
@@ -171,6 +212,14 @@
       if (!week) return;
       document.getElementById('sideTitle').textContent = week.week_label;
       document.getElementById('goPickerBtn').href = `picker.html?week=${week.week_no}`;
+      function taskPickerHref(task){
+        const query = new URLSearchParams({
+          week: week.week_no,
+          course_plan_item_id: task.course_plan_item_id,
+          lesson_key: task.lesson_key
+        });
+        return `picker.html?${query.toString()}`;
+      }
       document.getElementById('weekDetail').innerHTML = `
         <div class="identity-strip">
           <div class="identity-item"><small>日期</small><strong>${week.date_range}</strong></div>
@@ -181,25 +230,67 @@
         </div>
         <div class="list">
           ${(() => {
-            const cards = [...new Map((week.rows || []).map(item => [item.topic_name, item])).values()];
-            return cards.map(item => `<div class="list-item"><strong>${week.grade_scope || item.grade_scope} · ${item.topic_name}</strong><div class="muted tiny">${item.lesson_type} · ${item.unit_name}</div></div>`).join('');
+            const cards = week.rows || [];
+            return cards.map(item => `
+              <div class="list-item">
+                <div class="list-item-head">
+                  <div>
+                    <strong>${item.class_name || week.grade_scope} · ${item.topic_name}</strong>
+                    <div class="muted tiny">${item.date_label || week.date_range} · ${item.day_label || ''}${item.period || ''} · ${item.lesson_type || '待定课型'}</div>
+                  </div>
+                  <span class="status ${item.status_code === 'not_started' ? 'rose' : 'green'}">${item.status || '已排课'}</span>
+                </div>
+                <div class="inline-actions" style="margin-top:10px">
+                  <span class="pill">${item.unit_name || week.planned_summary}</span>
+                  <span class="pill">${item.assignment_required ? '有作业链' : '无作业链'}</span>
+                  <a class="btn" href="${taskPickerHref(item)}">锁定这节课</a>
+                </div>
+              </div>
+            `).join('');
           })() || `<div class="list-item"><strong>${week.planned_summary}</strong><div class="muted tiny">${week.note || '本周内容已从 AI 草案写入，可继续人工调整。'}</div></div>`}
         </div>
       `;
       document.getElementById('adjustPanel').innerHTML = `
-        <div class="card">
-          <h3>调整教学安排</h3>
+        <div class="card editor-card">
+          <h3>排课与调整</h3>
           <div class="grid-2">
-            <div class="field"><label>调整范围</label><select><option>本周</option><option>本单元</option><option>后半学期</option></select></div>
-            <div class="field"><label>调整动作</label><select><option>顺延一节</option><option>替换内容</option><option>插入活动课</option><option>压缩本周课时</option></select></div>
+            <div class="field">
+              <label>调整范围</label>
+              <select id="adjustScope">
+                <option>本周</option>
+                <option>本单元</option>
+                <option>后半学期</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>调整动作</label>
+              <select id="adjustAction">
+                <option>顺延一节</option>
+                <option>替换内容</option>
+                <option>插入活动课</option>
+                <option>压缩本周课时</option>
+              </select>
+            </div>
           </div>
-          <div class="field" style="margin-top:12px"><label>原计划</label><input id="plannedSummaryInput" value="${week.planned_summary}"></div>
-          <div class="field" style="margin-top:12px"><label>实际执行</label><input id="actualSummaryInput" value="${week.actual_summary}"></div>
-          <div class="field" style="margin-top:12px"><label>节假日 / 特殊安排</label><input id="holidaySummaryInput" value="${week.holiday_summary || '—'}"></div>
-          <div class="field" style="margin-top:12px"><label>调整原因 / 备注</label><textarea id="noteInput">${week.note || ''}</textarea></div>
+          <div class="field" style="margin-top:12px">
+            <label>原计划</label>
+            <input id="plannedSummaryInput" value="${week.planned_summary}">
+          </div>
+          <div class="field" style="margin-top:12px">
+            <label>实际执行</label>
+            <input id="actualSummaryInput" value="${week.actual_summary}">
+          </div>
+          <div class="field" style="margin-top:12px">
+            <label>节假日 / 特殊安排</label>
+            <input id="holidaySummaryInput" value="${week.holiday_summary || '—'}">
+          </div>
+          <div class="field" style="margin-top:12px">
+            <label>调整原因 / 备注</label>
+            <textarea id="noteInput">${week.note || ''}</textarea>
+          </div>
           <div class="inline-actions" style="margin-top:12px">
             <button class="btn primary" type="button" id="saveAdjustBtn">保存调整</button>
-            <a class="btn" href="picker.html?week=${week.week_no}">进入正式选课</a>
+            <a class="btn" href="picker.html?week=${week.week_no}">进入选课</a>
           </div>
         </div>
       `;
@@ -224,6 +315,7 @@
       renderWeeks();
       renderDetail();
     }
+
     renderAll();
   </script>
 </body>

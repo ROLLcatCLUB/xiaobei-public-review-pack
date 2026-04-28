@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课堂记录</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas class-record-page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>教学执行中心</small>
+          <h1>课堂记录</h1>
+          <p>课堂观察和课后口述目前先由 Coze 智能体完成，这里保存课次上下文和整理结果入口。</p>
+        </div>
+        <div class="head-actions">
+          <a class="btn" id="backClassroomBtn" href="classroom.html">返回上课</a>
+          <a class="btn" id="legacyRoutineBtn" href="#" target="_blank" rel="noopener">课堂常规</a>
+          <a class="btn" id="legacyBotBtn" href="#" target="_blank" rel="noopener">打开智能体</a>
+          <button class="btn primary" type="button" id="saveRecordBtn">保存记录摘要</button>
+        </div>
+      </div>
+
+      <section id="recordGuard" class="empty hide">当前没有锁定具体课次，先显示课堂记录统计总览；需要写入某节课记录时，请从上课执行台进入。</section>
+
+      <div id="recordContent" class="section">
+        <section class="identity-strip" id="recordIdentity"></section>
+
+        <section class="card panel-card record-analytics-card" style="margin-top:16px">
+          <div class="page-head" style="margin:0 0 14px">
+            <div class="page-title" style="gap:2px">
+              <small>课堂记录统计</small>
+              <h1 style="font-size:24px">课堂记录图谱</h1>
+              <p>把 Coze 课堂摘要、上课执行清单和课后提醒沉淀成可观察的数据，后续再反哺课前简报和精修备课。</p>
+            </div>
+          </div>
+          <section class="identity-strip compact" id="recordStatsSummary"></section>
+          <div class="record-chart-grid">
+            <article class="record-chart-panel">
+              <div class="chart-title"><strong>班级记录覆盖</strong><span id="classCoverageMeta"></span></div>
+              <div id="classCoverageChart" class="record-bar-chart"></div>
+            </article>
+            <article class="record-chart-panel">
+              <div class="chart-title"><strong>课堂清单完成率</strong><span id="checklistMeta"></span></div>
+              <div id="checklistChart" class="record-bar-chart"></div>
+            </article>
+            <article class="record-chart-panel">
+              <div class="chart-title"><strong>记录完整度</strong><span id="qualityMeta"></span></div>
+              <div id="qualityChart" class="record-quality-row"></div>
+            </article>
+            <article class="record-chart-panel">
+              <div class="chart-title"><strong>问题标签分布</strong><span id="issueMeta"></span></div>
+              <div id="issueTagChart" class="record-bar-chart"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="split" id="recordEditorArea" style="margin-top:16px">
+          <article class="card editor-card">
+            <h2>Coze 课堂记录整理</h2>
+            <div class="field">
+              <label>Coze 记录摘要</label>
+              <textarea id="cozeSummary" placeholder="把 Coze 智能体整理出的课堂记录、观察要点或课后反思粘贴到这里。"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>下一次上课提醒</label>
+              <textarea id="nextReminder" placeholder="这节课之后，下一节课需要注意什么？"></textarea>
+            </div>
+          </article>
+
+          <aside class="section">
+            <article class="card status-card">
+              <h2>记录入口</h2>
+              <div class="list">
+                <div class="list-item">
+                  <strong>当前承接方式</strong>
+                  <div class="guide-text">打开 Coze 智能体完成课堂记录，再把摘要回填到本系统。</div>
+                </div>
+                <div class="list-item">
+                  <strong>后续接入方式</strong>
+                  <div class="guide-text">等 Coze 工作流稳定后，再配置 API 或 Webhook，把课堂记录自动回流到这里。</div>
+                </div>
+              </div>
+              <div class="inline-actions" style="margin-top:12px">
+                <a class="btn" id="cozeEntryBtn" href="#" target="_blank" rel="noopener">打开 Coze 智能体</a>
+                <a class="btn" id="routineEntryBtn" href="#" target="_blank" rel="noopener">课堂常规</a>
+                <button class="btn primary" type="button" id="copyContextBtn">复制课次上下文</button>
+              </div>
+            </article>
+            <article class="card panel-card">
+              <h2>回流位置</h2>
+              <div class="list" id="recordFlow"></div>
+            </article>
+            <article class="card panel-card">
+              <h2>最近记录</h2>
+              <div class="list" id="recentRecordList"></div>
+            </article>
+          </aside>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'class_record', title:'课堂记录', assistant:'class_record' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const params = new URLSearchParams(window.location.search);
+    const RECORD_KEY = 'xiaobei_class_record_summary_store_v1';
+    const CHECK_LABELS = {
+      brief:'课前方向',
+      prep:'运行稿',
+      materials:'材料设备',
+      assignment:'作业口径',
+      record:'课堂记录'
+    };
+
+    function legacyHref(path){
+      return window.location.protocol === 'file:' ? `https://47.102.219.247/${path}` : `/${path}`;
+    }
+
+    function readJson(key){
+      try { return JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (error) { return null; }
+    }
+
+    function readStore(){
+      try { const value = JSON.parse(localStorage.getItem(RECORD_KEY) || '{}'); return value && typeof value === 'object' ? value : {}; } catch (error) { return {}; }
+    }
+
+    function writeStore(value){
+      localStorage.setItem(RECORD_KEY, JSON.stringify(value || {}));
+    }
+
+    function escapeHtml(value){
+      return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[char]));
+    }
+
+    function taskFromContext(){
+      const queryTask = source.resolveCoursePlanContextFromQuery();
+      if (queryTask) { source.writeCoursePlanSelection(queryTask); return queryTask; }
+      const lesson = readJson(source.storage_keys.selected_context) || readJson(source.storage_keys.selected_context_legacy);
+      if (!lesson) return null;
+      return source.findCoursePlanItem({ course_plan_item_id: lesson.course_plan_item_id, lesson_key: lesson.lesson_key });
+    }
+
+    function queryFor(task){
+      return new URLSearchParams({
+        course_plan_item_id: task.course_plan_item_id,
+        lesson_key: task.lesson_key
+      }).toString();
+    }
+
+    function setGuard(){
+      document.getElementById('recordGuard').classList.remove('hide');
+      document.getElementById('recordContent').classList.remove('hide');
+      document.getElementById('recordEditorArea').classList.add('hide');
+      document.getElementById('recordIdentity').innerHTML = `
+        <div class="identity-item"><small>当前课</small><strong>未锁定</strong></div>
+        <div class="identity-item"><small>查看内容</small><strong>课堂记录统计</strong></div>
+        <div class="identity-item"><small>写入方式</small><strong>从上课执行台进入</strong></div>
+        <div class="identity-item"><small>Coze</small><strong>仍可从入口打开</strong></div>
+      `;
+      document.getElementById('legacyRoutineBtn').href = legacyHref('routine_manage.html');
+      document.getElementById('legacyBotBtn').href = legacyHref('bot_chat.html');
+      document.getElementById('backClassroomBtn').href = 'classroom.html';
+      document.getElementById('saveRecordBtn').disabled = true;
+      renderRecordAnalytics(null);
+    }
+
+    function formatTime(value){
+      if (!value) return '未记录';
+      try { return new Date(value).toLocaleString('zh-CN', { hour12:false }); } catch (error) { return value; }
+    }
+
+    function rowKey(item){
+      return `${item.course_plan_item_id || ''}::${item.lesson_key || ''}`;
+    }
+
+    function buildRecordRows(activeTask){
+      const summaries = readStore();
+      const runs = source.listClassroomRuns ? source.listClassroomRuns() : [];
+      const tasks = source.listCoursePlanItems ? source.listCoursePlanItems() : [];
+      const rowsByKey = new Map();
+      tasks.forEach(task => {
+        rowsByKey.set(rowKey(task), {
+          course_plan_item_id: task.course_plan_item_id,
+          lesson_key: task.lesson_key,
+          topic_name: task.topic_name,
+          unit_name: task.unit_name,
+          grade_scope: task.grade_scope,
+          lesson_type: task.lesson_type,
+          class_name: task.class_name,
+          week_label: task.week_label,
+          day_label: task.day_label,
+          period: task.period,
+          risk_tag: task.risk_tag || '',
+          note: task.note || ''
+        });
+      });
+      runs.forEach(run => {
+        const key = rowKey(run);
+        rowsByKey.set(key, { ...(rowsByKey.get(key) || {}), ...run, hasClassroomRun:true });
+      });
+      Object.values(summaries || {}).forEach(summary => {
+        const key = rowKey(summary);
+        rowsByKey.set(key, { ...(rowsByKey.get(key) || {}), ...summary, hasRecordSummary:true });
+      });
+      if (activeTask) {
+        const key = rowKey(activeTask);
+        rowsByKey.set(key, { ...(rowsByKey.get(key) || {}), ...activeTask, isActive:true });
+      }
+      return [...rowsByKey.values()].filter(item =>
+        item.hasClassroomRun ||
+        item.hasRecordSummary ||
+        item.isActive ||
+        item.class_note ||
+        item.completion_note ||
+        item.cozeSummary ||
+        item.nextReminder
+      );
+    }
+
+    function countBy(rows, getter){
+      const map = new Map();
+      rows.forEach(row => {
+        const key = getter(row) || '未标记';
+        map.set(key, (map.get(key) || 0) + 1);
+      });
+      return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    }
+
+    function percent(value, total){
+      return total ? Math.round((value / total) * 100) : 0;
+    }
+
+    function renderBars(hostId, rows, options){
+      const host = document.getElementById(hostId);
+      const max = Math.max(...rows.map(item => item.value), 1);
+      if (!rows.length) {
+        host.innerHTML = `<div class="empty">${options?.empty || '暂无统计数据。'}</div>`;
+        return;
+      }
+      host.innerHTML = rows.map(item => {
+        const width = item.value <= 0 ? 0 : (options?.percentMode ? item.value : Math.max(4, Math.round((item.value / max) * 100)));
+        const suffix = options?.suffix || '';
+        return `
+          <div class="record-bar-row">
+            <div class="record-bar-label"><span>${escapeHtml(item.label)}</span><em>${escapeHtml(item.value)}${suffix}</em></div>
+            <div class="record-bar-track"><span style="width:${width}%"></span></div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function issueTags(rows){
+      const tags = [
+        ['节奏', /节奏|时间|拖|赶|进度|顺延/],
+        ['材料', /材料|工具|设备|颜料|剪刀|纸张|胶水|平板/],
+        ['秩序', /纪律|秩序|吵|走动|注意力|安静/],
+        ['展示评价', /展示|评价|讲评|分享|互评|点评/],
+        ['作业提交', /作业|提交|上传|作品|补交/],
+        ['信息化', /AI|智能|信息化|拍照|投屏|平板|数字/]
+      ];
+      const counts = new Map(tags.map(([label]) => [label, 0]));
+      rows.forEach(row => {
+        const text = [row.risk_tag, row.note, row.class_note, row.completion_note, row.cozeSummary, row.nextReminder].filter(Boolean).join(' ');
+        tags.forEach(([label, pattern]) => {
+          if (pattern.test(text)) counts.set(label, counts.get(label) + 1);
+        });
+      });
+      return [...counts.entries()].filter(([, value]) => value > 0).sort((a, b) => b[1] - a[1]);
+    }
+
+    function renderRecordAnalytics(activeTask){
+      const rows = buildRecordRows(activeTask);
+      const total = rows.length;
+      const withCoze = rows.filter(item => String(item.cozeSummary || '').trim()).length;
+      const withReminder = rows.filter(item => String(item.nextReminder || '').trim()).length;
+      const withRun = rows.filter(item => item.hasClassroomRun || item.checklist).length;
+      const classCount = new Set(rows.map(item => item.class_name).filter(Boolean)).size;
+      document.getElementById('recordStatsSummary').innerHTML = `
+        <div class="identity-item"><small>记录课次</small><strong>${total}</strong></div>
+        <div class="identity-item"><small>覆盖班级</small><strong>${classCount}</strong></div>
+        <div class="identity-item"><small>Coze 摘要</small><strong>${withCoze}/${total || 0}</strong></div>
+        <div class="identity-item"><small>下次提醒</small><strong>${withReminder}/${total || 0}</strong></div>
+      `;
+      const classRows = countBy(rows, item => item.class_name).slice(0, 8).map(([label, value]) => ({ label, value }));
+      document.getElementById('classCoverageMeta').textContent = classRows.length ? `${classRows.length} 个班级` : '等待记录';
+      renderBars('classCoverageChart', classRows, { empty:'还没有课堂记录，先从上课执行台保存一条。' });
+
+      const checklistRows = Object.keys(CHECK_LABELS).map(key => {
+        const done = rows.filter(item => item.checklist && item.checklist[key]).length;
+        return { label: CHECK_LABELS[key], value: percent(done, Math.max(withRun, 1)) };
+      });
+      document.getElementById('checklistMeta').textContent = withRun ? `${withRun} 条执行记录` : '等待上课保存';
+      renderBars('checklistChart', checklistRows, { percentMode:true, suffix:'%', empty:'暂无课堂执行清单。' });
+
+      const complete = rows.filter(item => String(item.cozeSummary || '').trim() && String(item.nextReminder || '').trim()).length;
+      const qualityItems = [
+        ['摘要回填', percent(withCoze, total)],
+        ['提醒回填', percent(withReminder, total)],
+        ['完整记录', percent(complete, total)]
+      ];
+      document.getElementById('qualityMeta').textContent = total ? `完整 ${complete}/${total}` : '等待回填';
+      document.getElementById('qualityChart').innerHTML = qualityItems.map(([label, value]) => `
+        <div class="record-donut-card">
+          <div class="record-donut" style="--value:${value}%"><span>${value}%</span></div>
+          <strong>${escapeHtml(label)}</strong>
+        </div>
+      `).join('');
+
+      const tagRows = issueTags(rows).map(([label, value]) => ({ label, value }));
+      document.getElementById('issueMeta').textContent = tagRows.length ? `${tagRows.length} 类问题` : '等待沉淀';
+      renderBars('issueTagChart', tagRows, { empty:'还没有可识别的问题标签。' });
+
+      const recentHost = document.getElementById('recentRecordList');
+      if (recentHost) {
+        const recent = rows.slice().sort((a, b) => String(b.updatedAt || b.updated_at || '').localeCompare(String(a.updatedAt || a.updated_at || ''))).slice(0, 5);
+        recentHost.innerHTML = recent.length ? recent.map(item => `
+          <a class="list-item" href="class-record.html?${new URLSearchParams({ course_plan_item_id:item.course_plan_item_id || '', lesson_key:item.lesson_key || '' }).toString()}">
+            <strong>${escapeHtml(item.topic_name || '课堂记录')}</strong>
+            <div class="detail-text tiny">${escapeHtml(item.class_name || '未标班级')} · ${escapeHtml(formatTime(item.updatedAt || item.updated_at))}</div>
+          </a>
+        `).join('') : '<div class="empty">暂无最近记录。</div>';
+      }
+    }
+
+    function render(){
+      const task = taskFromContext();
+      if (!task) { setGuard(); return; }
+      document.getElementById('recordGuard').classList.add('hide');
+      document.getElementById('recordContent').classList.remove('hide');
+      document.getElementById('recordEditorArea').classList.remove('hide');
+      document.getElementById('saveRecordBtn').disabled = false;
+      const key = `${task.course_plan_item_id}::${task.lesson_key}`;
+      const store = readStore();
+      const saved = store[key] || {};
+      renderRecordAnalytics(task);
+      document.getElementById('backClassroomBtn').href = `classroom.html?${queryFor(task)}`;
+      document.getElementById('legacyRoutineBtn').href = legacyHref('routine_manage.html');
+      document.getElementById('legacyBotBtn').href = legacyHref('bot_chat.html');
+      document.getElementById('cozeEntryBtn').href = legacyHref('bot_chat.html');
+      document.getElementById('routineEntryBtn').href = legacyHref('routine_manage.html');
+      document.getElementById('recordIdentity').innerHTML = `
+        <div class="identity-item"><small>当前课</small><strong>${task.topic_name}</strong></div>
+        <div class="identity-item"><small>班级 / 节次</small><strong>${task.class_name} · ${task.day_label}${task.period}</strong></div>
+        <div class="identity-item"><small>周次</small><strong>${task.week_label} · ${task.date_range}</strong></div>
+        <div class="identity-item"><small>风险</small><strong>${task.risk_tag || '—'}</strong></div>
+      `;
+      document.getElementById('cozeSummary').value = saved.cozeSummary || '';
+      document.getElementById('nextReminder').value = saved.nextReminder || '';
+      document.getElementById('recordFlow').innerHTML = `
+        <div class="list-item"><strong>上课执行台</strong><div class="detail-text tiny">课堂记录会回到当前课次。</div></div>
+        <div class="list-item"><strong>课前简报</strong><div class="detail-text tiny">下一次备课可以读取这节课的课堂问题。</div></div>
+        <div class="list-item"><strong>学生作业与评价</strong><div class="detail-text tiny">如果课堂记录涉及作品表现，后续再接评价页。</div></div>
+        <div class="list-item"><strong>统计图谱</strong><div class="detail-text tiny">每次保存课堂记录后，自动刷新班级覆盖、清单完成率和问题标签。</div></div>
+      `;
+      document.getElementById('copyContextBtn').onclick = async () => {
+        const text = `课题：${task.topic_name}\n班级：${task.class_name}\n时间：${task.week_label} ${task.day_label}${task.period}\n单元：${task.unit_name}\n课堂风险：${task.risk_tag}\n备注：${task.note}`;
+        try {
+          await navigator.clipboard.writeText(text);
+          document.getElementById('copyContextBtn').textContent = '已复制';
+        } catch (error) {
+          document.getElementById('copyContextBtn').textContent = '复制失败';
+        }
+      };
+      document.getElementById('saveRecordBtn').onclick = () => {
+        const next = readStore();
+        next[key] = {
+          course_plan_item_id: task.course_plan_item_id,
+          lesson_key: task.lesson_key,
+          topic_name: task.topic_name,
+          unit_name: task.unit_name,
+          grade_scope: task.grade_scope,
+          class_name: task.class_name,
+          week_label: task.week_label,
+          day_label: task.day_label,
+          period: task.period,
+          risk_tag: task.risk_tag || '',
+          cozeSummary: document.getElementById('cozeSummary').value,
+          nextReminder: document.getElementById('nextReminder').value,
+          updatedAt: new Date().toISOString()
+        };
+        writeStore(next);
+        renderRecordAnalytics(task);
+      };
+    }
+
+    render();
+  </script>
+</body>
+</html>

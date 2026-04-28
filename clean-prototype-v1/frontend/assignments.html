@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>收作业</title>
+  <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="page design-saas assignments-page">
+      <div class="page-head">
+        <div class="page-title">
+          <small>教学执行中心</small>
+          <h1>收作业</h1>
+          <p>作业序号、提交状态和学生作品入口都属于执行层；这里承接上课后的作品回收。</p>
+        </div>
+        <div class="head-actions">
+          <a class="btn" href="picker.html">返回选课</a>
+          <a class="btn" id="legacySubmitBtn" href="#" target="_blank" rel="noopener">打开课堂提交机</a>
+          <a class="btn primary" id="goEvaluationBtn" href="evaluation.html">进入评价</a>
+        </div>
+      </div>
+
+      <section class="identity-strip" id="assignmentStats"></section>
+
+      <section class="card panel-card" style="margin-top:16px">
+        <div class="page-head" style="margin:0 0 12px">
+          <div class="page-title" style="gap:2px">
+            <small>移动端数据</small>
+            <h1 style="font-size:24px">课堂提交与作品回收</h1>
+            <p>手机端继续使用课堂提交机；电脑端先读取服务器作品与班级提交概况，后面再逐步合并筛选和批量处理。</p>
+          </div>
+          <div class="head-actions">
+            <a class="btn" id="legacyWorkTopBtn" href="#" target="_blank" rel="noopener">作品管理</a>
+          </div>
+        </div>
+        <div class="list" id="serverAssignmentBridge">
+          <div class="empty">正在准备读取服务器作业数据。</div>
+        </div>
+      </section>
+
+      <section class="split" style="margin-top:16px">
+        <article class="card panel-card">
+          <div class="page-head" style="margin:0 0 12px">
+            <div class="page-title" style="gap:2px">
+              <small>作业实例</small>
+              <h1 style="font-size:24px">本学期待收作业</h1>
+            </div>
+          </div>
+          <div class="list" id="assignmentList"></div>
+        </article>
+
+        <aside class="section">
+          <article class="card status-card">
+            <h2>当前作业</h2>
+            <div class="list" id="assignmentDetail"></div>
+          </article>
+          <article class="card panel-card">
+            <h2>学生提交</h2>
+            <div class="list" id="submissionList"></div>
+          </article>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script src="feishu-real-data-v1.js"></script>
+  <script src="prep_truth_source_v1.js"></script>
+  <script src="server-execution-bridge.js"></script>
+  <script src="clean-shell.js"></script>
+  <script>
+    CLEAN_PROTO.mount({ page:'assignments', title:'收作业', assistant:'assignments' });
+    const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
+    const serverBridge = window.XIAOBEI_SERVER_EXECUTION_BRIDGE_V1;
+    const params = new URLSearchParams(window.location.search);
+    const state = {
+      activeId: params.get('assignment_instance_id') || '',
+      coursePlanItemId: params.get('course_plan_item_id') || ''
+    };
+
+    function legacyHref(path){
+      return serverBridge ? serverBridge.legacyHref(path) : (window.location.protocol === 'file:' ? `https://47.102.219.247/${path}` : `/${path}`);
+    }
+
+    function escapeHtml(value){
+      return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[char]));
+    }
+
+    function taskForAssignment(assignment){
+      return source.findCoursePlanItem({ course_plan_item_id: assignment.course_plan_item_id });
+    }
+
+    function assignmentRows(){
+      const rows = source.listAssignmentInstances(state.coursePlanItemId ? { course_plan_item_id: state.coursePlanItemId } : {});
+      return rows;
+    }
+
+    function activeAssignment(rows){
+      return rows.find(item => item.assignment_instance_id === state.activeId) || rows[0] || null;
+    }
+
+    function submissionStats(assignment){
+      const slots = assignment ? source.listSubmissionSlots({ assignment_instance_id: assignment.assignment_instance_id }) : [];
+      const submitted = slots.filter(item => item.submit_status === '已交').length;
+      return { slots, submitted, total: slots.length };
+    }
+
+    function settledValue(result, fallback){
+      return result && result.status === 'fulfilled' ? result.value : fallback;
+    }
+
+    async function renderServerAssignmentBridge(){
+      const host = document.getElementById('serverAssignmentBridge');
+      if (!host) return;
+      document.getElementById('legacyWorkTopBtn').href = legacyHref('work_manage.html');
+      if (!serverBridge) {
+        host.innerHTML = '<div class="empty">服务器数据桥接脚本未加载，仍可先打开课堂提交机和作品管理。</div>';
+        return;
+      }
+      host.innerHTML = '<div class="empty">正在读取移动端课堂提交、班级和作品数据...</div>';
+      const [teacherClassesResult, classSummaryResult, worksResult] = await Promise.allSettled([
+        serverBridge.listTeacherClasses('徐涛'),
+        serverBridge.listClassSummaries(),
+        serverBridge.listWorks()
+      ]);
+      const teacherClassesData = settledValue(teacherClassesResult, {});
+      const classSummaryData = settledValue(classSummaryResult, {});
+      const worksData = settledValue(worksResult, {});
+      const teacherClasses = Array.isArray(teacherClassesData.classes) ? teacherClassesData.classes : [];
+      const classRows = Array.isArray(classSummaryData.classes) ? classSummaryData.classes : [];
+      const relevantClassSet = new Set(teacherClasses);
+      const relevantRows = classRows.filter(item => !relevantClassSet.size || relevantClassSet.has(item.class_name || item.class));
+      const works = Array.isArray(worksData.files) ? worksData.files : [];
+      const recentWorks = works.slice(0, 6);
+      const hasAnyData = teacherClasses.length || relevantRows.length || recentWorks.length;
+      if (!hasAnyData) {
+        const errors = [teacherClassesResult, classSummaryResult, worksResult]
+          .filter(item => item.status === 'rejected')
+          .map(item => item.reason?.message || '读取失败')
+          .join('；');
+        host.innerHTML = `
+          <div class="list-item">
+            <strong>本地预览暂未读到服务器数据</strong>
+            <div class="guide-text">${errors ? escapeHtml(errors) : '可能是本地 file 预览跨域限制。部署到服务器同源后，会直接读取 /api。'}</div>
+            <div class="inline-actions" style="margin-top:10px">
+              <a class="btn" href="${legacyHref('student_submit_kiosk.html')}" target="_blank" rel="noopener">打开课堂提交机</a>
+              <a class="btn" href="${legacyHref('work_manage.html')}" target="_blank" rel="noopener">打开作品管理</a>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      const classSummary = relevantRows.slice(0, 5).map(item => `
+        <div class="list-item">
+          <div class="list-item-head">
+            <div>
+              <strong>${escapeHtml(item.class_name || item.class || '班级')}</strong>
+              <div class="detail-text tiny">${escapeHtml(item.grade || '')} · ${escapeHtml(item.total_students || 0)} 人 · ${escapeHtml(item.homework_count || 0)} 个作业</div>
+            </div>
+            <span class="status ${Number(item.avg_submission_rate || 0) >= 60 ? 'green' : 'amber'}">${escapeHtml(item.avg_submission_rate || 0)}%</span>
+          </div>
+        </div>
+      `).join('');
+      const workSummary = recentWorks.map(item => `
+        <a class="list-item" href="${item.absoluteUrl}" target="_blank" rel="noopener">
+          <div class="list-item-head">
+            <div>
+              <strong>${escapeHtml(item.studentName || item.name || '学生作品')}</strong>
+              <div class="detail-text tiny">${escapeHtml(item.className || '未识别班级')} · ${escapeHtml(item.topicName || '未识别课题')}</div>
+            </div>
+            <span class="status ${item.reviewStatus === '未评' ? 'amber' : 'green'}">${escapeHtml(item.reviewStatus || '作品')}</span>
+          </div>
+        </a>
+      `).join('');
+      host.innerHTML = `
+        <div class="identity-strip" style="margin-bottom:12px">
+          <div class="identity-item"><small>徐涛老师班级</small><strong>${teacherClasses.length || relevantRows.length} 个</strong></div>
+          <div class="identity-item"><small>作品文件</small><strong>${works.length} 件</strong></div>
+          <div class="identity-item"><small>最近作品</small><strong>${recentWorks.length} 件</strong></div>
+          <div class="identity-item"><small>读取方式</small><strong>${window.location.protocol === 'file:' ? '跨域预览' : '同源 API'}</strong></div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <h2 style="font-size:18px;margin:0 0 10px">班级提交概况</h2>
+            ${classSummary || '<div class="empty">服务器暂未返回班级概况。</div>'}
+          </div>
+          <div>
+            <h2 style="font-size:18px;margin:0 0 10px">最近进入作品池</h2>
+            ${workSummary || '<div class="empty">作品池暂时为空。</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStats(rows, active){
+      const allSlots = rows.flatMap(item => source.listSubmissionSlots({ assignment_instance_id: item.assignment_instance_id }));
+      const submitted = allSlots.filter(item => item.submit_status === '已交').length;
+      document.getElementById('assignmentStats').innerHTML = `
+        <div class="identity-item"><small>作业实例</small><strong>${rows.length} 个</strong></div>
+        <div class="identity-item"><small>提交槽</small><strong>${submitted}/${allSlots.length}</strong></div>
+        <div class="identity-item"><small>当前作业</small><strong>${active ? active.assignment_no : '—'}</strong></div>
+        <div class="identity-item"><small>状态</small><strong>${active ? active.release_status : '无作业'}</strong></div>
+      `;
+    }
+
+    function render(){
+      const rows = assignmentRows();
+      const active = activeAssignment(rows);
+      state.activeId = active?.assignment_instance_id || '';
+      renderStats(rows, active);
+      document.getElementById('legacySubmitBtn').href = legacyHref('student_submit_kiosk.html');
+      document.getElementById('legacyWorkTopBtn').href = legacyHref('work_manage.html');
+      document.getElementById('goEvaluationBtn').href = active ? `evaluation.html?assignment_instance_id=${active.assignment_instance_id}` : 'evaluation.html';
+      document.getElementById('assignmentList').innerHTML = rows.length ? rows.map(item => {
+        const task = taskForAssignment(item) || {};
+        const stats = submissionStats(item);
+        return `
+          <div class="list-item ${item.assignment_instance_id === state.activeId ? 'active' : ''}" data-assignment="${item.assignment_instance_id}">
+            <div class="list-item-head">
+              <div>
+                <strong>${task.topic_name || item.assignment_no}</strong>
+                <div class="detail-text tiny">${item.class_name} · ${item.assignment_type} · ${item.assignment_no}</div>
+              </div>
+              <span class="status ${stats.submitted >= stats.total ? 'green' : 'amber'}">${stats.submitted}/${stats.total}</span>
+            </div>
+            <div class="guide-text" style="margin-top:8px">${item.assignment_requirement}</div>
+          </div>
+        `;
+      }).join('') : '<div class="empty">当前没有需要回收的作业实例。</div>';
+      document.querySelectorAll('[data-assignment]').forEach(node => {
+        node.onclick = () => {
+          state.activeId = node.dataset.assignment;
+          render();
+        };
+      });
+      if (!active) {
+        document.getElementById('assignmentDetail').innerHTML = '<div class="empty">先从有作业的课进入。</div>';
+        document.getElementById('submissionList').innerHTML = '';
+        return;
+      }
+      const task = taskForAssignment(active) || {};
+      const stats = submissionStats(active);
+      document.getElementById('assignmentDetail').innerHTML = `
+        <div class="list-item"><strong>${task.topic_name || active.assignment_no}</strong><div class="detail-text tiny">${task.week_label || ''} · ${active.class_name}</div></div>
+        <div class="list-item"><strong>作业要求</strong><div class="guide-text">${active.assignment_requirement}</div></div>
+        <div class="list-item"><strong>评价快照</strong><div class="detail-text tiny">${Array.isArray(active.dimension_json_snapshot) && active.dimension_json_snapshot.length ? '已有维度快照' : '暂未冻结维度 JSON'}</div></div>
+        <div class="inline-actions">
+          <a class="btn" href="classroom.html?course_plan_item_id=${active.course_plan_item_id}&lesson_key=${task.lesson_key || ''}">回到上课</a>
+          <a class="btn" href="${legacyHref('student_submit_kiosk.html')}" target="_blank" rel="noopener">课堂提交机</a>
+          <a class="btn" href="${legacyHref('work_manage.html')}" target="_blank" rel="noopener">作品管理</a>
+          <a class="btn primary" href="evaluation.html?assignment_instance_id=${active.assignment_instance_id}">进入评价</a>
+        </div>
+      `;
+      document.getElementById('submissionList').innerHTML = stats.slots.map(slot => `
+        <div class="list-item">
+          <div class="list-item-head">
+            <div>
+              <strong>${slot.student_name}</strong>
+              <div class="detail-text tiny">${slot.class_name} · ${slot.student_id}</div>
+            </div>
+            <span class="status ${slot.submit_status === '已交' ? 'green' : 'rose'}">${slot.submit_status}</span>
+          </div>
+          <div class="inline-actions" style="margin-top:8px">
+            <span class="pill">${slot.submitted_at || '未记录提交时间'}</span>
+            <span class="pill">${slot.final_score ? `${slot.final_score} 分` : '待评价'}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    render();
+    renderServerAssignmentBridge();
+  </script>
+</body>
+</html>

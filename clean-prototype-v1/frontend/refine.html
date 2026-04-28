@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>精修页</title>
+  <title>精修运行稿</title>
   <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
 </head>
 <body>
   <div class="shell">
-    <main class="page">
+    <main class="page design-saas refine-page">
       <div class="page-head">
         <div class="page-title">
           <small>深改</small>
-          <h1>精修页</h1>
+          <h1>精修运行稿</h1>
         </div>
         <div class="head-actions">
           <a class="btn" id="backDraftBtn" href="draft.html?entry=rapid">返回快速版</a>
@@ -20,13 +21,13 @@
         </div>
       </div>
 
-      <section id="refineGuard" class="empty hide">请先从快速版进入</section>
+      <section id="refineGuard" class="empty hide">请先从课次备课进入</section>
       <div id="refineContent" class="section">
         <section class="identity-strip" id="refineIdentity"></section>
 
         <section class="split">
-          <article class="card">
-            <h2>公共主稿</h2>
+          <article class="card editor-card">
+            <h2>公共运行稿</h2>
             <div class="field">
               <label>本课核心抓手</label>
               <textarea id="mainCore"></textarea>
@@ -42,7 +43,7 @@
           </article>
 
           <aside class="section">
-            <article class="card">
+            <article class="card editor-card">
               <h2>班级差异</h2>
               <div class="tabs" id="classTabs"></div>
               <div class="field" style="margin-top:12px">
@@ -50,7 +51,7 @@
                 <textarea id="classAdjust"></textarea>
               </div>
             </article>
-            <article class="card">
+            <article class="card status-card">
               <h2>当前状态</h2>
               <div class="list" id="refineStatus"></div>
             </article>
@@ -60,10 +61,11 @@
     </main>
   </div>
 
+  <script src="feishu-real-data-v1.js"></script>
   <script src="prep_truth_source_v1.js"></script>
   <script src="clean-shell.js"></script>
   <script>
-    CLEAN_PROTO.mount({ page:'refine', title:'精修页', assistant:'refine' });
+    CLEAN_PROTO.mount({ page:'refine', title:'精修运行稿', assistant:'refine' });
     const source = window.XIAOBEI_PREP_TRUTH_SOURCE_V1;
     let currentTask = null;
     let currentClass = '';
@@ -73,26 +75,26 @@
       try { return JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (e) { return null; }
     }
     function taskFromContext(){
-      const queryTask = source.resolveLessonContextFromQuery();
-      if (queryTask) { source.writeLessonSelection(queryTask); return queryTask; }
+      const queryTask = source.resolveCoursePlanContextFromQuery();
+      if (queryTask) { source.writeCoursePlanSelection(queryTask); return queryTask; }
       const lesson = readJson(source.storage_keys.selected_context) || readJson(source.storage_keys.selected_context_legacy);
       if (!lesson) return null;
-      return source.findLessonTask({ course_plan_item_id: lesson.course_plan_item_id, lesson_key: lesson.lesson_key });
+      return source.findCoursePlanItem({ course_plan_item_id: lesson.course_plan_item_id, lesson_key: lesson.lesson_key });
     }
     function guard(){
       document.getElementById('refineGuard').classList.remove('hide');
       document.getElementById('refineContent').classList.add('hide');
-      document.getElementById('refineGuard').textContent = '请先从快速版进入精修';
+      document.getElementById('refineGuard').textContent = '请先从课次排课或快速版进入精修运行稿';
     }
     function siblingClasses(task){
-      return [...new Set(source.listLessonTasks().filter(item => item.topic_name === task.topic_name).map(item => item.class_name))];
+      return [...new Set(source.listCoursePlanItems().filter(item => item.topic_name === task.topic_name).map(item => item.class_name))];
     }
     function draftHref(task){
       return `draft.html?entry=rapid&course_plan_item_id=${task.course_plan_item_id}&lesson_key=${task.lesson_key}`;
     }
     function buildFallback(task){
-      const rapid = source.findLatestPrepDraft({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key, draft_mode:'rapid' });
-      const minimal = source.findLatestPrepDraft({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key, draft_mode:'minimal' });
+      const rapid = source.findLatestPrepRunDraft({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key, draft_mode:'rapid' });
+      const minimal = source.findLatestPrepRunDraft({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key, draft_mode:'minimal' });
       const base = rapid || minimal;
       return {
         main_core: base?.fields?.core_focus || `先抓 ${task.topic_name} 的整体效果，再放开细节装饰。`,
@@ -102,7 +104,7 @@
       };
     }
     function loadDraft(task){
-      const refine = source.findLatestPrepDraft({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key, draft_mode:'refine' });
+      const refine = source.findLatestPrepRunDraft({ course_plan_item_id: task.course_plan_item_id, lesson_key: task.lesson_key, draft_mode:'refine' });
       if (refine) return refine;
       return { fields: buildFallback(task), saved_at:'', draft_mode:'refine' };
     }
@@ -140,7 +142,7 @@
       document.getElementById('refineIdentity').innerHTML = `
         <div class="identity-item"><small>当前课时</small><strong>${task.topic_name}</strong></div>
         <div class="identity-item"><small>班级 / 节次</small><strong>${task.class_name} · ${task.day_label}${task.period}</strong></div>
-        <div class="identity-item"><small>当前阶段</small><strong>${source.describeLatestDraft(task).savedDraftLabel || '精修中'}</strong></div>
+        <div class="identity-item"><small>当前阶段</small><strong>${source.describeLatestPrepRun(task).savedDraftLabel || '精修中'}</strong></div>
         <div class="identity-item"><small>风险</small><strong>${task.risk_tag}</strong></div>
       `;
       document.getElementById('mainCore').value = currentDraft.fields.main_core || '';
@@ -151,13 +153,13 @@
       renderClassTabs(classes);
       renderClassAdjust();
       document.getElementById('refineStatus').innerHTML = `
-        <div class="list-item"><strong>最近保存</strong><div class="muted tiny">${currentDraft.saved_at ? new Date(currentDraft.saved_at).toLocaleString('zh-CN',{hour12:false}) : '当前还没有已保存精修稿'}</div></div>
+        <div class="list-item"><strong>最近保存</strong><div class="muted tiny">${currentDraft.saved_at ? new Date(currentDraft.saved_at).toLocaleString('zh-CN',{hour12:false}) : '当前还没有已保存精修运行稿'}</div></div>
         <div class="list-item"><strong>当前班级</strong><div class="muted tiny">${currentClass}</div></div>
-        <div class="list-item"><strong>稿链</strong><div class="muted tiny">同一节课，继续深改</div></div>
+        <div class="list-item"><strong>运行稿链</strong><div class="muted tiny">同一节已排课次，继续深改</div></div>
       `;
       document.getElementById('saveRefineBtn').onclick = () => {
         persistCurrentClass();
-        const saved = source.savePrepDraft(task, {
+        const saved = source.savePrepRun(task, {
           draft_mode:'refine',
           fields:{
             main_core: document.getElementById('mainCore').value,

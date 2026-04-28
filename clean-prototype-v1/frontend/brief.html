@@ -5,36 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>课前简报</title>
   <link rel="stylesheet" href="clean.css">
+  <link rel="stylesheet" href="design-saas.css">
 </head>
 <body>
   <div class="shell">
-    <main class="page">
+    <main class="page design-saas brief-page">
       <div class="page-head">
         <div class="page-title">
           <small id="briefTag">课前定向</small>
           <h1>课前简报</h1>
         </div>
         <div class="head-actions">
-          <a class="btn" id="backPickerBtn" href="picker.html">返回选课</a>
+          <a class="btn" id="backPickerBtn" href="picker.html">返回课次排课</a>
         </div>
       </div>
 
-      <section id="briefGuard" class="empty hide">请先选课</section>
+      <section id="briefGuard" class="empty hide">请先从课次排课进入</section>
 
       <div id="briefContent" class="section">
-        <section class="card hero">
+        <section class="card status-card hero">
           <div class="hero-meta" id="briefHeroMeta"></div>
         </section>
 
         <section class="identity-strip" id="briefIdentity"></section>
 
         <section class="grid-3">
-          <article class="card" id="cardFocus"></article>
-          <article class="card" id="cardRisk"></article>
-          <article class="card" id="cardSupport"></article>
+          <article class="card panel-card" id="cardFocus"></article>
+          <article class="card panel-card" id="cardRisk"></article>
+          <article class="card panel-card" id="cardSupport"></article>
         </section>
 
-        <section class="card">
+        <section class="card status-card">
           <h2>现在就做这一步</h2>
           <div class="list" id="decisionSummary"></div>
           <div class="inline-actions" id="nextActions" style="margin-top:12px"></div>
@@ -43,6 +44,7 @@
     </main>
   </div>
 
+  <script src="feishu-real-data-v1.js"></script>
   <script src="prep_truth_source_v1.js"></script>
   <script src="clean-shell.js"></script>
   <script>
@@ -59,14 +61,14 @@
     }
 
     function taskFromContext(){
-      const task = source.resolveLessonContextFromQuery();
-      if (task) {
-        source.writeLessonSelection(task);
-        return task;
+      const coursePlanItem = source.resolveCoursePlanContextFromQuery();
+      if (coursePlanItem) {
+        source.writeCoursePlanSelection(coursePlanItem);
+        return coursePlanItem;
       }
       const lesson = readJson(source.storage_keys.selected_context) || readJson(source.storage_keys.selected_context_legacy);
       if (!lesson) return null;
-      return source.findLessonTask({
+      return source.findCoursePlanItem({
         course_plan_item_id: lesson.course_plan_item_id,
         lesson_key: lesson.lesson_key
       });
@@ -96,12 +98,12 @@
       if (!task) {
         document.getElementById('briefGuard').classList.remove('hide');
         document.getElementById('briefContent').classList.add('hide');
-        document.getElementById('briefGuard').textContent = '请先从正式选课进入';
+        document.getElementById('briefGuard').textContent = '请先从课次排课进入';
         return;
       }
       const brief = source.buildBrief(task);
       const draftState = source.getPrepDraftState(task);
-      const latest = source.describeLatestDraft(task);
+      const latest = source.describeLatestPrepRun(task);
       document.getElementById('backPickerBtn').href = pickerHref(task);
       document.getElementById('briefTag').textContent = params.get('flow') === 'fast' ? '简短定向' : '课前定向';
       document.getElementById('briefHeroMeta').innerHTML = `
