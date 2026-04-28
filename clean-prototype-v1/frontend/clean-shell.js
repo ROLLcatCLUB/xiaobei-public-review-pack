@@ -2156,7 +2156,7 @@
         ]
       },
       {
-        href:'entry.html',
+        href:'calendar.html',
         label:'教学执行中心',
         desc:'学期安排 / 上课 / 作业 / 评价',
         icon:'execute',

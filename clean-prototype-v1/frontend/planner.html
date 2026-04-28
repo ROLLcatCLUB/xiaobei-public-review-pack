@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI 学期安排生成</title>
+  <title>教学执行中心 · 生成学期安排</title>
   <link rel="stylesheet" href="clean.css">
   <link rel="stylesheet" href="design-saas.css">
 </head>
@@ -12,11 +12,12 @@
     <main class="page design-saas planner-page">
       <div class="page-head">
         <div class="page-title">
+          <small>教学执行中心</small>
           <div class="saas-title-line">
-            <h1>AI 学期安排生成</h1>
+            <h1>生成学期安排</h1>
             <span class="saas-title-meta" id="plannerProfileMeta"></span>
           </div>
-          <p>先从教师课表、教材目录和节假日生成学期周历，再回到安排页确认和排课。</p>
+          <p>这是教学执行中心的上游工具：先生成学期周历草案，再回到“学期安排”确认、排课和进入后续执行链路。</p>
         </div>
         <div class="head-actions">
           <a class="btn" href="calendar.html">返回安排与排课</a>
@@ -140,9 +141,9 @@
 
   <script src="feishu-real-data-v1.js"></script>
   <script src="prep_truth_source_v1.js"></script>
-  <script src="clean-shell.js"></script>
+  <script src="clean-shell.js?v=exec-center-restore-20260428"></script>
   <script>
-    CLEAN_PROTO.mount({ page:'planner', title:'AI 学期安排生成', assistant:'planner' });
+    CLEAN_PROTO.mount({ page:'planner', title:'教学执行中心', assistant:'planner' });
     const DRAFT_KEY = 'xiaobei_semester_plan_draft_v1';
     const CURRENT_KEY = 'xiaobei_semester_plan_current_v1';
     const profile = CLEAN_PROTO.ensureProfile();
